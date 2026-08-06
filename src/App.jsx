@@ -1,39 +1,25 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Layout, Menu, Breadcrumb, Input, Tag, Spin, Result } from '@arco-design/web-react';
+import {
+  IconHome, IconUser, IconApps, IconStorage, IconCalendarClock, IconBranch,
+  IconCalendar, IconBook, IconList, IconSafe, IconCommon, IconSettings
+} from '@arco-design/web-react/icon';
 import { MODULES, NAV_GROUPS } from './modules.js';
 import { prepareEmbeddedDocument } from './embed.js';
 
-function NavIcon({ paths }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      {paths.map((d, i) => <path key={i} d={d} />)}
-    </svg>
-  );
-}
-
-// 与旧壳 platform-nav 一致的图标（从旧单体原样提取的 path 数据）
-const ICONS = {
-  home: ['M3 10.5 12 3l9 7.5', 'M5.5 9.5V21h13V9.5M9 21v-7h6v7'],
-  tenant: ['M4 21V7l8-4 8 4v14', 'M8 10h1m3 0h1m3 0h1M8 14h1m3 0h1m3 0h1M9 21v-3h6v3'],
-  business: ['M8 3v4m8-4v4M7 11h10m-10 4h6'],
-  businessRect: ['M8 3v4m8-4v4'],
-  wallet: ['M4 7.5h14a2 2 0 0 1 2 2V19H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h13v3.5', 'M15 12h6v4h-6a2 2 0 0 1 0-4Z'],
-  funds: [],
-  channel: [],
-  report: ['M5 20V10m7 10V4m7 16v-7'],
-  ledger: ['M6 4h12M6 9h12M6 14h12M6 19h12', 'M3 4h.01M3 9h.01M3 14h.01M3 19h.01'],
-  orders: [],
-  audit: ['M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6l-8-3Z', 'm9 12 2 2 4-4'],
-  tickets: ['M4 5h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V5Z', 'M9 8v8'],
-  system: [],
-  search: [],
-};
+const Sider = Layout.Sider;
+const Header = Layout.Header;
+const Content = Layout.Content;
+const MenuItem = Menu.Item;
+const SubMenu = Menu.SubMenu;
+const ItemGroup = Menu.ItemGroup;
 
 const MODULE_ICON = {
-  home: ICONS.home, 'tenant-list': ICONS.tenant, business: ICONS.business,
-  wallets: ICONS.wallet, funds: ICONS.funds, 'channel-vendors': ICONS.channel,
-  'tenant-daily-report': ICONS.report, 'channel-daily-report': ICONS.report,
-  ledger: ICONS.ledger, orders: ICONS.orders, audit: ICONS.audit,
-  tickets: ICONS.tickets, 'system-accounts': ICONS.system,
+  home: <IconHome />, 'tenant-list': <IconUser />, business: <IconApps />,
+  wallets: <IconStorage />, funds: <IconCalendarClock />, 'channel-vendors': <IconBranch />,
+  'tenant-daily-report': <IconCalendar />, 'channel-daily-report': <IconCalendar />,
+  ledger: <IconBook />, orders: <IconList />, audit: <IconSafe />,
+  tickets: <IconCommon />, 'system-accounts': <IconSettings />,
 };
 
 export default function App() {
@@ -41,7 +27,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const frameRef = useRef(null);
-  const searchRef = useRef(null);
+  const searchRef = useRef('');
 
   const openModule = useCallback(async (moduleId, hash) => {
     const target = MODULES[moduleId] || MODULES.home;
@@ -79,14 +65,13 @@ export default function App() {
     return () => window.removeEventListener('message', onMessage);
   }, [openModule, activeModule]);
 
-  const onShellSearch = (event) => {
-    if (event.key !== 'Enter') return;
+  const onShellSearch = (value) => {
     const childDocument = frameRef.current?.contentDocument;
     const target = childDocument?.querySelector(
       "#globalSearch, #keywordFilter, [data-page-filter='0'], input[type='search']"
     );
     if (!target) return;
-    target.value = searchRef.current.value;
+    target.value = value;
     target.dispatchEvent(new Event('input', { bubbles: true }));
     target.dispatchEvent(new Event('change', { bubbles: true }));
     target.focus();
@@ -100,57 +85,59 @@ export default function App() {
   };
 
   return (
-    <div className="bundle product-shell-mode">
-      <aside className="platform-sidebar">
+    <Layout style={{ height: '100vh' }}>
+      <Sider width={220} style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="platform-brand">
-          <span className="platform-brand-mark">HS</span>
-          <span className="platform-brand-copy"><strong>汇盛支付</strong><small>平台端控制台</small></span>
+          <Tag color="arcoblue" style={{ fontWeight: 600 }}>HS</Tag>
+          <span><strong>汇盛支付</strong><br /><small style={{ color: 'var(--color-text-3)' }}>平台端控制台</small></span>
         </div>
-        <nav className="platform-nav" aria-label="平台端完整业务目录">
+        <Menu
+          style={{ flex: 1, overflowY: 'auto' }}
+          selectedKeys={[activeModule]}
+          defaultOpenKeys={['report']}
+          onClickMenuItem={({ key }) => openModule(key)}
+        >
           {NAV_GROUPS.map(group => (
-            <section className="platform-nav-group" key={group.title}>
-              <h2>{group.title}</h2>
+            <ItemGroup key={group.title} title={group.title}>
               {group.subgroups?.map(sub => (
-                <div key={sub.title}>
-                  <div className="platform-nav-subgroup">{sub.title}</div>
-                  <div className="platform-nav-items">
-                    {sub.items.map(item => (
-                      <NavItem key={item.module} item={item} active={activeModule} onOpen={openModule} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {group.items && (
-                <div className="platform-nav-items">
-                  {group.items.map(item => (
-                    <NavItem key={item.module} item={item} active={activeModule} onOpen={openModule} />
+                <SubMenu key={sub.title === '日终统计' ? 'report' : sub.title} title={sub.title} icon={<IconCalendar />}>
+                  {sub.items.map(item => (
+                    <MenuItem key={item.module}>{item.label}</MenuItem>
                   ))}
-                </div>
-              )}
-            </section>
+                </SubMenu>
+              ))}
+              {group.items?.map(item => (
+                <MenuItem key={item.module}>{MODULE_ICON[item.module]}{item.label}</MenuItem>
+              ))}
+            </ItemGroup>
           ))}
-        </nav>
-      </aside>
-      <main className="platform-main">
-        <div className="platform-toolbar">
-          <div className="platform-breadcrumb">
-            <strong>平台端</strong><span>/</span><span>{navLabel(activeTarget.navId || activeModule)}</span>
+        </Menu>
+      </Sider>
+      <Layout>
+        <Header style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px' }}>
+          <Breadcrumb>
+            <Breadcrumb.Item>平台端</Breadcrumb.Item>
+            <Breadcrumb.Item>{navLabel(activeTarget.navId || activeModule)}</Breadcrumb.Item>
+          </Breadcrumb>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Input.Search
+              style={{ width: 280 }}
+              placeholder="搜索租户、订单、通道、审计单号"
+              onChange={v => { searchRef.current = v; }}
+              onSearch={onShellSearch}
+            />
+            <Tag color="green">生产只读</Tag>
+            <Tag color="arcoblue">平台超管</Tag>
           </div>
-          <div className="platform-toolbar-actions">
-            <label className="platform-search">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></svg>
-              <input ref={searchRef} type="search" placeholder="搜索租户、订单、通道、审计单号" aria-label="平台全局搜索" onKeyDown={onShellSearch} />
-            </label>
-            <span className="platform-chip success">生产只读</span>
-            <span className="platform-chip primary">平台超管</span>
-          </div>
-        </div>
-        <main className="frame-shell">
+        </Header>
+        <Content style={{ position: 'relative', flex: 1, minHeight: 0 }}>
           {loading && !error && (
-            <div className="loading"><div className="loading-card"><i className="spinner" /><span>正在载入审查页面</span></div></div>
+            <div className="frame-overlay"><Spin tip="正在载入审查页面" /></div>
           )}
           {error && (
-            <div className="loading"><div className="loading-card">页面来源缺失：{error}</div></div>
+            <div className="frame-overlay">
+              <Result status="error" title="页面来源缺失" subTitle={error} />
+            </div>
           )}
           <iframe
             ref={frameRef}
@@ -158,27 +145,8 @@ export default function App() {
             referrerPolicy="no-referrer"
             onLoad={() => setLoading(false)}
           />
-        </main>
-      </main>
-    </div>
-  );
-}
-
-function NavItem({ item, active, onOpen }) {
-  const isActive = active === item.module || (MODULES[active]?.navId === item.module);
-  const icon = MODULE_ICON[item.module];
-  return (
-    <button
-      type="button"
-      className={`platform-nav-item${item.level === 3 ? ' level-3' : ''}${isActive ? ' active' : ''}`}
-      data-module={item.module}
-      title={item.label}
-      aria-label={item.label}
-      aria-current={isActive ? 'page' : 'false'}
-      onClick={() => onOpen(item.module)}
-    >
-      {icon?.length ? <NavIcon paths={icon} /> : null}
-      <span>{item.label}</span>
-    </button>
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
