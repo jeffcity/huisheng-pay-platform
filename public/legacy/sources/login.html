@@ -1,0 +1,2123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>汇盛支付平台端控制台 - 登录</title>
+  <script src="../platform-auth-route-guard.js"></script>
+  <style>
+    :root {
+      --font-ui: "Avenir Next", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "SFMono-Regular", "Fira Code", Consolas, monospace;
+      --color-primary: #145fe8;
+      --color-primary-hover: #0f52cc;
+      --color-primary-light: #e8f3ff;
+      --color-bg-page: #f5f7fb;
+      --color-bg-surface: #ffffff;
+      --color-bg-subtle: #f7f8fa;
+      --color-border: #e5e6eb;
+      --color-border-strong: #d8dde8;
+      --color-text-primary: #1d2129;
+      --color-text-secondary: #4e5969;
+      --color-text-tertiary: #626d7b;
+      --color-success: #087a55;
+      --color-success-light: #e8fff3;
+      --color-warning: #8a4b00;
+      --color-warning-light: #fff7e8;
+      --color-danger: #cf1f1f;
+      --color-danger-light: #fff0ed;
+      --color-info: #0e7490;
+      --color-info-light: #e6fffb;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --spacing-control: 32px;
+      --shadow-panel: 0 22px 54px rgba(29, 33, 41, 0.12);
+      --rail-bg: #101827;
+      --rail-bg-soft: #162033;
+      --rail-border: rgba(255, 255, 255, 0.12);
+      --rail-text: #f8fafc;
+      --rail-muted: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-ui);
+      color: var(--color-text-primary);
+      background:
+        linear-gradient(135deg, rgba(20, 95, 232, 0.08), rgba(8, 122, 85, 0.05)),
+        var(--color-bg-page);
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .app-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+    }
+
+    .access-rail {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 32px;
+      color: var(--rail-text);
+      background:
+        linear-gradient(145deg, rgba(20, 95, 232, 0.24), rgba(16, 24, 39, 0) 42%),
+        var(--rail-bg);
+      isolation: isolate;
+    }
+
+    .access-rail::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.34;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, #000 0%, transparent 88%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.24);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .brand-subtitle {
+      margin: 4px 0 0;
+      color: var(--rail-muted);
+      opacity: 0.76;
+      font-size: 13px;
+    }
+
+    .rail-headline {
+      margin-top: 72px;
+      max-width: 340px;
+    }
+
+    .rail-headline h1 {
+      margin: 0;
+      font-size: 36px;
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    .rail-headline p {
+      margin: 14px 0 0;
+      color: var(--rail-muted);
+      opacity: 0.78;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .rail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .mobile-security-disclosure {
+      display: none;
+    }
+
+    .mobile-security-disclosure summary {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 12px;
+      border: 1px solid var(--rail-border);
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+      list-style: none;
+      font-size: 13px;
+      font-weight: 700;
+      touch-action: manipulation;
+    }
+
+    .mobile-security-disclosure summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .mobile-security-summary-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mobile-security-chevron {
+      width: 16px;
+      height: 16px;
+      transition: transform 180ms ease;
+    }
+
+    .mobile-security-disclosure[open] .mobile-security-chevron {
+      transform: rotate(180deg);
+    }
+
+    .mobile-security-list {
+      margin: 8px 0 0;
+      padding: 10px 12px 10px 30px;
+      border: 1px solid var(--rail-border);
+      border-radius: var(--radius-md);
+      color: var(--rail-muted);
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .rail-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--rail-border);
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.07);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .rail-section {
+      display: grid;
+      gap: 14px;
+    }
+
+    .rail-section-title {
+      margin: 0;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .security-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .security-item {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      min-width: 0;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--rail-border);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .security-icon {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: #bfdbfe;
+      background: rgba(20, 95, 232, 0.18);
+    }
+
+    .security-item strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .security-item span {
+      display: block;
+      margin-top: 3px;
+      color: var(--rail-muted);
+      opacity: 0.78;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .scenario-panel {
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--rail-border);
+      border-radius: var(--radius-lg);
+      background: rgba(16, 24, 39, 0.46);
+    }
+
+    body:not(.review-mode) .scenario-panel {
+      display: none;
+    }
+
+    .scenario-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .scenario-button {
+      min-height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-md);
+      color: var(--rail-text);
+      background: rgba(255, 255, 255, 0.06);
+      transition: border-color 180ms ease, background 180ms ease;
+    }
+
+    .scenario-button:hover,
+    .scenario-button.is-active {
+      border-color: rgba(64, 128, 255, 0.88);
+      background: rgba(20, 95, 232, 0.24);
+    }
+
+    .login-main {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .login-column {
+      width: min(100%, 520px);
+      display: grid;
+      gap: 14px;
+    }
+
+    .login-panel {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-surface);
+      box-shadow: var(--shadow-panel);
+      overflow: visible;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 24px 18px;
+      border-bottom: 1px solid var(--color-border);
+      background: linear-gradient(180deg, #ffffff, #fbfcff);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .panel-copy {
+      margin: 8px 0 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-tag.info {
+      color: var(--color-info);
+      background: var(--color-info-light);
+    }
+
+    .status-tag.success {
+      color: var(--color-success);
+      background: var(--color-success-light);
+    }
+
+    .status-tag.warning {
+      color: var(--color-warning);
+      background: var(--color-warning-light);
+    }
+
+    .status-tag.danger {
+      color: var(--color-danger);
+      background: var(--color-danger-light);
+    }
+
+    .view-panel {
+      padding: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--color-text-primary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .field-hint {
+      color: var(--color-text-tertiary);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap .input-icon {
+      position: absolute;
+      left: 11px;
+      width: 16px;
+      height: 16px;
+      color: var(--color-text-tertiary);
+      pointer-events: none;
+    }
+
+    .input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      padding: 0 12px 0 36px;
+      color: var(--color-text-primary);
+      background: #ffffff;
+      outline: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .input.mono {
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+    }
+
+    .input::placeholder {
+      color: var(--color-text-tertiary);
+      letter-spacing: 0;
+    }
+
+    .input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(20, 95, 232, 0.12);
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 4px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: var(--color-text-secondary);
+      background: transparent;
+    }
+
+    .password-toggle:hover {
+      background: var(--color-bg-subtle);
+      color: var(--color-primary);
+    }
+
+    .input-wrap.has-action .input {
+      padding-right: 42px;
+    }
+
+    .field-error {
+      display: none;
+      color: var(--color-danger);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .field.is-invalid .field-error {
+      display: block;
+    }
+
+    .field.is-invalid .input {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 3px rgba(207, 31, 31, 0.08);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      padding: 0 16px;
+      font-weight: 700;
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+
+    .button.primary {
+      min-width: 132px;
+      color: #ffffff;
+      background: var(--color-primary);
+    }
+
+    .button.primary:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+    }
+
+    .button.secondary {
+      color: var(--color-text-primary);
+      border-color: var(--color-border-strong);
+      background: #ffffff;
+    }
+
+    .button.secondary:hover {
+      border-color: var(--color-primary-hover);
+      color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+
+    .text-link {
+      border: 0;
+      padding: 0;
+      color: var(--color-primary);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .text-link:hover {
+      color: var(--color-primary-hover);
+    }
+
+    .alert {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .alert.info {
+      color: var(--color-info);
+      background: var(--color-info-light);
+    }
+
+    .alert.success {
+      color: var(--color-success);
+      background: var(--color-success-light);
+    }
+
+    .alert.warning {
+      color: var(--color-warning);
+      background: var(--color-warning-light);
+    }
+
+    .alert.danger {
+      color: var(--color-danger);
+      background: var(--color-danger-light);
+    }
+
+    .alert-title {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .alert-copy {
+      margin: 2px 0 0;
+      color: inherit;
+    }
+
+    .result-box {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .result-box.is-visible {
+      display: block;
+    }
+
+    .bind-layout {
+      display: grid;
+      grid-template-columns: 148px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      margin: 18px 0;
+    }
+
+    .mock-qr {
+      width: 148px;
+      aspect-ratio: 1;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      background: #ffffff;
+    }
+
+    .mock-qr-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 3px;
+    }
+
+    .qr-cell {
+      border-radius: 2px;
+      background: #dce3ef;
+    }
+
+    .qr-cell.fill {
+      background: #101827;
+    }
+
+    .bind-copy {
+      display: grid;
+      gap: 10px;
+    }
+
+    .secret-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-subtle);
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .summary-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      background: var(--color-bg-subtle);
+      font-size: 13px;
+    }
+
+    .summary-list strong {
+      color: var(--color-text-primary);
+      font-weight: 700;
+    }
+
+    .foot-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--color-text-secondary);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .foot-strip span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      width: min(360px, calc(100vw - 32px));
+      padding: 14px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-bg-surface);
+      box-shadow: 0 18px 46px rgba(29, 33, 41, 0.16);
+    }
+
+    .toast.is-visible {
+      display: flex;
+    }
+
+    .toast strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    .toast span {
+      color: var(--color-text-secondary);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    :focus-visible {
+      outline: 3px solid #ffffff;
+      box-shadow: 0 0 0 5px #145fe8;
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .access-rail {
+        padding: 24px;
+      }
+
+      .rail-headline {
+        margin-top: 30px;
+        max-width: none;
+      }
+
+      .login-main {
+        padding: 24px;
+        align-items: start;
+      }
+
+      .scenario-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .access-rail,
+      .login-main {
+        padding: 18px;
+      }
+
+      .rail-headline h1 {
+        font-size: 28px;
+      }
+
+      .rail-headline {
+        margin-top: 22px;
+      }
+
+      .access-rail {
+        gap: 0;
+      }
+
+      .rail-section {
+        display: none;
+      }
+
+      .mobile-security-disclosure {
+        display: block;
+        margin-top: 14px;
+      }
+
+      .panel-header,
+      .view-panel {
+        padding: 18px;
+      }
+
+      #loginForm {
+        gap: 16px;
+      }
+
+      #loginForm .actions {
+        margin-top: 0;
+      }
+
+      .panel-header,
+      .actions,
+      .foot-strip {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .status-tag,
+      .button.primary,
+      .button.secondary {
+        width: 100%;
+      }
+
+      .scenario-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .scenario-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .scenario-header .status-tag {
+        width: auto;
+        justify-content: center;
+      }
+
+      .bind-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .mock-qr {
+        width: min(188px, 100%);
+      }
+    }
+    /* 三端共用：键盘、动效与窄屏触控基线 */
+    :focus-visible {
+      outline: 3px solid #ffffff;
+      box-shadow: 0 0 0 5px #145fe8;
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      button,
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea,
+      [role="button"] {
+        min-height: 44px !important;
+      }
+
+      button,
+      [role="button"] {
+        min-width: 44px !important;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+    }
+
+    /* 三端统一视觉与响应式基线（2026-07-18） */
+    :root {
+      --font-ui: "Avenir Next", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font: var(--font-ui);
+      --color-primary: #145fe8;
+      --color-primary-hover: #0f52cc;
+      --color-primary-light: #e8f3ff;
+      --primary: var(--color-primary);
+      --primary-hover: var(--color-primary-hover);
+      --primary-strong: var(--color-primary-hover);
+      --primary-light: var(--color-primary-light);
+      --primary-soft: var(--color-primary-light);
+      --color-bg-page: #f5f7fb;
+      --color-bg-surface: #ffffff;
+      --color-bg-subtle: #f7f8fa;
+      --bg: var(--color-bg-page);
+      --bg-main: var(--color-bg-page);
+      --bg-page: var(--color-bg-page);
+      --color-bg-2: var(--color-bg-page);
+      --surface: var(--color-bg-surface);
+      --bg-card: var(--color-bg-surface);
+      --bg-surface: var(--color-bg-surface);
+      --color-bg-1: var(--color-bg-surface);
+      --surface-soft: var(--color-bg-subtle);
+      --surface-strong: var(--color-bg-subtle);
+      --bg-muted: var(--color-bg-subtle);
+      --bg-subtle: var(--color-bg-subtle);
+      --color-fill-1: var(--color-bg-subtle);
+      --color-border: #e5e6eb;
+      --color-border-strong: #d8dde8;
+      --border: var(--color-border);
+      --line: var(--color-border);
+      --border-strong: var(--color-border-strong);
+      --line-strong: var(--color-border-strong);
+      --color-text-primary: #1d2129;
+      --color-text-secondary: #4e5969;
+      --color-text-tertiary: #626d7b;
+      --text: var(--color-text-primary);
+      --text-primary: var(--color-text-primary);
+      --text-strong: var(--color-text-primary);
+      --color-text-1: var(--color-text-primary);
+      --text-secondary: var(--color-text-secondary);
+      --text-main: var(--color-text-secondary);
+      --color-text-2: var(--color-text-secondary);
+      --text-tertiary: var(--color-text-tertiary);
+      --text-muted: var(--color-text-tertiary);
+      --color-text-3: var(--color-text-tertiary);
+      --color-success: #087a55;
+      --color-success-light: #e8fff3;
+      --success: var(--color-success);
+      --success-light: var(--color-success-light);
+      --color-status-success: var(--color-success);
+      --color-warning: #8a4b00;
+      --color-warning-light: #fff7e8;
+      --warning: var(--color-warning);
+      --warning-light: var(--color-warning-light);
+      --accent: var(--color-warning);
+      --accent-soft: var(--color-warning-light);
+      --color-status-warning: var(--color-warning);
+      --color-danger: #cf1f1f;
+      --color-danger-light: #fff0ed;
+      --danger: var(--color-danger);
+      --danger-light: var(--color-danger-light);
+      --color-status-danger: var(--color-danger);
+      --color-info: #0e7490;
+      --color-info-light: #e6fffb;
+      --info: var(--color-info);
+      --info-soft: var(--color-info-light);
+      --cyan: var(--color-info);
+      --color-purple: var(--color-info);
+      --color-purple-light: var(--color-info-light);
+      --color-status-info: var(--color-info);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-small: var(--radius-sm);
+      --radius-medium: var(--radius-md);
+      --radius-large: var(--radius-lg);
+      --radius: var(--radius-md);
+      --sidebar-width: 248px;
+      --rail-width: var(--sidebar-width);
+      --bg-rail: #111827;
+      --sidebar: #111827;
+      --rail-bg: #111827;
+      --topbar-height: 56px;
+      --shadow-modal: 0 18px 48px rgba(29, 33, 41, 0.18);
+      --shadow-pop: var(--shadow-modal);
+      --shadow-popover: var(--shadow-modal);
+    }
+
+    html { color-scheme: light; }
+
+    body {
+      font-family: var(--font-ui) !important;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text-primary);
+      background-color: var(--color-bg-page);
+    }
+
+    button,
+    [role="button"] {
+      min-height: 32px !important;
+      border-radius: var(--radius-md) !important;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      min-height: 32px !important;
+      border-radius: var(--radius-md) !important;
+    }
+
+    :focus-visible,
+    [role="dialog"] :focus {
+      outline: 3px solid #ffffff !important;
+      box-shadow: 0 0 0 5px #145fe8 !important;
+      outline-offset: 2px !important;
+    }
+
+    .sidebar { background: #111827 !important; }
+    .topbar { min-height: var(--topbar-height); }
+    table thead th,
+    .data-table th { background: var(--color-bg-subtle) !important; }
+    table tbody td {
+      padding-top: 11px !important;
+      padding-bottom: 11px !important;
+    }
+    .modal-dialog,
+    .dialog,
+    [role="dialog"]:not(.modal-backdrop),
+    .auth-shell {
+      border-radius: var(--radius-lg) !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      button,
+      [role="button"] {
+        min-width: 44px !important;
+        min-height: 44px !important;
+      }
+
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea {
+        min-height: 44px !important;
+        font-size: 16px !important;
+      }
+
+      .topbar {
+        height: auto !important;
+        min-height: var(--topbar-height);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="access-rail" aria-label="平台端访问上下文">
+      <div>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">HS</span>
+          <div>
+            <p class="brand-title">汇盛支付平台端</p>
+            <p class="brand-subtitle">平台端控制台</p>
+          </div>
+        </div>
+
+        <div class="rail-headline">
+          <h1>平台内部安全登录</h1>
+          <p>仅授权平台账号可以访问。登录结果与异常动作将进入安全审计。</p>
+          <div class="rail-tags" aria-label="登录环境">
+            <span class="rail-tag"><i data-lucide="server" class="icon"></i>生产环境</span>
+            <span class="rail-tag"><i data-lucide="shield-check" class="icon"></i>Google 2FA</span>
+            <span class="rail-tag"><i data-lucide="lock-keyhole" class="icon"></i>受控访问</span>
+          </div>
+          <details class="mobile-security-disclosure">
+            <summary>
+              <span class="mobile-security-summary-label"><i data-lucide="shield-check" class="icon"></i>查看安全边界</span>
+              <i data-lucide="chevron-down" class="mobile-security-chevron" aria-hidden="true"></i>
+            </summary>
+            <ul class="mobile-security-list">
+              <li>平台端账号独立于租户端和商户端账号。</li>
+              <li>账号、密码和 Google 2FA 必须同时通过。</li>
+              <li>成功、失败、锁定、拦截和绑定结果均进入审计。</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <div class="rail-section">
+        <p class="rail-section-title">安全边界</p>
+        <div class="security-list">
+          <div class="security-item">
+            <span class="security-icon"><i data-lucide="user-check" class="icon"></i></span>
+            <div>
+              <strong>平台账号</strong>
+              <span>平台端账号独立于租户端和商户端账号。</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <span class="security-icon"><i data-lucide="scan-line" class="icon"></i></span>
+            <div>
+              <strong>2FA 强制</strong>
+              <span>登录需要账号、密码和 Google 2FA 同时通过。</span>
+            </div>
+          </div>
+          <div class="security-item">
+            <span class="security-icon"><i data-lucide="file-clock" class="icon"></i></span>
+            <div>
+              <strong>审计留痕</strong>
+              <span>成功、失败、锁定、拦截和绑定结果都应可追踪。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scenario-panel" aria-label="验收场景">
+        <div class="scenario-header">
+          <span>验收场景</span>
+          <span class="status-tag info" id="scenarioTag">正常登录</span>
+        </div>
+        <div class="scenario-grid">
+          <button class="scenario-button is-active" type="button" data-scenario="success">成功</button>
+          <button class="scenario-button" type="button" data-scenario="bind">绑定 2FA</button>
+          <button class="scenario-button" type="button" data-scenario="blocked">安全拦截</button>
+          <button class="scenario-button" type="button" data-scenario="noperm">无权限</button>
+          <button class="scenario-button" type="button" data-scenario="tenantonly">首个租户页</button>
+          <button class="scenario-button" type="button" data-scenario="fundsonly">仅资金待办</button>
+          <button class="scenario-button" type="button" data-scenario="feesonly">仅套餐费率</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="login-main">
+      <div class="login-column">
+        <section class="login-panel" aria-label="平台端登录">
+          <header class="panel-header">
+            <div>
+              <h2 class="panel-title" id="panelTitle">登录平台端</h2>
+              <p class="panel-copy" id="panelCopy">输入平台账号、密码和 Google 2FA 验证码。</p>
+            </div>
+            <span class="status-tag info" id="panelTag"><i data-lucide="badge-check" class="icon"></i>平台端</span>
+          </header>
+
+          <section class="view-panel" data-view="login">
+            <form class="form-grid" id="loginForm" novalidate>
+              <div class="field" data-field="account">
+                <div class="field-label">
+                  <label for="account">账号</label>
+                  <span class="field-hint">平台内部账号</span>
+                </div>
+                <div class="input-wrap">
+                  <i data-lucide="user" class="input-icon"></i>
+                  <input class="input" id="account" name="account" autocomplete="username" placeholder="请输入账号">
+                </div>
+                <span class="field-error" role="alert">请输入平台账号。</span>
+              </div>
+
+              <div class="field" data-field="password">
+                <div class="field-label">
+                  <label for="password">密码</label>
+                  <button class="text-link" type="button" id="adminHelp">联系管理员</button>
+                </div>
+                <div class="input-wrap has-action">
+                  <i data-lucide="lock" class="input-icon"></i>
+                  <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码">
+                  <button class="password-toggle" type="button" id="togglePassword" aria-label="显示或隐藏密码" title="显示或隐藏密码">
+                    <i data-lucide="eye" class="icon"></i>
+                  </button>
+                </div>
+                <span class="field-error" role="alert">请输入密码。</span>
+              </div>
+
+              <div class="field" data-field="otp">
+                <div class="field-label">
+                  <label for="otp">Google 2FA</label>
+                  <span class="field-hint">6 位验证码</span>
+                </div>
+                <div class="input-wrap">
+                  <i data-lucide="key-round" class="input-icon"></i>
+                  <input class="input mono" id="otp" name="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+                </div>
+                <span class="field-error" role="alert">请输入 6 位 Google 2FA 验证码。</span>
+              </div>
+
+              <div class="actions">
+                <button class="button primary" type="submit" id="loginButton">
+                  <i data-lucide="log-in" class="icon"></i>
+                  <span>登录</span>
+                </button>
+                <button class="button secondary" type="button" id="clearButton">清空</button>
+              </div>
+
+              <div class="alert info login-authorization-note">
+                <i data-lucide="info" class="icon"></i>
+                <div>
+                  <p class="alert-title">授权访问</p>
+                  <p class="alert-copy">请确认当前为平台端生产环境。登录操作会被记录。</p>
+                </div>
+              </div>
+            </form>
+
+            <div class="result-box" id="loginResult" aria-live="polite"></div>
+            <a class="button primary" id="loginRouteLink" hidden></a>
+          </section>
+
+          <section class="view-panel" data-view="bind" hidden>
+            <div class="alert warning">
+              <i data-lucide="shield-alert" class="icon"></i>
+              <div>
+                <p class="alert-title">需要绑定 Google 2FA</p>
+                <p class="alert-copy">账号密码已通过。完成绑定后才能进入平台端。</p>
+              </div>
+            </div>
+
+            <div class="bind-layout">
+              <div class="mock-qr" aria-label="Google 2FA 绑定二维码样例">
+                <div class="mock-qr-grid" id="mockQr"></div>
+              </div>
+              <div class="bind-copy">
+                <div class="secret-line">
+                  <span>JBSW **** **** 7K9P</span>
+                </div>
+                <ul class="summary-list">
+                  <li><span>账号状态</span><strong>需绑定 2FA</strong></li>
+                  <li><span>绑定结果</span><strong>成功后继续登录</strong></li>
+                  <li><span>恢复码</span><strong>本轮不展示</strong></li>
+                </ul>
+              </div>
+            </div>
+
+            <form class="form-grid" id="bindForm" novalidate>
+              <div class="field" data-field="bindOtp">
+                <div class="field-label">
+                  <label for="bindOtp">绑定验证码</label>
+                  <span class="field-hint">Google Authenticator</span>
+                </div>
+                <div class="input-wrap">
+                  <i data-lucide="key-round" class="input-icon"></i>
+                  <input class="input mono" id="bindOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="请输入 6 位验证码">
+                </div>
+                <span class="field-error" role="alert">请输入 6 位验证码。</span>
+              </div>
+
+              <div class="actions">
+                <button class="button primary" type="submit" id="bindButton">
+                  <i data-lucide="shield-check" class="icon"></i>
+                  <span>确认绑定并登录</span>
+                </button>
+                <button class="button secondary" type="button" id="backLogin">返回登录</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="view-panel" data-view="exception" hidden>
+            <div class="alert danger">
+              <i data-lucide="octagon-alert" class="icon"></i>
+              <div>
+                <p class="alert-title" id="exceptionTitle">登录暂不可用</p>
+                <p class="alert-copy" id="exceptionCopy">请检查输入信息，或联系平台管理员。</p>
+              </div>
+            </div>
+
+            <ul class="summary-list" style="margin-top: 18px;">
+              <li><span>页面反馈</span><strong id="exceptionFeedback">安全中性提示</strong></li>
+              <li><span>审计结果</span><strong id="exceptionAudit">写入安全事件</strong></li>
+              <li><span>下一步</span><strong id="exceptionNext">联系管理员</strong></li>
+            </ul>
+
+            <div class="actions" style="margin-top: 18px;">
+              <button class="button primary" type="button" id="tryAgain">
+                <i data-lucide="rotate-ccw" class="icon"></i>
+                <span>返回登录</span>
+              </button>
+              <button class="button secondary" type="button" id="exceptionHelp">联系管理员</button>
+            </div>
+          </section>
+        </section>
+
+        <div class="foot-strip">
+          <span><i data-lucide="monitor-check" class="icon"></i>建议桌面浏览器访问</span>
+          <span><i data-lucide="file-search" class="icon"></i>登录后按角色进入授权页面</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <i data-lucide="circle-check" class="icon"></i>
+    <div>
+      <strong id="toastTitle">操作完成</strong>
+      <span id="toastCopy">状态已更新。</span>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    (() => {
+    const platformLoginIssuer = window.HSPlatformAuthRouteGuard?.registerLoginIssuer();
+    const reviewMode = new URLSearchParams(window.location.search).get("review") === "1";
+    document.body.classList.toggle("review-mode", reviewMode);
+
+    const profiles = {
+      success: {
+        label: "正常登录",
+        account: "platform.ops.demo",
+        password: "DemoPass2026",
+        otp: "246810",
+        tag: "平台端",
+        copy: "输入平台账号、密码和 Google 2FA 验证码。"
+      },
+      bind: {
+        label: "绑定 2FA",
+        account: "first.login.demo",
+        password: "DemoPass2026",
+        otp: "",
+        tag: "需绑定",
+        copy: "账号密码通过后进入 2FA 绑定流程。"
+      },
+      blocked: {
+        label: "安全拦截",
+        account: "blocked.demo",
+        password: "DemoPass2026",
+        otp: "111111",
+        tag: "安全拦截",
+        copy: "异常提示保持中性，策略细节进入审计日志。"
+      },
+      noperm: {
+        label: "无权限",
+        account: "readonly.demo",
+        password: "DemoPass2026",
+        otp: "135790",
+        tag: "无可用权限",
+        copy: "认证通过后仍需按角色和菜单权限进入默认页面。"
+      },
+      tenantonly: {
+        label: "首个租户页",
+        account: "risk.chen",
+        password: "DemoPass2026",
+        otp: "357924",
+        tag: "租户管理",
+        copy: "无首页权限时按平台导航顺序进入首个有效页面。"
+      },
+      fundsonly: {
+        label: "仅资金待办",
+        account: "funds.only.demo",
+        password: "DemoPass2026",
+        otp: "468135",
+        tag: "资金待办",
+        copy: "只授予资金待办页面权限，不由动作权限产生入口。"
+      },
+      feesonly: {
+        label: "仅套餐费率",
+        account: "fees.only.demo",
+        password: "DemoPass2026",
+        otp: "579246",
+        tag: "套餐费率",
+        copy: "验证导航目录末段页面可以成为登录目标。"
+      }
+    };
+
+    const platformLoginNavigation = [
+      { id: "home", label: "首页数据看板", type: "page", pagePermission: "platform.dashboard.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#home", visible: true, enabled: true },
+      { id: "tenants", label: "租户管理", type: "page", pagePermission: "platform.tenant.view", href: "../01-租户管理/平台端租户管理-demo.html", visible: true, enabled: true },
+      { id: "business", label: "业务开通", type: "page", pagePermission: "platform.business_grant.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#business", visible: true, enabled: true },
+      { id: "wallets", label: "租户平台钱包", type: "page", pagePermission: "platform.wallet.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#wallets", visible: true, enabled: true },
+      { id: "funds", label: "资金待办", type: "page", pagePermission: "platform.fund_task.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#funds", visible: true, enabled: true },
+      { id: "channels", label: "通道管理", type: "page", pagePermission: "platform.channel.view", href: "../03-通道管理/平台端通道管理-demo.html", visible: true, enabled: true },
+      { id: "report", label: "租户整体报表", type: "page", pagePermission: "platform.report.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#report", visible: true, enabled: true },
+      { id: "ledger", label: "租户整体流水", type: "page", pagePermission: "platform.ledger.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#ledger", visible: true, enabled: true },
+      { id: "orders", label: "全局订单查询", type: "page", pagePermission: "platform.order.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#orders", visible: true, enabled: true },
+      { id: "audit", label: "审计日志", type: "page", pagePermission: "platform.audit.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#audit", visible: true, enabled: true },
+      { id: "tickets", label: "租户协同工单", type: "page", pagePermission: "platform.ticket.view", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#tickets", visible: true, enabled: true },
+      { id: "users", label: "用户与角色", type: "page", pagePermission: "platform.user.manage", href: "../10-系统管理/平台端系统管理-demo.html#users", visible: true, enabled: true },
+      { id: "security", label: "安全配置", type: "page", pagePermission: "platform.security.whitelist.view", href: "../10-系统管理/平台端系统管理-demo.html#security", visible: true, enabled: true },
+      { id: "menus", label: "菜单管理", type: "page", pagePermission: "platform.menu.manage", href: "../10-系统管理/平台端系统管理-demo.html#menus", visible: true, enabled: true },
+      { id: "fees", label: "套餐费率", type: "page", pagePermission: "platform.fee_package.view", href: "../10-系统管理/平台端系统管理-demo.html#fees", visible: true, enabled: true },
+      { id: "directory-sentinel", label: "目录哨兵", type: "directory", pagePermission: "platform.invalid.directory", href: "", visible: true, enabled: true },
+      { id: "hidden-sentinel", label: "隐藏哨兵", type: "page", pagePermission: "platform.invalid.hidden", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#home", visible: false, enabled: true },
+      { id: "disabled-sentinel", label: "停用哨兵", type: "page", pagePermission: "platform.invalid.disabled", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#home", visible: true, enabled: false },
+      { id: "empty-route-sentinel", label: "空地址哨兵", type: "page", pagePermission: "platform.invalid.empty", href: "", visible: true, enabled: true }
+    ];
+
+    const platformPagePermissionOrder = platformLoginNavigation.slice(0, 15).map((item) => item.pagePermission);
+    const knownPlatformPagePermissions = new Set(platformPagePermissionOrder);
+    const allowedPlatformRouteHrefs = new Set(platformLoginNavigation.slice(0, 15).map((item) => item.href));
+    const platformReviewPermissionFactOverrides = new Map();
+    const reviewPermissionFactFields = new Set(["status", "factStatus", "expiresAt", "permissionVersion", "menuVersion", "roles", "dataScope", "sensitiveAccess"]);
+    const platformLoginAccounts = new Map([
+      ["platform.ops.demo", { account: "platform.ops.demo", permissionVersion: 12, menuVersion: 8, roles: [{ enabled: true, pagePermissions: platformPagePermissionOrder, actionPermissions: ["platform.audit.export"] }] }],
+      ["platform.ops", { account: "platform.ops", permissionVersion: 12, menuVersion: 8, roles: [{ enabled: true, pagePermissions: platformPagePermissionOrder, actionPermissions: [] }] }],
+      ["first.login.demo", { account: "first.login.demo", permissionVersion: 3, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.dashboard.view"], actionPermissions: [] }] }],
+      ["risk.chen", { account: "risk.chen", permissionVersion: 9, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.tenant.view", "platform.audit.view"], actionPermissions: ["platform.audit.export"] }] }],
+      ["funds.only.demo", { account: "funds.only.demo", permissionVersion: 4, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.fund_task.view"], actionPermissions: ["platform.fund_review.execute"] }] }],
+      ["fees.only.demo", { account: "fees.only.demo", permissionVersion: 4, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.fee_package.view"], actionPermissions: [] }] }],
+      ["readonly.demo", { account: "readonly.demo", permissionVersion: 5, menuVersion: 8, roles: [{ enabled: false, pagePermissions: ["platform.dashboard.view"], actionPermissions: [] }] }],
+      ["action.only.demo", { account: "action.only.demo", permissionVersion: 6, menuVersion: 8, roles: [{ enabled: true, pagePermissions: [], actionPermissions: ["platform.fund_review.execute"] }] }],
+      ["invalid.node.demo", { account: "invalid.node.demo", permissionVersion: 6, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.invalid.directory", "platform.invalid.hidden", "platform.invalid.disabled", "platform.invalid.empty"], actionPermissions: [] }] }],
+      ["stale.fact.demo", { account: "stale.fact.demo", permissionVersion: 0, menuVersion: null, roles: [{ enabled: true, pagePermissions: ["platform.dashboard.view"], actionPermissions: [] }] }]
+    ]);
+
+    function getPlatformLoginPermissionFact(account) {
+      const normalizedAccount = String(account || "").trim().toLowerCase();
+      const fact = platformLoginAccounts.get(normalizedAccount);
+      if (!fact) return null;
+      const base = { status: "active", factStatus: "current", expiresAt: null, ...fact };
+      const override = reviewMode ? platformReviewPermissionFactOverrides.get(normalizedAccount) : null;
+      return structuredClone(override ? { ...base, ...override } : base);
+    }
+
+    function setReviewPlatformPermissionFact(account, next = {}) {
+      if (!reviewMode || !next || typeof next !== "object") return false;
+      const normalizedAccount = String(account || "").trim().toLowerCase();
+      if (!platformLoginAccounts.has(normalizedAccount)) return false;
+      const override = {};
+      reviewPermissionFactFields.forEach((field) => {
+        if (Object.prototype.hasOwnProperty.call(next, field)) override[field] = structuredClone(next[field]);
+      });
+      if (!Object.keys(override).length) return false;
+      platformReviewPermissionFactOverrides.set(normalizedAccount, override);
+      return true;
+    }
+
+    function clearReviewPlatformPermissionFact(account) {
+      if (!reviewMode) return false;
+      return platformReviewPermissionFactOverrides.delete(String(account || "").trim().toLowerCase());
+    }
+
+    function resolvePlatformLoginRouteFromFact(fact) {
+      const expired = fact?.expiresAt && Number(new Date(fact.expiresAt)) <= Date.now();
+      if (!fact || fact.status !== "active" || fact.factStatus !== "current" || expired || !Number.isInteger(fact.permissionVersion) || fact.permissionVersion < 1 || !Number.isInteger(fact.menuVersion) || fact.menuVersion < 1 || !Array.isArray(fact.roles)) {
+        return { authResult: "authenticated", routeResult: "permission_fact_unavailable", permissionVersion: null, target: null };
+      }
+      const pagePermissions = new Set(fact.roles.filter((role) => role && role.enabled === true).flatMap((role) => Array.isArray(role.pagePermissions) ? role.pagePermissions : []));
+      const target = platformLoginNavigation.find((item) =>
+        item.type === "page" &&
+        item.visible === true &&
+        item.enabled === true &&
+        item.deleted !== true &&
+        knownPlatformPagePermissions.has(item.pagePermission) &&
+        allowedPlatformRouteHrefs.has(item.href) &&
+        pagePermissions.has(item.pagePermission)
+      ) || null;
+      return {
+        authResult: "authenticated",
+        routeResult: target ? "page" : "no_page",
+        permissionVersion: fact.permissionVersion,
+        target: target ? { id: target.id, label: target.label, pagePermission: target.pagePermission, href: target.href } : null
+      };
+    }
+
+    function resolvePlatformLoginRoute(account) {
+      return resolvePlatformLoginRouteFromFact(getPlatformLoginPermissionFact(account));
+    }
+
+    const qrPattern = [
+      1,1,1,0,1,0,1,1,1,
+      1,0,1,0,0,1,1,0,1,
+      1,1,1,1,0,0,1,1,1,
+      0,0,1,0,1,1,0,0,1,
+      1,0,0,1,1,0,1,0,0,
+      0,1,1,0,0,1,0,1,1,
+      1,1,1,0,1,0,1,0,1,
+      1,0,1,1,0,1,0,0,1,
+      1,1,1,0,1,1,1,1,1
+    ];
+
+    const els = {
+      account: document.getElementById("account"),
+      password: document.getElementById("password"),
+      otp: document.getElementById("otp"),
+      loginForm: document.getElementById("loginForm"),
+      loginButton: document.getElementById("loginButton"),
+      loginResult: document.getElementById("loginResult"),
+      loginRouteLink: document.getElementById("loginRouteLink"),
+      bindForm: document.getElementById("bindForm"),
+      bindOtp: document.getElementById("bindOtp"),
+      bindButton: document.getElementById("bindButton"),
+      panelTitle: document.getElementById("panelTitle"),
+      panelCopy: document.getElementById("panelCopy"),
+      panelTag: document.getElementById("panelTag"),
+      scenarioTag: document.getElementById("scenarioTag"),
+      toast: document.getElementById("toast"),
+      toastTitle: document.getElementById("toastTitle"),
+      toastCopy: document.getElementById("toastCopy"),
+      exceptionTitle: document.getElementById("exceptionTitle"),
+      exceptionCopy: document.getElementById("exceptionCopy"),
+      exceptionFeedback: document.getElementById("exceptionFeedback"),
+      exceptionAudit: document.getElementById("exceptionAudit"),
+      exceptionNext: document.getElementById("exceptionNext"),
+      mockQr: document.getElementById("mockQr")
+    };
+
+    let activeScenario = "success";
+    let authenticatedLoginAccount = "";
+    let toastTimer = 0;
+
+    function renderIcons() {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function showToast(title, copy) {
+      window.clearTimeout(toastTimer);
+      els.toastTitle.textContent = title;
+      els.toastCopy.textContent = copy;
+      els.toast.classList.add("is-visible");
+      toastTimer = window.setTimeout(() => {
+        els.toast.classList.remove("is-visible");
+      }, 2800);
+    }
+
+    function setView(view) {
+      document.querySelectorAll("[data-view]").forEach((panel) => {
+        panel.hidden = panel.dataset.view !== view;
+      });
+
+      if (view === "login") {
+        els.panelTitle.textContent = "登录平台端";
+      }
+      if (view === "bind") {
+        els.panelTitle.textContent = "绑定 Google 2FA";
+      }
+      if (view === "exception") {
+        els.panelTitle.textContent = "登录结果";
+      }
+      renderIcons();
+    }
+
+    function setPanelTag(kind, text) {
+      els.panelTag.className = "status-tag " + kind;
+      els.panelTag.innerHTML = '<i data-lucide="badge-check" class="icon"></i>' + text;
+      renderIcons();
+    }
+
+    function setScenario(name) {
+      platformLoginIssuer?.clearAuthenticationAttempt();
+      activeScenario = name;
+      authenticatedLoginAccount = "";
+      const profile = profiles[name];
+      els.account.value = profile.account;
+      els.password.value = profile.password;
+      els.otp.value = profile.otp;
+      els.panelCopy.textContent = profile.copy;
+      els.scenarioTag.textContent = profile.label;
+
+      document.querySelectorAll(".scenario-button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.scenario === name);
+      });
+
+      clearValidation();
+      els.loginResult.className = "result-box";
+      els.loginResult.innerHTML = "";
+      clearPlatformLoginRoute();
+      setView("login");
+
+      if (name === "blocked") {
+        setPanelTag("danger", profile.tag);
+      } else if (name === "bind" || name === "noperm") {
+        setPanelTag("warning", profile.tag);
+      } else {
+        setPanelTag("info", profile.tag);
+      }
+    }
+
+    function clearValidation() {
+      document.querySelectorAll(".field").forEach((field) => {
+        field.classList.remove("is-invalid");
+      });
+      document.querySelectorAll('[aria-invalid="true"]').forEach((field) => window.HSFormFeedback?.clear(field));
+    }
+
+    function clearLoginSecrets() {
+      els.password.value = "";
+      els.otp.value = "";
+    }
+
+    function clearPlatformLoginRoute() {
+      els.loginRouteLink.hidden = true;
+      els.loginRouteLink.textContent = "";
+      els.loginRouteLink.removeAttribute("href");
+      els.loginRouteLink.removeAttribute("data-page-permission");
+    }
+
+    function renderPlatformLoginRoute(route) {
+      clearPlatformLoginRoute();
+      if (!route?.target) return false;
+      els.loginRouteLink.hidden = false;
+      els.loginRouteLink.textContent = "进入" + route.target.label;
+      els.loginRouteLink.href = "#login-route";
+      els.loginRouteLink.dataset.pagePermission = route.target.pagePermission;
+      return true;
+    }
+
+    function openPlatformLoginTarget(event) {
+      event.preventDefault();
+      const account = String(authenticatedLoginAccount || els.account.value || "").trim().toLowerCase();
+      const fact = getPlatformLoginPermissionFact(account);
+      const route = resolvePlatformLoginRouteFromFact(fact);
+      if (!route.target) {
+        clearPlatformLoginRoute();
+        renderException(route.routeResult === "permission_fact_unavailable" ? "permission" : "noperm");
+        showToast("无法进入后台", route.routeResult === "permission_fact_unavailable" ? "当前账号或权限资料不可确认。" : "当前角色没有可访问页面。");
+        return;
+      }
+      const issued = platformLoginIssuer?.issueNavigationTicket({ account, fact, route });
+      if (!issued?.ok || !issued.href) {
+        clearPlatformLoginRoute();
+        renderException("permission");
+        showToast("无法进入后台", "登录路由票据生成失败，请重新登录。");
+        return;
+      }
+      clearPlatformLoginRoute();
+      window.location.assign(issued.href);
+    }
+
+    function validateRequired(items) {
+      let valid = true;
+      let firstInvalid = null;
+      clearValidation();
+      items.forEach(([fieldName, input]) => {
+        const field = document.querySelector('[data-field="' + fieldName + '"]');
+        if (!input.value.trim()) {
+          field.classList.add("is-invalid");
+          firstInvalid ||= input;
+          valid = false;
+        }
+      });
+      if (firstInvalid) window.HSFormFeedback?.report("请补全当前登录步骤的必填信息。", firstInvalid);
+      return valid;
+    }
+
+    function setLoading(loading) {
+      els.loginButton.disabled = loading;
+      els.loginButton.innerHTML = loading
+        ? '<i data-lucide="loader-circle" class="icon"></i><span>校验中</span>'
+        : '<i data-lucide="log-in" class="icon"></i><span>登录</span>';
+      renderIcons();
+    }
+
+    function renderResult(kind, title, copy) {
+      els.loginResult.className = "result-box is-visible";
+      els.loginResult.innerHTML =
+        '<div class="alert ' + kind + '">' +
+        '<i data-lucide="' + (kind === "success" ? "circle-check" : "info") + '" class="icon"></i>' +
+        '<div><p class="alert-title">' + title + '</p><p class="alert-copy">' + copy + '</p></div>' +
+        '</div>';
+      renderIcons();
+    }
+
+    function renderException(type) {
+      clearPlatformLoginRoute();
+      const map = {
+        blocked: {
+          title: "登录暂不可用",
+          copy: "请检查输入信息，或联系平台管理员。",
+          feedback: "安全中性提示",
+          audit: "写入安全拦截事件",
+          next: "联系管理员"
+        },
+        otp: {
+          title: "验证码不正确或已过期",
+          copy: "请重新输入 Google 2FA 验证码。",
+          feedback: "允许重新输入",
+          audit: "写入 2FA 异常",
+          next: "重新登录"
+        },
+        noperm: {
+          title: "暂无可访问页面",
+          copy: "账号已认证，但当前角色没有可访问菜单。",
+          feedback: "无可用权限提示",
+          audit: "写入权限路由结果",
+          next: "联系管理员"
+        },
+        permission: {
+          title: "暂时无法确认访问权限",
+          copy: "账号已认证，但当前权限资料不可确认，请联系平台管理员。",
+          feedback: "权限资料不可确认",
+          audit: "写入权限事实异常",
+          next: "联系管理员"
+        }
+      };
+
+      const item = map[type] || map.blocked;
+      els.exceptionTitle.textContent = item.title;
+      els.exceptionCopy.textContent = item.copy;
+      els.exceptionFeedback.textContent = item.feedback;
+      els.exceptionAudit.textContent = item.audit;
+      els.exceptionNext.textContent = item.next;
+      const accessWarning = type === "noperm" || type === "permission";
+      setPanelTag(accessWarning ? "warning" : "danger", type === "noperm" ? "无可用权限" : type === "permission" ? "权限待确认" : "安全异常");
+      setView("exception");
+    }
+
+    function completePlatformLogin(account, options = {}) {
+      const route = resolvePlatformLoginRoute(account);
+      clearLoginSecrets();
+      els.bindOtp.value = "";
+      if (!route.target) {
+        platformLoginIssuer?.clearAuthenticationAttempt();
+        renderException(route.routeResult === "permission_fact_unavailable" ? "permission" : "noperm");
+        showToast("认证通过", route.routeResult === "permission_fact_unavailable" ? "当前权限资料不可确认。" : "当前角色没有可访问页面。");
+        return route;
+      }
+      setView("login");
+      setPanelTag("success", options.afterBind ? "绑定成功" : "登录通过");
+      renderResult("success", options.afterBind ? "绑定成功" : "验证通过", "权限校验完成，将进入" + route.target.label + "。目标页仍会按最新权限再次校验。");
+      const completion = platformLoginIssuer?.completeAuthentication({ account });
+      if (!completion?.ok) {
+        clearPlatformLoginRoute();
+        renderException("permission");
+        showToast("无法进入后台", "登录完成上下文未建立，请重新登录。");
+        return { authResult: "authenticated", routeResult: "authentication_context_unavailable", permissionVersion: route.permissionVersion, target: null };
+      }
+      renderPlatformLoginRoute(route);
+      showToast(options.afterBind ? "绑定成功" : "登录成功", "已记录认证与权限路由结果。");
+      return route;
+    }
+
+    function submitLogin(event) {
+      event.preventDefault();
+      platformLoginIssuer?.clearAuthenticationAttempt();
+      clearPlatformLoginRoute();
+      const needsBind = activeScenario === "bind" || els.account.value.includes("first.login");
+      const requiredItems = [
+        ["account", els.account],
+        ["password", els.password]
+      ];
+      if (!needsBind) {
+        requiredItems.push(["otp", els.otp]);
+      }
+
+      if (!validateRequired(requiredItems)) {
+        showToast("请补全登录信息", needsBind ? "账号和密码为必填。" : "账号、密码和 Google 2FA 均为必填。");
+        return;
+      }
+      if (!needsBind && !/^\d{6}$/.test(els.otp.value.trim())) {
+        document.querySelector('[data-field="otp"]').classList.add("is-invalid");
+        els.otp.value = "";
+        window.HSFormFeedback?.report("请输入 6 位 Google 2FA 验证码。", els.otp);
+        showToast("验证码格式不正确", "请输入 6 位 Google 2FA 验证码。");
+        return;
+      }
+
+      const authenticationAttempt = platformLoginIssuer?.beginAuthentication(event, { account: els.account.value });
+      if (!authenticationAttempt?.ok) {
+        renderException("permission");
+        showToast("无法验证登录", "登录流程未建立，请重新提交。");
+        return;
+      }
+
+      setLoading(true);
+      window.setTimeout(() => {
+        setLoading(false);
+        if (needsBind) {
+          authenticatedLoginAccount = els.account.value.trim().toLowerCase();
+          clearLoginSecrets();
+          setPanelTag("warning", "需绑定");
+          setView("bind");
+          showToast("进入绑定流程", "账号密码已通过，等待绑定 Google 2FA。");
+          return;
+        }
+
+        const otpRejected = els.otp.value === "000000";
+        if (activeScenario === "blocked" || otpRejected) {
+          platformLoginIssuer?.clearAuthenticationAttempt();
+          authenticatedLoginAccount = "";
+          clearLoginSecrets();
+          renderException(otpRejected ? "otp" : "blocked");
+          showToast("登录未通过", "页面提示保持中性，细节进入安全审计。");
+          return;
+        }
+
+        authenticatedLoginAccount = els.account.value.trim().toLowerCase();
+        completePlatformLogin(authenticatedLoginAccount);
+      }, 520);
+    }
+
+    function submitBind(event) {
+      event.preventDefault();
+      if (!validateRequired([["bindOtp", els.bindOtp]])) {
+        showToast("请输入绑定验证码", "验证码用于确认 Google 2FA 绑定。");
+        return;
+      }
+      if (els.bindOtp.value.length !== 6) {
+        document.querySelector('[data-field="bindOtp"]').classList.add("is-invalid");
+        window.HSFormFeedback?.report("请输入 6 位验证码。", els.bindOtp);
+        showToast("验证码格式不完整", "请输入 6 位验证码。");
+        return;
+      }
+      completePlatformLogin(authenticatedLoginAccount || els.account.value.trim().toLowerCase(), { afterBind: true });
+    }
+
+    function renderMockQr() {
+      els.mockQr.innerHTML = "";
+      qrPattern.forEach((value) => {
+        const cell = document.createElement("span");
+        cell.className = value ? "qr-cell fill" : "qr-cell";
+        els.mockQr.appendChild(cell);
+      });
+    }
+
+    document.querySelectorAll(".scenario-button").forEach((button) => {
+      button.addEventListener("click", () => setScenario(button.dataset.scenario));
+    });
+
+    els.loginForm.addEventListener("submit", submitLogin);
+    els.bindForm.addEventListener("submit", submitBind);
+    els.loginRouteLink.addEventListener("click", openPlatformLoginTarget);
+
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const visible = els.password.type === "text";
+      els.password.type = visible ? "password" : "text";
+      document.getElementById("togglePassword").innerHTML =
+        visible ? '<i data-lucide="eye" class="icon"></i>' : '<i data-lucide="eye-off" class="icon"></i>';
+      renderIcons();
+    });
+
+    document.getElementById("clearButton").addEventListener("click", () => {
+      platformLoginIssuer?.clearAuthenticationAttempt();
+      els.account.value = "";
+      els.password.value = "";
+      els.otp.value = "";
+      els.loginResult.className = "result-box";
+      els.loginResult.innerHTML = "";
+      authenticatedLoginAccount = "";
+      clearPlatformLoginRoute();
+      clearValidation();
+      showToast("已清空", "可以重新输入登录信息。");
+    });
+
+    document.getElementById("backLogin").addEventListener("click", () => {
+      platformLoginIssuer?.clearAuthenticationAttempt();
+      clearPlatformLoginRoute();
+      setView("login");
+    });
+    document.getElementById("tryAgain").addEventListener("click", () => {
+      platformLoginIssuer?.clearAuthenticationAttempt();
+      clearPlatformLoginRoute();
+      setView("login");
+    });
+    document.getElementById("adminHelp").addEventListener("click", () => showToast("联系管理员", "密码重置和 2FA 重置由系统管理处理。"));
+    document.getElementById("exceptionHelp").addEventListener("click", () => showToast("联系管理员", "请通过平台内部支持渠道处理账号状态或访问权限。"));
+
+    window.__HSPlatformLoginPrototype = Object.freeze({
+      resolveLoginRoute: resolvePlatformLoginRoute,
+      getNavigationOrder: () => structuredClone(platformLoginNavigation.slice(0, 15)),
+      getNavigationCandidates: () => structuredClone(platformLoginNavigation),
+      getPermissionFact: getPlatformLoginPermissionFact,
+      setReviewPermissionFact: setReviewPlatformPermissionFact,
+      clearReviewPermissionFact: clearReviewPlatformPermissionFact,
+      getCurrentRoute: () => ({
+        hidden: els.loginRouteLink.hidden,
+        href: els.loginRouteLink.getAttribute("href"),
+        pagePermission: els.loginRouteLink.dataset.pagePermission || null
+      })
+    });
+
+    renderMockQr();
+    if (reviewMode) {
+      setScenario("success");
+    } else {
+      activeScenario = "success";
+      els.account.value = "";
+      els.password.value = "";
+      els.otp.value = "";
+      clearPlatformLoginRoute();
+      setView("login");
+      setPanelTag("info", "平台端");
+    }
+    renderIcons();
+    })();
+  </script>
+  <script>
+    (() => {
+      const liveId = "hsFormErrorLive";
+      const nativeErrorClass = "hs-native-field-error";
+      const errorSelector = `.form-error, .field-error, .error-text, [data-error], .${nativeErrorClass}`;
+      const fieldSelector = 'input:not([type="hidden"]), select, textarea';
+      const fieldContainerSelector = '.field, .form-field, .modal-field, .blue-row, .setting-row, .filter-item, .form-group, .control-group';
+      let errorSequence = 0;
+      let fieldLabelSequence = 0;
+
+      function normalizedLabelText(label) {
+        if (!(label instanceof HTMLElement)) return "";
+        const copy = label.cloneNode(true);
+        copy.querySelectorAll("input, select, textarea, button, svg, i").forEach(node => node.remove());
+        return copy.textContent.replace(/\s+/g, " ").trim();
+      }
+
+      function hasAccessibleFieldName(field) {
+        if ((field.getAttribute("aria-label") || "").trim()) return true;
+        const labelledByText = (field.getAttribute("aria-labelledby") || "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(id => document.getElementById(id)?.textContent?.replace(/\s+/g, " ").trim() || "")
+          .filter(Boolean)
+          .join(" ");
+        if (labelledByText) return true;
+        return Array.from(field.labels || []).some(label => normalizedLabelText(label));
+      }
+
+      function upgradeFieldName(field) {
+        if (!(field instanceof HTMLElement) || !field.matches(fieldSelector) || hasAccessibleFieldName(field)) return;
+        const container = field.closest(fieldContainerSelector);
+        const label = container?.querySelector("label");
+        if (!label || !normalizedLabelText(label)) return;
+        if (!label.id) label.id = `hsFieldLabel${++fieldLabelSequence}`;
+        const ids = new Set((field.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean));
+        ids.add(label.id);
+        field.setAttribute("aria-labelledby", [...ids].join(" "));
+      }
+
+      function ensureNativeErrorStyles() {
+        if (document.getElementById("hsNativeFieldErrorStyles")) return;
+        const style = document.createElement("style");
+        style.id = "hsNativeFieldErrorStyles";
+        style.textContent = `
+          .${nativeErrorClass} {
+            display: block;
+            flex: 0 0 100%;
+            width: 100%;
+            max-width: 100%;
+            margin: 6px 0 0;
+            color: var(--color-danger, var(--danger, #b42318));
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.45;
+          }
+          .${nativeErrorClass}[hidden] { display: none !important; }
+        `;
+        document.head.appendChild(style);
+      }
+
+      function fieldKey(field) {
+        if (!field.dataset.hsFeedbackKey) {
+          field.dataset.hsFeedbackKey = field.id || `hsFeedbackField${++errorSequence}`;
+        }
+        return field.dataset.hsFeedbackKey;
+      }
+
+      function ensureLiveRegion() {
+        let live = document.getElementById(liveId);
+        if (live) return live;
+        live = document.createElement("div");
+        live.id = liveId;
+        live.setAttribute("role", "alert");
+        live.setAttribute("aria-live", "assertive");
+        live.setAttribute("aria-atomic", "true");
+        live.style.cssText = "position:fixed;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+        document.body.appendChild(live);
+        return live;
+      }
+
+      function upgradeErrorNode(node) {
+        if (!(node instanceof HTMLElement) || !node.matches(errorSelector)) return null;
+        if (!node.id) node.id = `hsFieldError${++errorSequence}`;
+        node.setAttribute("role", "alert");
+        node.setAttribute("aria-live", "assertive");
+        node.setAttribute("aria-atomic", "true");
+        return node;
+      }
+
+      function ensureNativeError(field) {
+        let node = field.dataset.hsNativeErrorId
+          ? document.getElementById(field.dataset.hsNativeErrorId)
+          : null;
+        if (!node) {
+          node = document.createElement("div");
+          node.id = `hsNativeFieldError${++errorSequence}`;
+          node.className = nativeErrorClass;
+          node.dataset.hsNativeError = "true";
+          node.hidden = true;
+          field.insertAdjacentElement("afterend", node);
+          field.dataset.hsNativeErrorId = node.id;
+        }
+        return upgradeErrorNode(node);
+      }
+
+      function linkField(field, errorNode, focusField = true) {
+        if (!(field instanceof HTMLElement) || !field.matches("input, select, textarea, [contenteditable='true']")) return;
+        field.setAttribute("aria-invalid", "true");
+        const ids = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+        ids.add(errorNode.id);
+        field.setAttribute("aria-describedby", [...ids].join(" "));
+        errorNode.dataset.hsErrorFor = fieldKey(field);
+        if (!focusField || !field.isConnected) return;
+        field.focus({ preventScroll: true });
+        requestAnimationFrame(() => {
+          if (!field.isConnected || document.activeElement !== field) return;
+          field.scrollIntoView({ block: "nearest", inline: "nearest" });
+        });
+      }
+
+      function clearField(field) {
+        if (!(field instanceof HTMLElement) || field.getAttribute("aria-invalid") !== "true") return;
+        field.removeAttribute("aria-invalid");
+        const key = field.dataset.hsFeedbackKey || field.id || "";
+        const ids = (field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        const kept = ids.filter(id => id !== liveId && document.getElementById(id)?.dataset.hsErrorFor !== key);
+        if (kept.length) field.setAttribute("aria-describedby", kept.join(" "));
+        else field.removeAttribute("aria-describedby");
+        ids.forEach(id => {
+          const node = document.getElementById(id);
+          if (!node || node.dataset.hsErrorFor !== key) return;
+          if (node.dataset.hsNativeError === "true") {
+            if (field.dataset.hsNativeErrorId === node.id) delete field.dataset.hsNativeErrorId;
+            node.remove();
+            return;
+          }
+          node.textContent = "";
+          node.classList.remove("show");
+          if (node.hasAttribute("hidden")) node.hidden = true;
+          delete node.dataset.hsErrorFor;
+        });
+      }
+
+      function report(message, field = null, errorNode = null, focusField = true) {
+        const live = ensureLiveRegion();
+        const target = upgradeErrorNode(errorNode) || live;
+        if (errorNode && message) {
+          target.textContent = message;
+          target.hidden = false;
+          target.classList.add("show");
+        }
+        live.textContent = "";
+        requestAnimationFrame(() => { live.textContent = message || "请检查表单内容。"; });
+        if (field) linkField(field, target, focusField);
+        return false;
+      }
+
+      window.HSFormFeedback = { report, clear: clearField, upgrade: upgradeErrorNode };
+      ensureNativeErrorStyles();
+      ensureLiveRegion();
+      document.querySelectorAll(errorSelector).forEach(upgradeErrorNode);
+      document.querySelectorAll(fieldSelector).forEach(upgradeFieldName);
+
+      document.addEventListener("invalid", event => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement)) return;
+        const firstInvalid = field.form?.querySelector(":invalid");
+        const error = ensureNativeError(field);
+        report(
+          field.validationMessage || "请检查此字段。",
+          field,
+          error,
+          !firstInvalid || firstInvalid === field
+        );
+      }, true);
+
+      ["input", "change"].forEach(type => {
+        document.addEventListener(type, event => {
+          const field = event.target;
+          if (!(field instanceof HTMLElement)) return;
+          if (field.matches("input, select, textarea") && field.willValidate && !field.validity.valid) return;
+          clearField(field);
+        }, true);
+      });
+
+      new MutationObserver(records => {
+        records.forEach(record => {
+          if (record.target instanceof HTMLElement) {
+            const node = record.target.matches?.(errorSelector) ? record.target : record.target.closest?.(errorSelector);
+            if (node) {
+              upgradeErrorNode(node);
+              if (node.textContent.trim() && !node.hidden) ensureLiveRegion().textContent = node.textContent.trim();
+            }
+          }
+          record.addedNodes.forEach(added => {
+            if (!(added instanceof HTMLElement)) return;
+            if (added.matches(errorSelector)) upgradeErrorNode(added);
+            added.querySelectorAll?.(errorSelector).forEach(upgradeErrorNode);
+            if (added.matches(fieldSelector)) upgradeFieldName(added);
+            added.querySelectorAll?.(fieldSelector).forEach(upgradeFieldName);
+            const labelContainers = added.matches("label") ? [added] : Array.from(added.querySelectorAll?.("label") || []);
+            labelContainers.forEach(label => label.closest(fieldContainerSelector)?.querySelectorAll(fieldSelector).forEach(upgradeFieldName));
+          });
+        });
+      }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    })();
+  </script>
+
+</body>
+</html>
