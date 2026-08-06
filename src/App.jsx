@@ -95,7 +95,7 @@ export default function App() {
           style={{ flex: 1, overflowY: 'auto' }}
           selectedKeys={[activeModule]}
           defaultOpenKeys={['report']}
-          onClickMenuItem={({ key }) => openModule(key)}
+          onClickMenuItem={(key) => openModule(key)}
         >
           {NAV_GROUPS.map(group => (
             <ItemGroup key={group.title} title={group.title}>
