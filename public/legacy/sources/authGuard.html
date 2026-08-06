@@ -1,0 +1,396 @@
+(() => {
+  "use strict";
+
+  const MODE_PARAM = "authRoute";
+  const TICKET_PARAM = "authTicket";
+  const TICKET_PREFIX = "hs.platform.auth-route.ticket.";
+  const CURRENT_FACT_KEY = "hs.platform.auth-route.current-fact";
+  const TICKET_KIND = "hs-platform-auth-route-v1";
+  const TICKET_TTL_MS = 15_000;
+  const MAX_CLOCK_SKEW_MS = 1_000;
+  const AUTHENTICATION_COMPLETION_TTL_MS = 120_000;
+
+  const currentScript = document.currentScript;
+  const routeTargets = parseRouteTargets(currentScript?.dataset.platformRouteTargets);
+  const query = new URLSearchParams(window.location.search);
+  const routeMode = query.get(MODE_PARAM) === "1" ? "authRoute" : "preview";
+  const state = {
+    mode: routeMode,
+    allowed: routeMode === "preview",
+    reason: routeMode === "preview" ? "preview" : "pending",
+    ticket: null,
+    authorization: null
+  };
+  let loginIssuerRegistered = false;
+
+  document.documentElement.dataset.hsPlatformRouteMode = routeMode;
+  if (routeMode === "authRoute") {
+    document.documentElement.dataset.hsPlatformAuthState = "pending";
+    installPendingStyle();
+    Object.assign(state, consumeNavigationTicket(routeTargets));
+    document.documentElement.dataset.hsPlatformAuthState = state.allowed ? "authorized" : "blocked";
+    if (!state.allowed) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => renderBlockedRoute(state.reason), { once: true });
+      } else {
+        renderBlockedRoute(state.reason);
+      }
+    }
+  }
+
+  function parseRouteTargets(raw) {
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function installPendingStyle() {
+    const style = document.createElement("style");
+    style.id = "hsPlatformAuthRoutePendingStyle";
+    style.textContent = `
+      html[data-hs-platform-route-mode="authRoute"][data-hs-platform-auth-state="pending"] body > *,
+      html[data-hs-platform-route-mode="authRoute"][data-hs-platform-auth-state="blocked"] body > * {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function safeSessionGet(key) {
+    try {
+      return window.sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  function safeSessionSet(key, value) {
+    try {
+      window.sessionStorage.setItem(key, value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function safeSessionRemove(key) {
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      // A storage failure is handled by the caller as a closed route.
+    }
+  }
+
+  function readJson(raw) {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  function positiveInteger(value) {
+    return Number.isInteger(Number(value)) && Number(value) > 0;
+  }
+
+  function activePagePermissions(fact) {
+    const roles = Array.isArray(fact?.roles) ? fact.roles : [];
+    return new Set(roles
+      .filter(role => role?.enabled === true || role?.status === "启用")
+      .flatMap(role => Array.isArray(role.pagePermissions) ? role.pagePermissions : []));
+  }
+
+  function activeActionPermissions(fact) {
+    const roles = Array.isArray(fact?.roles) ? fact.roles : [];
+    return new Set(roles
+      .filter(role => role?.enabled === true || role?.status === "启用")
+      .flatMap(role => Array.isArray(role.actionPermissions) ? role.actionPermissions : []));
+  }
+
+  function normalizedDataScope(fact) {
+    const scope = fact?.dataScope;
+    const scopeCode = typeof scope?.scopeCode === "string" && scope.scopeCode.trim()
+      ? scope.scopeCode.trim()
+      : "platform.all_tenants";
+    const tenantIds = Array.isArray(scope?.tenantIds) ? [...new Set(scope.tenantIds.map(String).filter(Boolean))] : [];
+    return { scopeCode, tenantIds };
+  }
+
+  function activePermissionSnapshot(fact) {
+    return {
+      pagePermissions: [...activePagePermissions(fact)],
+      actionPermissions: [...activeActionPermissions(fact)],
+      dataScope: normalizedDataScope(fact),
+      sensitiveAccess: fact?.sensitiveAccess === true
+    };
+  }
+
+  function sameJson(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  function deepFreeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.values(value).forEach(deepFreeze);
+    return Object.freeze(value);
+  }
+
+  function factIsCurrent(fact, now = Date.now()) {
+    if (!fact || typeof fact.account !== "string" || !fact.account.trim()) return false;
+    if (fact.status && !["active", "正常", "启用"].includes(fact.status)) return false;
+    if (fact.factStatus && fact.factStatus !== "current") return false;
+    if (fact.expiresAt && Number(new Date(fact.expiresAt)) <= now) return false;
+    return positiveInteger(fact.permissionVersion) && positiveInteger(fact.menuVersion) && Array.isArray(fact.roles);
+  }
+
+  function currentRouteKey() {
+    return window.location.hash.replace(/^#/, "");
+  }
+
+  function expectedPermissionFor(targets) {
+    if (!targets) return null;
+    const key = currentRouteKey();
+    return typeof targets[key] === "string" && targets[key].trim() ? targets[key].trim() : null;
+  }
+
+  function consumeNavigationTicket(targets) {
+    const nonce = query.get(TICKET_PARAM) || "";
+    if (!/^[a-zA-Z0-9-]{16,80}$/.test(nonce)) return { allowed: false, reason: "missing-ticket", ticket: null };
+
+    const ticketKey = `${TICKET_PREFIX}${nonce}`;
+    const ticket = readJson(safeSessionGet(ticketKey));
+    safeSessionRemove(ticketKey);
+    const fact = readJson(safeSessionGet(CURRENT_FACT_KEY));
+    const now = Date.now();
+    const expectedPermission = expectedPermissionFor(targets);
+
+    if (!ticket || ticket.kind !== TICKET_KIND || ticket.nonce !== nonce) return { allowed: false, reason: "missing-ticket", ticket: null };
+    if (!Number.isFinite(ticket.issuedAt) || !Number.isFinite(ticket.expiresAt) || ticket.issuedAt > now + MAX_CLOCK_SKEW_MS || ticket.expiresAt < now || ticket.expiresAt - ticket.issuedAt > TICKET_TTL_MS) {
+      return { allowed: false, reason: "expired-ticket", ticket: null };
+    }
+    if (!expectedPermission || ticket.pagePermission !== expectedPermission) return { allowed: false, reason: "wrong-target", ticket: null };
+    if (ticket.targetPath !== window.location.pathname || ticket.targetRoute !== currentRouteKey()) return { allowed: false, reason: "wrong-target", ticket: null };
+    if (!factIsCurrent(fact, now) || fact.account !== ticket.account) return { allowed: false, reason: "stale-fact", ticket: null };
+    if (Number(fact.permissionVersion) !== Number(ticket.permissionVersion) || Number(fact.menuVersion) !== Number(ticket.menuVersion)) {
+      return { allowed: false, reason: "stale-version", ticket: null };
+    }
+    if (!activePagePermissions(fact).has(expectedPermission)) return { allowed: false, reason: "permission-denied", ticket: null };
+    const snapshot = activePermissionSnapshot(fact);
+    if (
+      !sameJson(ticket.pagePermissions, snapshot.pagePermissions) ||
+      !sameJson(ticket.actionPermissions, snapshot.actionPermissions) ||
+      !sameJson(ticket.dataScope, snapshot.dataScope) ||
+      ticket.sensitiveAccess !== snapshot.sensitiveAccess
+    ) {
+      return { allowed: false, reason: "stale-fact", ticket: null };
+    }
+    const authorization = deepFreeze({
+      account: ticket.account,
+      permissionVersion: ticket.permissionVersion,
+      menuVersion: ticket.menuVersion,
+      pagePermission: ticket.pagePermission,
+      targetPath: ticket.targetPath,
+      targetRoute: ticket.targetRoute,
+      pagePermissions: [...snapshot.pagePermissions],
+      actionPermissions: [...snapshot.actionPermissions],
+      dataScope: { ...snapshot.dataScope, tenantIds: [...snapshot.dataScope.tenantIds] },
+      sensitiveAccess: snapshot.sensitiveAccess
+    });
+    return { allowed: true, reason: "authorized", ticket: Object.freeze({ ...ticket }), authorization };
+  }
+
+  function clearOutstandingTickets() {
+    try {
+      for (let index = window.sessionStorage.length - 1; index >= 0; index -= 1) {
+        const key = window.sessionStorage.key(index);
+        if (key?.startsWith(TICKET_PREFIX)) window.sessionStorage.removeItem(key);
+      }
+    } catch {
+      // The following write will fail closed if storage is unavailable.
+    }
+  }
+
+  function randomNonce() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    const bytes = new Uint8Array(24);
+    window.crypto?.getRandomValues?.(bytes);
+    return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("") || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function issueTicketFromFact({ account, fact, route } = {}) {
+    const now = Date.now();
+    const target = route?.target;
+    const normalizedAccount = String(account || fact?.account || "").trim().toLowerCase();
+    if (!target || !factIsCurrent(fact, now) || fact.account !== normalizedAccount || !activePagePermissions(fact).has(target.pagePermission)) {
+      return { ok: false, reason: "permission-fact-unavailable", href: null };
+    }
+
+    let targetUrl;
+    try {
+      targetUrl = new URL(target.href, window.location.href);
+    } catch {
+      return { ok: false, reason: "invalid-target", href: null };
+    }
+
+    const nonce = randomNonce();
+    const snapshot = activePermissionSnapshot(fact);
+    const ticket = {
+      kind: TICKET_KIND,
+      nonce,
+      account: normalizedAccount,
+      permissionVersion: Number(fact.permissionVersion),
+      menuVersion: Number(fact.menuVersion),
+      pagePermission: target.pagePermission,
+      targetPath: targetUrl.pathname,
+      targetRoute: targetUrl.hash.replace(/^#/, ""),
+      pagePermissions: [...snapshot.pagePermissions],
+      actionPermissions: [...snapshot.actionPermissions],
+      dataScope: { ...snapshot.dataScope, tenantIds: [...snapshot.dataScope.tenantIds] },
+      sensitiveAccess: snapshot.sensitiveAccess,
+      issuedAt: now,
+      expiresAt: now + TICKET_TTL_MS
+    };
+    const currentFact = {
+      account: normalizedAccount,
+      status: fact.status || "active",
+      factStatus: fact.factStatus || "current",
+      expiresAt: fact.expiresAt || null,
+      permissionVersion: Number(fact.permissionVersion),
+      menuVersion: Number(fact.menuVersion),
+      roles: fact.roles.map(role => ({
+        enabled: role?.enabled === true,
+        status: role?.status,
+        pagePermissions: Array.isArray(role?.pagePermissions) ? [...role.pagePermissions] : [],
+        actionPermissions: Array.isArray(role?.actionPermissions) ? [...role.actionPermissions] : []
+      })),
+      dataScope: { ...snapshot.dataScope, tenantIds: [...snapshot.dataScope.tenantIds] },
+      sensitiveAccess: snapshot.sensitiveAccess
+    };
+
+    clearOutstandingTickets();
+    if (!safeSessionSet(CURRENT_FACT_KEY, JSON.stringify(currentFact)) || !safeSessionSet(`${TICKET_PREFIX}${nonce}`, JSON.stringify(ticket))) {
+      safeSessionRemove(`${TICKET_PREFIX}${nonce}`);
+      return { ok: false, reason: "ticket-storage-unavailable", href: null };
+    }
+
+    targetUrl.searchParams.set(MODE_PARAM, "1");
+    targetUrl.searchParams.set(TICKET_PARAM, nonce);
+    return { ok: true, reason: "issued", href: targetUrl.href, ticket: Object.freeze({ ...ticket }) };
+  }
+
+  function registerLoginIssuer() {
+    if (routeMode !== "preview" || routeTargets || loginIssuerRegistered) return null;
+    loginIssuerRegistered = true;
+    let pendingAttempt = null;
+    let authenticationCompletion = null;
+
+    function clearAuthenticationAttempt() {
+      pendingAttempt = null;
+      authenticationCompletion = null;
+      return true;
+    }
+
+    function beginAuthentication(event, { account } = {}) {
+      clearAuthenticationAttempt();
+      const normalizedAccount = String(account || "").trim().toLowerCase();
+      if (!event?.isTrusted || event.target?.id !== "loginForm" || !normalizedAccount) {
+        return { ok: false, reason: "trusted-login-attempt-required" };
+      }
+      pendingAttempt = { account: normalizedAccount, startedAt: Date.now() };
+      return { ok: true, reason: "authentication-started" };
+    }
+
+    function completeAuthentication({ account } = {}) {
+      const normalizedAccount = String(account || "").trim().toLowerCase();
+      const pending = pendingAttempt;
+      pendingAttempt = null;
+      authenticationCompletion = null;
+      if (
+        !pending ||
+        pending.account !== normalizedAccount ||
+        Date.now() - pending.startedAt > AUTHENTICATION_COMPLETION_TTL_MS
+      ) return { ok: false, reason: "trusted-login-attempt-required" };
+      authenticationCompletion = { account: normalizedAccount, completedAt: Date.now() };
+      return { ok: true, reason: "authentication-completed" };
+    }
+
+    function issueNavigationTicket(options = {}) {
+      const normalizedAccount = String(options.account || options.fact?.account || "").trim().toLowerCase();
+      const completed = authenticationCompletion;
+      authenticationCompletion = null;
+      if (
+        !completed ||
+        completed.account !== normalizedAccount ||
+        Date.now() - completed.completedAt > AUTHENTICATION_COMPLETION_TTL_MS
+      ) return { ok: false, reason: "authentication-context-required", href: null };
+      return issueTicketFromFact(options);
+    }
+
+    return Object.freeze({ beginAuthentication, clearAuthenticationAttempt, completeAuthentication, issueNavigationTicket });
+  }
+
+  function createAuthorizedNavigation({ href, pagePermission } = {}) {
+    let targetUrl;
+    try {
+      targetUrl = new URL(href, window.location.href);
+    } catch {
+      return { ok: false, reason: "invalid-target", href: null };
+    }
+    if (routeMode !== "authRoute") return { ok: true, reason: "preview", href: targetUrl.href };
+    if (!state.allowed || !state.authorization) return { ok: false, reason: "authorization-context-required", href: null };
+    const fact = readJson(safeSessionGet(CURRENT_FACT_KEY));
+    if (
+      !factIsCurrent(fact) ||
+      fact.account !== state.authorization.account ||
+      Number(fact.permissionVersion) !== Number(state.authorization.permissionVersion) ||
+      Number(fact.menuVersion) !== Number(state.authorization.menuVersion)
+    ) return { ok: false, reason: "stale-fact", href: null };
+    return issueTicketFromFact({
+      account: state.authorization.account,
+      fact,
+      route: { target: { href: targetUrl.href, pagePermission: String(pagePermission || "") } }
+    });
+  }
+
+  function navigateAuthorized(options = {}) {
+    const issued = createAuthorizedNavigation(options);
+    if (issued.ok && issued.href) window.location.assign(issued.href);
+    return issued;
+  }
+
+  function renderBlockedRoute(reason) {
+    if (state.allowed || !document.body) return;
+    const copy = {
+      "missing-ticket": "登录路由票据不存在、已使用或已被清除，请返回登录页重新验证。",
+      "expired-ticket": "登录路由票据已过期，请返回登录页重新验证。",
+      "wrong-target": "登录路由与当前页面不一致，已阻止加载业务页面。",
+      "stale-fact": "当前账号或权限资料不可确认，请返回登录页重新验证。",
+      "stale-version": "权限版本已更新，旧登录路由不再有效。",
+      "permission-denied": "当前账号没有该页面权限，已阻止加载业务页面。"
+    }[reason] || "登录路由校验未通过，已阻止加载业务页面。";
+    document.body.innerHTML = `
+      <main role="main" aria-labelledby="platformAuthRouteTitle" style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#f5f7fb;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;color:#1d2129">
+        <section style="width:min(520px,100%);padding:28px;border:1px solid #e5e6eb;border-radius:16px;background:#fff;box-shadow:0 16px 48px rgba(17,24,39,.10)">
+          <p style="margin:0 0 8px;color:#b42318;font-weight:700">访问已阻止</p>
+          <h1 id="platformAuthRouteTitle" style="margin:0 0 12px;font-size:24px">请重新登录</h1>
+          <p style="margin:0;color:#4e5969;line-height:1.7">${copy}</p>
+        </section>
+      </main>`;
+    document.documentElement.dataset.hsPlatformAuthState = "blocked-ui";
+  }
+
+  window.HSPlatformAuthRouteGuard = Object.freeze({
+    registerLoginIssuer,
+    createAuthorizedNavigation,
+    navigateAuthorized,
+    allowBusinessBoot: () => state.allowed === true,
+    isAuthRouteMode: () => state.mode === "authRoute",
+    getRouteState: () => Object.freeze({ mode: state.mode, allowed: state.allowed, reason: state.reason }),
+    getAuthorizationContext: () => state.authorization
+  });
+})();

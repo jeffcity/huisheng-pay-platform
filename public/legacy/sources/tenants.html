@@ -1,0 +1,3813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汇盛支付平台端控制台 - 租户管理</title>
+  <script src="../platform-auth-route-guard.js" data-platform-route-targets='{"":"platform.tenant.view"}'></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --font-ui: "Avenir Next", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --primary: #145fe8;
+      --primary-hover: #0f52cc;
+      --primary-soft: #E8F3FF;
+      --bg-main: #F5F7FB;
+      --bg-rail: #111827;
+      --bg-card: #FFFFFF;
+      --bg-muted: #F1F5F9;
+      --text-primary: #1D2129;
+      --text-secondary: #4E5969;
+      --text-tertiary: #626d7b;
+      --text-inverse: #F8FAFC;
+      --border: #E5E6EB;
+      --border-strong: #D8DDE8;
+      --success: #0F9F6E;
+      --success-soft: #DCFCE7;
+      --warning: #92400E;
+      --warning-soft: #FEF3C7;
+      --danger: #DC2626;
+      --danger-soft: #FEE2E2;
+      --cyan: #0891B2;
+      --violet: #6D28D9;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --shadow-popover: 0 18px 48px rgba(15, 23, 42, 0.16);
+      --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.06);
+      --rail-width: 248px;
+      --topbar-height: 56px;
+      --mono: "Fira Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--primary-hover);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: var(--rail-width) minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: var(--bg-rail);
+      color: #E5E7EB;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-y: auto;
+    }
+
+    .brand {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #165DFF 0%, #0E7490 100%);
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1;
+      font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .brand-title {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .brand-title strong {
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .brand-title span {
+      color: #9CA3AF;
+      font-size: 12px;
+    }
+
+    .nav-group-title {
+      padding: 0 10px;
+      color: #8B95A7;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 22px;
+    }
+
+    .nav-list {
+      padding: 14px 12px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav-button {
+      width: 100%;
+      min-height: 38px;
+      border: 0;
+      background: transparent;
+      color: #C9D1DF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 6px;
+      text-align: left;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .nav-button:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: white;
+    }
+
+    .nav-button.active {
+      background: rgba(20, 95, 232, 0.24);
+      color: white;
+    }
+
+    .nav-button svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .nav-button span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 14px;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: var(--topbar-height) minmax(0, 1fr);
+    }
+
+    .topbar {
+      height: var(--topbar-height);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .breadcrumb {
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .breadcrumb strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .topbar-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .search-box {
+      position: relative;
+      width: min(340px, 30vw);
+      min-width: 220px;
+    }
+
+    .search-box svg {
+      width: 16px;
+      height: 16px;
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0 12px 0 34px;
+      color: var(--text-primary);
+      background: var(--bg-main);
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-tertiary);
+      opacity: 1;
+    }
+
+    .role-chip {
+      min-height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      background: white;
+      white-space: nowrap;
+    }
+
+    .role-chip select {
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 700;
+      padding: 0;
+      min-width: 62px;
+    }
+
+    .content {
+      padding: 20px 24px 32px;
+      min-width: 0;
+    }
+
+    .page-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .page-title {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .page-title p {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 82ch;
+    }
+
+    .head-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .ops-strip {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-panel);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ops-strip strong {
+      color: var(--text-primary);
+    }
+
+    .ops-chip {
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      background: #F8FAFC;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .ops-chip.queue {
+      border-color: #BFDBFE;
+      color: #1D4ED8;
+      background: #EFF6FF;
+    }
+
+    .btn {
+      min-height: 34px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: white;
+      color: var(--text-primary);
+      font-weight: 600;
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn:hover {
+      background: var(--bg-muted);
+      border-color: var(--text-tertiary);
+    }
+
+    .btn:disabled {
+      color: var(--text-tertiary);
+      background: var(--bg-muted);
+      border-color: var(--border);
+      cursor: not-allowed;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn.danger {
+      color: var(--danger);
+      border-color: #FCA5A5;
+      background: white;
+    }
+
+    .btn.danger:hover {
+      background: var(--danger-soft);
+    }
+
+    .btn.ghost {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .icon-btn {
+      width: 34px;
+      padding: 0;
+    }
+
+    .risk-strip {
+      border: 1px solid #FACC15;
+      background: var(--warning-soft);
+      color: #713F12;
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .risk-strip svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .risk-copy {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .risk-copy strong {
+      color: #713F12;
+    }
+
+    .layout-grid {
+      display: block;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      min-width: 0;
+    }
+
+    .panel-header {
+      height: 50px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header h2,
+    .panel-header h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .filter-bar {
+      display: grid;
+      grid-template-columns: 1.45fr repeat(3, minmax(130px, 1fr)) auto auto;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field label {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      min-height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0 10px;
+      background: white;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .field input[readonly] {
+      background: #F8FAFC;
+      color: var(--text-secondary);
+      cursor: default;
+    }
+
+    .field textarea {
+      padding: 9px 10px;
+      min-height: 78px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 8px;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--border);
+      height: 56px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th {
+      height: 44px;
+      background: #F8FAFC;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .detail-table table {
+      min-width: 640px;
+    }
+
+    .detail-table th,
+    .detail-table td {
+      height: 48px;
+    }
+
+    tbody tr {
+      transition: background 160ms ease;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-muted);
+    }
+
+    .mono,
+    .amount,
+    .ops-chip {
+      font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .mono {
+      font-size: 12px;
+    }
+
+    .tenant-cell {
+      display: grid;
+      gap: 3px;
+      min-width: 140px;
+    }
+
+    .tenant-cell strong {
+      font-size: 13px;
+    }
+
+    .tenant-cell span {
+      color: var(--text-tertiary);
+      font-size: 12px;
+    }
+
+    .cell-stack {
+      display: grid;
+      gap: 4px;
+      min-width: 150px;
+    }
+
+    .cell-stack strong {
+      font-size: 13px;
+    }
+
+    .cell-sub {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .business-matrix {
+      display: grid;
+      gap: 5px;
+      min-width: 110px;
+    }
+
+    .business-line {
+      display: flex;
+      gap: 5px;
+      flex-wrap: nowrap;
+    }
+
+    .ability-pill {
+      height: 24px;
+      border: 1px solid #E2E8F0;
+      border-radius: var(--radius-md);
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #F1F5F9;
+      color: #626d7b;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ability-pill.active {
+      color: #075985;
+      background: var(--primary-soft);
+      border-color: #BAE6FD;
+    }
+
+    .wallet-ledger {
+      display: grid;
+      gap: 4px;
+      min-width: 246px;
+    }
+
+    .wallet-ledger-line {
+      display: grid;
+      grid-template-columns: 38px 96px 96px;
+      gap: 8px;
+      align-items: center;
+      line-height: 1.35;
+    }
+
+    .wallet-ledger-line .label {
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .wallet-ledger-line .amount {
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .wallet-link {
+      margin-top: 2px;
+      border: 0;
+      padding: 0;
+      justify-self: center;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .wallet-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      border-radius: var(--radius-md);
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tag.green {
+      color: #166534;
+      background: var(--success-soft);
+      border-color: #BBF7D0;
+    }
+
+    .tag.orange {
+      color: #854D0E;
+      background: var(--warning-soft);
+      border-color: #FDE68A;
+    }
+
+    .tag.red {
+      color: #991B1B;
+      background: var(--danger-soft);
+      border-color: #FECACA;
+    }
+
+    .tag.blue {
+      color: #075985;
+      background: var(--primary-soft);
+      border-color: #BAE6FD;
+    }
+
+    .tag.gray {
+      color: #334155;
+      background: #E2E8F0;
+      border-color: #CBD5E1;
+    }
+
+    .tag.violet {
+      color: #4C1D95;
+      background: #EDE9FE;
+      border-color: #DDD6FE;
+    }
+
+    .amount {
+      font-weight: 700;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 5px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .action-col {
+      min-width: 82px;
+      text-align: right;
+      background: white;
+    }
+
+    .action-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .action-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    .action-link.danger {
+      color: var(--danger);
+    }
+
+    .action-link.muted {
+      color: var(--text-tertiary);
+      cursor: not-allowed;
+    }
+
+    th.action-col {
+      background: #F8FAFC;
+    }
+
+    tbody tr:hover .action-col {
+      background: var(--bg-muted);
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      background: white;
+    }
+
+    .mini-item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-item strong {
+      font-size: 13px;
+    }
+
+    .mini-item p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .table-empty {
+      height: 132px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .table-empty strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .table-empty .btn {
+      margin-top: 10px;
+    }
+
+    .detail-backdrop,
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+      z-index: 40;
+    }
+
+    .modal-backdrop {
+      z-index: 55;
+    }
+
+    .detail-backdrop.open,
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .detail-modal {
+      position: fixed;
+      top: 50%;
+      left: calc(var(--rail-width) + (100vw - var(--rail-width)) / 2);
+      width: min(1040px, calc(100vw - var(--rail-width) - 48px));
+      max-height: calc(100dvh - 64px);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-popover);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -48%) scale(0.98);
+      transition: opacity 180ms ease, transform 200ms ease;
+      z-index: 50;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .detail-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .detail-modal-head {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .detail-title {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .detail-title h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .detail-title p {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .detail-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 18px;
+      overflow-x: auto;
+    }
+
+    .detail-tab {
+      height: 42px;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 0 12px;
+      font-weight: 700;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .detail-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .detail-modal-body {
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .detail-section {
+      display: none;
+    }
+
+    .detail-section.active {
+      display: grid;
+      gap: 14px;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .kv {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      min-width: 0;
+      background: white;
+    }
+
+    .kv span {
+      display: block;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .kv strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .wallet-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      background: white;
+      display: grid;
+      gap: 6px;
+    }
+
+    .wallet-card span {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .wallet-card strong {
+      font-size: 18px;
+      font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .modal {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(760px, calc(100vw - 32px));
+      max-height: calc(100dvh - 44px);
+      transform: translate(-50%, -48%) scale(0.98);
+      opacity: 0;
+      pointer-events: none;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-popover);
+      z-index: 60;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    .modal.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .modal-head,
+    .modal-foot {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal-foot {
+      border-top: 1px solid var(--border);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    .operation-receipt {
+      display: none;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1px solid #B7EAD5;
+      border-radius: var(--radius-lg);
+      background: #F2FBF7;
+      color: #075D46;
+    }
+
+    .operation-receipt.show {
+      display: grid;
+    }
+
+    .operation-receipt.error {
+      border-color: #F0C7C7;
+      background: #FFF7F7;
+      color: #8F1D1D;
+    }
+
+    .operation-receipt-main {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .operation-receipt-main strong {
+      font-size: 13px;
+    }
+
+    .operation-receipt-main span {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .form-error {
+      display: none;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border: 1px solid #F0C7C7;
+      border-radius: var(--radius-md);
+      background: #FFF7F7;
+      color: #8F1D1D;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .field.has-error input,
+    .field.has-error select,
+    .field.has-error textarea {
+      border-color: var(--danger);
+      background: #FFF7F7;
+    }
+
+    .toast-stack {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 80;
+      display: grid;
+      gap: 8px;
+    }
+
+    .toast {
+      min-width: 280px;
+      max-width: 380px;
+      border: 1px solid var(--border);
+      background: white;
+      box-shadow: var(--shadow-popover);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+      animation: toastIn 180ms ease both;
+    }
+
+    .toast strong {
+      font-size: 13px;
+    }
+
+    .toast span {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @keyframes toastIn {
+      from {
+        transform: translateY(8px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 1024px) {
+      :root {
+        --rail-width: 76px;
+      }
+
+      .app-shell {
+        grid-template-columns: 76px minmax(0, 1fr);
+      }
+
+      .brand-title,
+      .nav-group-title,
+      .nav-button span {
+        display: none;
+      }
+
+      .brand {
+        justify-content: center;
+        padding: 12px 10px;
+      }
+
+      .nav-list {
+        padding: 14px 10px 24px;
+      }
+
+      .nav-button {
+        justify-content: center;
+        padding: 10px;
+      }
+
+      .filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --rail-width: 100%;
+      }
+
+      .app-shell {
+        display: block;
+      }
+
+      .main {
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: auto;
+        min-height: 0;
+        overflow-x: auto;
+      }
+
+      .brand {
+        min-height: 54px;
+        justify-content: flex-start;
+        padding: 10px 14px 12px;
+      }
+
+      .brand-title {
+        display: grid;
+      }
+
+      .nav-list {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 8px 12px 12px;
+      }
+
+      .nav-group {
+        display: contents;
+      }
+
+      .nav-group-title {
+        display: none;
+      }
+
+      .nav-button {
+        width: auto;
+        min-width: 92px;
+        justify-content: flex-start;
+      }
+
+      .nav-button span {
+        display: inline;
+      }
+
+      .topbar {
+        position: static;
+        height: auto;
+        flex-wrap: wrap;
+        padding: 12px 14px;
+      }
+
+      .search-box {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      .page-head {
+        grid-template-columns: 1fr;
+      }
+
+      .head-actions {
+        justify-content: flex-start;
+      }
+
+      .risk-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .state-grid,
+      .kv-grid,
+      .wallet-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-modal {
+        left: 50%;
+        width: calc(100vw - 28px);
+        max-height: calc(100dvh - 28px);
+      }
+    }
+    /* 三端共用：键盘、动效与窄屏触控基线 */
+    :focus-visible {
+      outline: 3px solid #ffffff;
+      box-shadow: 0 0 0 5px #145fe8;
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      button,
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea,
+      [role="button"] {
+        min-height: 44px !important;
+      }
+
+      button,
+      [role="button"] {
+        min-width: 44px !important;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+    }
+
+    /* 三端统一视觉与响应式基线（2026-07-18） */
+    :root {
+      --font-ui: "Avenir Next", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font: var(--font-ui);
+      --color-primary: #145fe8;
+      --color-primary-hover: #0f52cc;
+      --color-primary-light: #e8f3ff;
+      --primary: var(--color-primary);
+      --primary-hover: var(--color-primary-hover);
+      --primary-strong: var(--color-primary-hover);
+      --primary-light: var(--color-primary-light);
+      --primary-soft: var(--color-primary-light);
+      --color-bg-page: #f5f7fb;
+      --color-bg-surface: #ffffff;
+      --color-bg-subtle: #f7f8fa;
+      --bg: var(--color-bg-page);
+      --bg-main: var(--color-bg-page);
+      --bg-page: var(--color-bg-page);
+      --color-bg-2: var(--color-bg-page);
+      --surface: var(--color-bg-surface);
+      --bg-card: var(--color-bg-surface);
+      --bg-surface: var(--color-bg-surface);
+      --color-bg-1: var(--color-bg-surface);
+      --surface-soft: var(--color-bg-subtle);
+      --surface-strong: var(--color-bg-subtle);
+      --bg-muted: var(--color-bg-subtle);
+      --bg-subtle: var(--color-bg-subtle);
+      --color-fill-1: var(--color-bg-subtle);
+      --color-border: #e5e6eb;
+      --color-border-strong: #d8dde8;
+      --border: var(--color-border);
+      --line: var(--color-border);
+      --border-strong: var(--color-border-strong);
+      --line-strong: var(--color-border-strong);
+      --color-text-primary: #1d2129;
+      --color-text-secondary: #4e5969;
+      --color-text-tertiary: #626d7b;
+      --text: var(--color-text-primary);
+      --text-primary: var(--color-text-primary);
+      --text-strong: var(--color-text-primary);
+      --color-text-1: var(--color-text-primary);
+      --text-secondary: var(--color-text-secondary);
+      --text-main: var(--color-text-secondary);
+      --color-text-2: var(--color-text-secondary);
+      --text-tertiary: var(--color-text-tertiary);
+      --text-muted: var(--color-text-tertiary);
+      --color-text-3: var(--color-text-tertiary);
+      --color-success: #087a55;
+      --color-success-light: #e8fff3;
+      --success: var(--color-success);
+      --success-light: var(--color-success-light);
+      --color-status-success: var(--color-success);
+      --color-warning: #8a4b00;
+      --color-warning-light: #fff7e8;
+      --warning: var(--color-warning);
+      --warning-light: var(--color-warning-light);
+      --accent: var(--color-warning);
+      --accent-soft: var(--color-warning-light);
+      --color-status-warning: var(--color-warning);
+      --color-danger: #cf1f1f;
+      --color-danger-light: #fff0ed;
+      --danger: var(--color-danger);
+      --danger-light: var(--color-danger-light);
+      --color-status-danger: var(--color-danger);
+      --color-info: #0e7490;
+      --color-info-light: #e6fffb;
+      --info: var(--color-info);
+      --info-soft: var(--color-info-light);
+      --cyan: var(--color-info);
+      --color-purple: var(--color-info);
+      --color-purple-light: var(--color-info-light);
+      --color-status-info: var(--color-info);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-small: var(--radius-sm);
+      --radius-medium: var(--radius-md);
+      --radius-large: var(--radius-lg);
+      --radius: var(--radius-md);
+      --sidebar-width: 248px;
+      --rail-width: var(--sidebar-width);
+      --bg-rail: #111827;
+      --sidebar: #111827;
+      --rail-bg: #111827;
+      --topbar-height: 56px;
+      --shadow-modal: 0 18px 48px rgba(29, 33, 41, 0.18);
+      --shadow-pop: var(--shadow-modal);
+      --shadow-popover: var(--shadow-modal);
+    }
+
+    html { color-scheme: light; }
+
+    body {
+      font-family: var(--font-ui) !important;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--color-text-primary);
+      background-color: var(--color-bg-page);
+    }
+
+    button,
+    [role="button"] {
+      min-height: 32px !important;
+      border-radius: var(--radius-md) !important;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      min-height: 32px !important;
+      border-radius: var(--radius-md) !important;
+    }
+
+    :focus-visible,
+    [role="dialog"] :focus {
+      outline: 3px solid #ffffff !important;
+      box-shadow: 0 0 0 5px #145fe8 !important;
+      outline-offset: 2px !important;
+    }
+
+    .sidebar { background: #111827 !important; }
+    .topbar { min-height: var(--topbar-height); }
+    table thead th,
+    .data-table th { background: var(--color-bg-subtle) !important; }
+    table tbody td {
+      padding-top: 11px !important;
+      padding-bottom: 11px !important;
+    }
+    .modal-dialog,
+    .dialog,
+    [role="dialog"]:not(.modal-backdrop),
+    .auth-shell {
+      border-radius: var(--radius-lg) !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      button,
+      [role="button"] {
+        min-width: 44px !important;
+        min-height: 44px !important;
+      }
+
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea {
+        min-height: 44px !important;
+        font-size: 16px !important;
+      }
+
+      .topbar {
+        height: auto !important;
+        min-height: var(--topbar-height);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="平台端导航">
+      <div class="brand">
+        <div class="brand-mark">HS</div>
+        <div class="brand-title">
+          <strong>汇盛支付</strong>
+          <span>平台端控制台</span>
+        </div>
+      </div>
+
+      <nav class="nav-list" id="platformNav">
+        <div class="nav-group">
+          <div class="nav-group-title">租户管理</div>
+          <button class="nav-button active" data-master-page="tenants" data-master-note="当前页面为平台端租户管理。">
+            <i data-lucide="building-2"></i><span>租户管理</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-title">业务开通</div>
+          <button class="nav-button" data-master-page="business" data-master-note="业务开通主流程由独立模块承接；租户详情业务页可作为发起授权的第二入口。">
+            <i data-lucide="toggle-left"></i><span>业务开通</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-title">通道管理</div>
+          <button class="nav-button" data-master-page="channels" data-master-note="通道真实对接、参数、联调和授权规则归通道管理。">
+            <i data-lucide="route"></i><span>通道管理</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-title">报表体系</div>
+          <button class="nav-button" data-master-page="report" data-master-note="租户整体报表由报表体系页面承接。">
+            <i data-lucide="chart-column"></i><span>租户整体报表</span>
+          </button>
+          <button class="nav-button" data-master-page="ledger" data-master-note="租户整体流水由报表体系页面承接。">
+            <i data-lucide="list-tree"></i><span>租户整体流水</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-title">审计体系</div>
+          <button class="nav-button" data-master-page="orders" data-master-note="全局订单查询归审计体系，只读排查，不处理业务动作。">
+            <i data-lucide="search-check"></i><span>全局订单查询</span>
+          </button>
+          <button class="nav-button" data-master-page="audit" data-master-note="审计日志归审计体系，只读不可改。">
+            <i data-lucide="shield-check"></i><span>审计日志</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-title">系统管理 / 设置</div>
+          <button class="nav-button" data-master-page="settings" data-master-note="系统管理承接角色权限、菜单、安全策略和套餐费率配置。">
+            <i data-lucide="settings-2"></i><span>系统管理</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>平台端</span>
+          <span>/</span>
+          <strong>租户管理</strong>
+        </div>
+        <div class="topbar-tools">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input id="globalSearch" type="search" placeholder="搜索租户编号、租户名、联系人" aria-label="全局搜索租户">
+          </div>
+          <span class="role-chip">
+            <i data-lucide="user-round-cog"></i>
+            <select id="roleSelect" aria-label="切换当前角色">
+              <option value="平台超管">平台超管</option>
+              <option value="平台运营">平台运营</option>
+              <option value="平台财务">平台财务</option>
+              <option value="风控审计">风控审计</option>
+            </select>
+          </span>
+          <button class="btn" aria-label="刷新数据" id="refreshBtn"><i data-lucide="refresh-cw"></i>刷新</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="page-head">
+          <div class="page-title">
+            <h1>平台端租户管理</h1>
+            <p>管理租户生命周期、基础资料、账号安全、状态管理，并从租户详情进入当前租户的租户钱包。</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn primary" id="createTenantTop"><i data-lucide="plus"></i>新增租户</button>
+          </div>
+        </div>
+
+        <div class="operation-receipt" id="operationReceipt" role="status" aria-live="polite"></div>
+
+        <div class="ops-strip" id="opsStrip" aria-label="租户列表筛选摘要"></div>
+
+        <div class="layout-grid">
+          <section class="panel tenant-list-panel">
+            <div class="panel-header">
+              <h2>租户列表</h2>
+            </div>
+            <div class="panel-body">
+              <div class="filter-bar">
+                <div class="field">
+                  <label for="keywordFilter">租户关键词</label>
+                  <input id="keywordFilter" type="search" placeholder="租户名 / 编号 / 联系人">
+                </div>
+                <div class="field">
+                  <label for="statusFilter">租户状态</label>
+                  <select id="statusFilter">
+                    <option value="all">全部状态</option>
+                    <option value="正常">正常</option>
+                    <option value="审核中">审核中</option>
+                    <option value="停用">停用</option>
+                    <option value="关闭">关闭</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="businessFilter">业务大类</label>
+                  <select id="businessFilter">
+                    <option value="all">全部业务</option>
+                    <option value="法币业务">法币业务</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="expireFilter">到期状态</label>
+                  <select id="expireFilter">
+                    <option value="all">全部到期</option>
+                    <option value="expiring">120 天内到期</option>
+                    <option value="expired">已过期</option>
+                  </select>
+                </div>
+                <button class="btn primary" id="applyFilter"><i data-lucide="sliders-horizontal"></i>筛选</button>
+                <button class="btn" id="clearFilter"><i data-lucide="rotate-ccw"></i>清空</button>
+              </div>
+
+              <div class="table-wrap" id="tableWrap">
+                <table aria-label="租户列表表格">
+                  <thead>
+                    <tr>
+                      <th>租户</th>
+                      <th>状态</th>
+                      <th>已开通业务</th>
+                      <th>钱包余额</th>
+                      <th class="action-col">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tenantRows"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <div class="detail-backdrop" id="detailBackdrop" aria-hidden="true"></div>
+  <section class="detail-modal" id="tenantDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailTenantName" aria-hidden="true" tabindex="-1">
+    <div class="detail-modal-head">
+      <div class="detail-title-row">
+        <div class="detail-title">
+          <h2 id="detailTenantName">租户详情</h2>
+          <p id="detailTenantMeta">选择租户后查看详情。</p>
+        </div>
+        <button class="btn" id="detailClose" aria-label="关闭详情">关闭</button>
+      </div>
+      <div class="tag-row" id="detailTags"></div>
+    </div>
+    <div class="detail-tabs" role="tablist">
+      <button class="detail-tab active" data-tab="overview">概览</button>
+      <button class="detail-tab" data-tab="business">业务</button>
+      <button class="detail-tab" data-tab="security">安全</button>
+      <button class="detail-tab" data-tab="wallet">租户钱包</button>
+      <button class="detail-tab" data-tab="audit">审计日志</button>
+    </div>
+    <div class="detail-modal-body">
+      <section class="detail-section active" id="tab-overview"></section>
+      <section class="detail-section" id="tab-business"></section>
+      <section class="detail-section" id="tab-security"></section>
+      <section class="detail-section" id="tab-wallet"></section>
+      <section class="detail-section" id="tab-audit"></section>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+  <section class="modal" id="tenantModal" role="dialog" aria-modal="true" aria-labelledby="tenantModalTitle" aria-hidden="true" tabindex="-1">
+    <div class="modal-head">
+      <h2 id="tenantModalTitle">新增租户</h2>
+      <button class="btn" data-close-modal aria-label="关闭弹窗">关闭</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-error" id="tenantFormError" role="alert"></div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="tenantNameInput">租户名称</label>
+          <input id="tenantNameInput" value="汇盛东南亚">
+        </div>
+        <div class="field">
+          <label for="tenantCodeInput">租户编号</label>
+          <input id="tenantCodeInput" value="系统自动生成" class="mono" readonly>
+        </div>
+        <div class="field">
+          <label for="contactInput">联系人</label>
+          <input id="contactInput" value="Lin Chen">
+        </div>
+        <div class="field">
+          <label for="mobileInput">联系手机</label>
+          <input id="mobileInput" value="+63 917 208 8891">
+        </div>
+        <div class="field">
+          <label for="expireInput">过期时间</label>
+          <input id="expireInput" type="date" value="2027-01-31">
+        </div>
+        <div class="field">
+          <label for="domainInput">初始系统访问地址</label>
+          <input id="domainInput" value="保存后按租户编号生成" readonly>
+        </div>
+        <div class="field">
+          <label for="adminInput">管理账号</label>
+          <input id="adminInput" value="创建后在详情维护" readonly>
+        </div>
+        <div class="field wide">
+          <label for="tenantRemarkInput">备注</label>
+          <textarea id="tenantRemarkInput" placeholder="填写租户来源、业务说明或内部备注"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close-modal>取消</button>
+      <button class="btn primary" id="saveTenantBtn"><i data-lucide="save"></i>保存</button>
+    </div>
+  </section>
+
+  <section class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true" tabindex="-1">
+    <div class="modal-head">
+      <h2 id="confirmTitle">确认操作</h2>
+      <button class="btn" data-close-confirm aria-label="关闭确认">关闭</button>
+    </div>
+    <div class="modal-body">
+      <div class="risk-strip">
+        <i data-lucide="shield-alert"></i>
+        <div>
+          <strong id="confirmHeadline">高风险操作</strong>
+          <div id="confirmDetail">此操作需要二次确认并写审计日志。</div>
+        </div>
+      </div>
+      <div class="form-error" id="confirmFormError" role="alert"></div>
+      <div class="form-grid" id="confirmForm">
+        <div class="field">
+          <label for="confirmOperator">操作人</label>
+          <input id="confirmOperator" value="Jeff / 平台超管">
+        </div>
+        <div class="field">
+          <label for="confirmTarget">操作对象</label>
+          <input id="confirmTarget" value="当前选中租户">
+        </div>
+        <div class="field wide">
+          <label for="confirmReason">原因</label>
+          <textarea id="confirmReason">风险处理或安全维护，需保留审计记录。</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close-confirm>取消</button>
+      <button class="btn danger" id="confirmActionBtn"><i data-lucide="shield-check"></i>确认并记录</button>
+    </div>
+  </section>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script>
+    if (window.HSPlatformAuthRouteGuard?.allowBusinessBoot() === true) {
+    const platformTenantAuthorization = window.HSPlatformAuthRouteGuard.getAuthorizationContext();
+    const platformTenantActionPermissions = new Set(platformTenantAuthorization?.actionPermissions || []);
+    const tenants = [
+      {
+        id: 'HS-TEN-001',
+        name: '汇盛东南亚',
+        contact: 'Lin Chen',
+        status: '正常',
+        statusTone: 'green',
+        business: ['法币代收', '法币代付'],
+        businessCatalog: [
+          { name: '法币代收', status: '已授权', tone: 'green' },
+          { name: '法币代付', status: '已授权', tone: 'green' }
+        ],
+        businessTypes: ['法币业务'],
+        wallet: 482350.18,
+        available: 452100.18,
+        frozen: 30250,
+        wallets: [
+          { currency: 'CNY', network: '代收钱包', balance: 1284600, available: 1261200, frozen: 23400, status: '正常', tone: 'green' },
+          { currency: 'CNY', network: '代付钱包', balance: 482350.18, available: 452100.18, frozen: 30250, status: '正常', tone: 'green' },
+          { currency: 'CNY', network: '提款钱包', balance: 50000, available: 50000, frozen: 0, status: '正常', tone: 'green' }
+        ],
+        credit: 50000,
+        expire: '2027-01-31',
+        domain: 'pay-hs-sea.com',
+        admin: 'admin_hs_sea',
+        phone: '+63 917 208 8891',
+        remark: '东南亚业务租户，联系人负责日常运营对接。',
+        channels: ['法币代收 / PH-Bank-01', '法币代付 / VN-Payout-02', '法币代收 / CNY-Backup'],
+        tx: 'TX-20260705-0018',
+        feePolicy: '套餐 A / 订单成功实时计费',
+        audit: ['新增租户钱包补偿检查通过', '平台运营查看业务开通', '平台财务查看租户钱包']
+      },
+      {
+        id: 'HS-TEN-018',
+        name: '北辰支付',
+        contact: 'Mia Wong',
+        status: '审核中',
+        statusTone: 'orange',
+        business: ['法币代收'],
+        businessCatalog: [
+          { name: '法币代收', status: '已授权', tone: 'green' },
+          { name: '法币代付', status: '未授权', tone: 'orange' }
+        ],
+        businessTypes: ['法币业务'],
+        wallet: 12680.2,
+        available: 12680.2,
+        frozen: 0,
+        wallets: [
+          { currency: 'CNY', network: '代收钱包', balance: 385000, available: 385000, frozen: 0, status: '审核中', tone: 'orange' },
+          { currency: 'CNY', network: '代付钱包', balance: 12680.2, available: 12680.2, frozen: 0, status: '低余额', tone: 'orange' },
+          { currency: 'CNY', network: '提款钱包', balance: 30000, available: 30000, frozen: 0, status: '正常', tone: 'green' }
+        ],
+        credit: 30000,
+        expire: '2026-10-18',
+        domain: 'pay-bc-ops.net',
+        admin: 'bc_admin',
+        phone: '+886 912 330 118',
+        remark: '新接入租户，资料审核通过后可启用。',
+        channels: ['法币代收 / TW-Bank-02'],
+        tx: 'TX-20260705-0019',
+        feePolicy: '套餐 B / 订单成功实时计费',
+        audit: ['创建租户并进入审核', '低余额阈值触发提醒', '代付业务尚未开通']
+      },
+      {
+        id: 'HS-TEN-029',
+        name: '蓝盛拆分租户',
+        contact: 'Aaron Li',
+        status: '停用',
+        statusTone: 'red',
+        business: ['法币代付'],
+        businessCatalog: [
+          { name: '法币代收', status: '未授权', tone: 'orange' },
+          { name: '法币代付', status: '已授权', tone: 'green' }
+        ],
+        businessTypes: ['法币业务'],
+        wallet: 8230.55,
+        available: 0,
+        frozen: 8230.55,
+        wallets: [
+          { currency: 'CNY', network: '代收钱包', balance: 0, available: 0, frozen: 0, status: '停用', tone: 'red' },
+          { currency: 'CNY', network: '代付钱包', balance: 8230.55, available: 0, frozen: 8230.55, status: '冻结', tone: 'red' },
+          { currency: 'CNY', network: '提款钱包', balance: 20000, available: 0, frozen: 20000, status: '冻结', tone: 'red' }
+        ],
+        credit: 20000,
+        expire: '2026-08-30',
+        domain: 'ls-hs-tenant.io',
+        admin: 'ls_admin',
+        phone: '+60 12 881 0293',
+        remark: '风险处理中，当前阻止两端后续登录和全部新业务。',
+        channels: ['法币代付 / MY-Payout-01', '法币代付 / CNY-Payout-Backup'],
+        tx: 'TX-20260705-0020',
+        feePolicy: '套餐 A / 订单成功实时计费',
+        audit: ['停用租户并阻止租户端、商户端后续登录', '全部新订单、新资金申请和新配置申请被拒绝', '历史、钱包、流水、审计和在途业务继续保留']
+      },
+      {
+        id: 'HS-TEN-044',
+        name: '海岚通道业务',
+        contact: 'Nora Tan',
+        status: '正常',
+        statusTone: 'green',
+        business: ['法币代收', '法币代付'],
+        businessCatalog: [
+          { name: '法币代收', status: '已授权', tone: 'green' },
+          { name: '法币代付', status: '已授权', tone: 'green' }
+        ],
+        businessTypes: ['法币业务'],
+        wallet: 219004.08,
+        available: 199004.08,
+        frozen: 20000,
+        wallets: [
+          { currency: 'CNY', network: '代收钱包', balance: 7380000, available: 7100000, frozen: 280000, status: '正常', tone: 'green' },
+          { currency: 'CNY', network: '代付钱包', balance: 219004.08, available: 199004.08, frozen: 20000, status: '正常', tone: 'green' },
+          { currency: 'CNY', network: '提款钱包', balance: 80000, available: 80000, frozen: 0, status: '正常', tone: 'green' }
+        ],
+        credit: 80000,
+        expire: '2027-04-15',
+        domain: 'hailan-pay.com',
+        admin: 'hl_ops_admin',
+        phone: '+66 92 110 3404',
+        remark: '通道业务租户，主要使用法币代收和法币业务。',
+        channels: ['法币代收 / TH-QR-01', '法币代收 / 快捷支付-Gateway', '法币代付 / 网银支付-Backup'],
+        tx: 'TX-20260705-0021',
+        feePolicy: '套餐 C / 订单成功实时计费',
+        audit: ['查看授权通道列表', '新增 IP 白名单', '平台财务查看服务费扣款']
+      },
+      {
+        id: 'HS-TEN-061',
+        name: '银湾结算',
+        contact: 'Ivan Ng',
+        status: '关闭',
+        statusTone: 'red',
+        business: ['法币代收'],
+        businessCatalog: [
+          { name: '法币代收', status: '历史只读', tone: 'gray' },
+          { name: '法币代付', status: '未授权', tone: 'gray' }
+        ],
+        businessTypes: ['法币业务'],
+        wallet: 0,
+        available: 0,
+        frozen: 0,
+        wallets: [
+          { currency: 'CNY', network: '代收钱包', balance: 0, available: 0, frozen: 0, status: '关闭', tone: 'gray' },
+          { currency: 'CNY', network: '代付钱包', balance: 0, available: 0, frozen: 0, status: '关闭', tone: 'gray' },
+          { currency: 'CNY', network: '提款钱包', balance: 0, available: 0, frozen: 0, status: '关闭', tone: 'gray' }
+        ],
+        credit: 0,
+        expire: '2026-06-30',
+        domain: 'yinwan-pay.net',
+        admin: 'yw_admin',
+        phone: '+852 6123 9088',
+        remark: '历史关闭租户，仅保留查询和审计。',
+        channels: ['法币代收 / 历史授权'],
+        tx: 'DEP-LEGACY-0000',
+        feePolicy: '历史套餐',
+        audit: ['关闭租户并保留历史查询', '资金页禁止新增调整', '审计日志只读查看']
+      }
+    ];
+
+    const auditEvents = [
+      {
+        id: 'AL-20260704-12001',
+        time: '2026-07-04 10:12:44',
+        operator: 'Jeff',
+        role: '平台超管',
+        tenant: '汇盛东南亚',
+        object: 'HS-TEN-001 / 租户钱包',
+        action: '查看详情',
+        result: '成功',
+        tone: 'green',
+        ip: '10.12.4.18',
+        device: 'Chrome macOS',
+        reason: '从租户详情查看租户钱包'
+      },
+      {
+        id: 'AL-20260704-11982',
+        time: '2026-07-04 09:41:08',
+        operator: 'finance.ops',
+        role: '平台财务',
+        tenant: '北辰支付',
+        object: 'HS-TEN-018 / 人工加款申请',
+        action: '查看资金申请',
+        result: '待平台审核',
+        tone: 'orange',
+        ip: '10.12.9.20',
+        device: 'Chrome macOS',
+        reason: '从租户详情进入独立资金待办查看申请'
+      },
+      {
+        id: 'AL-20260703-99412',
+        time: '2026-07-03 18:36:22',
+        operator: 'Aaron Li',
+        role: '平台运营',
+        tenant: '蓝盛拆分租户',
+        object: 'HS-TEN-029 / 租户状态',
+        action: '安全操作',
+        result: '高风险',
+        tone: 'red',
+        ip: '10.12.6.42',
+        device: 'Edge Windows',
+        reason: '停用租户并关闭新业务入口'
+      },
+      {
+        id: 'AL-20260703-98240',
+        time: '2026-07-03 16:20:39',
+        operator: 'Nora Tan',
+        role: '平台运营',
+        tenant: '海岚通道业务',
+        object: 'HS-TEN-044 / 访问域名',
+        action: '域名检查',
+        result: '成功',
+        tone: 'green',
+        ip: '10.12.8.11',
+        device: 'Chrome macOS',
+        reason: '保存 DAR 域名申请检查结果'
+      },
+      {
+        id: 'AL-20260701-77145',
+        time: '2026-07-01 11:26:05',
+        operator: 'system',
+        role: '系统任务',
+        tenant: '银湾结算',
+        object: 'HS-TEN-061 / 租户状态',
+        action: '状态同步',
+        result: '只读',
+        tone: 'gray',
+        ip: 'system',
+        device: 'scheduler',
+        reason: '租户关闭后切换为历史只读'
+      }
+    ];
+
+    const roleProfiles = {
+      '平台超管': {
+        scopeCode: 'platform.all_tenants',
+        tenantIds: [],
+        canCreate: true,
+        canEdit: true,
+        canBusinessAuth: true,
+        canSecurity: true,
+        canAccessProcess: true,
+        canAudit: true
+      },
+      '平台运营': {
+        scopeCode: 'platform.assigned_tenants',
+        tenantIds: ['HS-TEN-001', 'HS-TEN-018'],
+        canCreate: true,
+        canEdit: true,
+        canBusinessAuth: true,
+        canSecurity: false,
+        canAccessProcess: true,
+        canAudit: true
+      },
+      '平台财务': {
+        scopeCode: 'platform.all_tenants',
+        tenantIds: [],
+        canCreate: false,
+        canEdit: false,
+        canBusinessAuth: false,
+        canSecurity: false,
+        canAccessProcess: false,
+        canAudit: true
+      },
+      '风控审计': {
+        scopeCode: 'platform.all_tenants',
+        tenantIds: [],
+        canCreate: false,
+        canEdit: false,
+        canBusinessAuth: false,
+        canSecurity: false,
+        canAccessProcess: false,
+        canAudit: true
+      }
+    };
+    if (platformTenantAuthorization) {
+      roleProfiles['登录账号'] = {
+        scopeCode: platformTenantAuthorization.dataScope.scopeCode,
+        tenantIds: [...platformTenantAuthorization.dataScope.tenantIds],
+        canCreate: platformTenantActionPermissions.has('platform.tenant.manage'),
+        canEdit: platformTenantActionPermissions.has('platform.tenant.manage'),
+        canBusinessAuth: platformTenantActionPermissions.has('platform.business_grant.manage'),
+        canSecurity: platformTenantActionPermissions.has('platform.tenant.manage'),
+        canAccessProcess: platformTenantActionPermissions.has('platform.tenant.manage'),
+        canAudit: platformTenantAuthorization.pagePermissions.includes('platform.audit.view')
+      };
+    }
+
+    const accessTypeLabels = { domain: '访问域名' };
+
+    const accessCheckCatalog = {
+      domain: ['格式与全平台唯一性', 'DNS 所有权', '解析到平台', 'SSL 准备']
+    };
+
+    function ensureTenantAccessState(tenant) {
+      tenant.accessRequests = Array.isArray(tenant.accessRequests) ? tenant.accessRequests : [];
+      return tenant;
+    }
+
+    tenants.forEach(ensureTenantAccessState);
+    tenants[0].accessRequests = [
+      { id: 'DAR-20260718-0001', type: 'domain', value: 'new.hs-sea-pay.com', status: '待平台处理', requestedBy: 'tenant.admin', requestedAt: '2026-07-18 09:12:10', reason: '切换正式品牌域名', checks: [false, false, false, false], result: '-' }
+    ];
+
+    const appState = {
+      selectedTenant: tenants[0],
+      filtered: tenants.slice(),
+      currentConfirm: '高风险操作',
+      currentRole: platformTenantAuthorization ? '登录账号' : '平台超管',
+      editingTenantId: '',
+      confirmTenantId: '',
+      confirmBusinessName: '',
+      confirmRequestId: '',
+      tenantSequence: 62,
+      auditSequence: 12050,
+      latestReceipt: null
+    };
+
+    const tenantDialogReturnFocus = new WeakMap();
+
+    function tenantDialogFocusable(dialog) {
+      return [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')]
+        .filter(element => element.offsetParent !== null && element.getAttribute('aria-hidden') !== 'true');
+    }
+
+    function showTenantDialog(dialog) {
+      if (!dialog.classList.contains('open')) {
+        tenantDialogReturnFocus.set(dialog, document.activeElement);
+      }
+      dialog.classList.add('open');
+      dialog.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => {
+        const focusable = tenantDialogFocusable(dialog);
+        (focusable[0] || dialog).focus();
+      });
+    }
+
+    function restoreTenantDialogFocus(dialog, fallbackSelector = '') {
+      const returnTarget = tenantDialogReturnFocus.get(dialog);
+      tenantDialogReturnFocus.delete(dialog);
+      const fallback = fallbackSelector ? document.querySelector(fallbackSelector) : null;
+      const target = returnTarget?.isConnected && returnTarget.offsetParent !== null ? returnTarget : fallback;
+      if (target?.isConnected && target.offsetParent !== null) target.focus();
+    }
+
+    function trapTenantDialogFocus(event, dialog) {
+      const focusable = tenantDialogFocusable(dialog);
+      if (!focusable.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    const today = new Date('2026-07-18T00:00:00+08:00');
+
+    const businessAbilities = [
+      [
+        { label: 'CNY 代收', aliases: ['法币代收'] },
+        { label: 'CNY 代付', aliases: ['法币代付'] }
+      ]
+    ];
+
+    const listWalletSnapshots = {
+      'HS-TEN-001': {
+        withdrawable: { CNY: 50000 },
+        collection: { CNY: 1261200 },
+        payout: { CNY: 452100.18 }
+      },
+      'HS-TEN-018': {
+        withdrawable: { CNY: 30000 },
+        collection: { CNY: 385000 },
+        payout: { CNY: 12680.2 }
+      },
+      'HS-TEN-029': {
+        withdrawable: { CNY: 0 },
+        collection: { CNY: 0 },
+        payout: { CNY: 0 }
+      },
+      'HS-TEN-044': {
+        withdrawable: { CNY: 80000 },
+        collection: { CNY: 7100000 },
+        payout: { CNY: 199004.08 }
+      },
+      'HS-TEN-061': {
+        withdrawable: { CNY: 0 },
+        collection: { CNY: 0 },
+        payout: { CNY: 0 }
+      }
+    };
+
+    const statusTone = {
+      '正常': 'green',
+      '审核中': 'orange',
+      '停用': 'red',
+      '关闭': 'red'
+    };
+
+    function platformNow() {
+      return new Date().toLocaleString('sv-SE', {
+        timeZone: 'Asia/Taipei',
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function clearFormError(errorId) {
+      const panel = document.getElementById(errorId);
+      if (panel) {
+        panel.classList.remove('show');
+        panel.textContent = '';
+      }
+      document.querySelectorAll('.field.has-error').forEach(field => field.classList.remove('has-error'));
+      document.querySelectorAll('[aria-invalid="true"]').forEach(field => window.HSFormFeedback?.clear(field));
+    }
+
+    function showFormError(errorId, message, fieldIds = []) {
+      clearFormError(errorId);
+      const panel = document.getElementById(errorId);
+      if (panel) {
+        panel.textContent = message;
+        panel.classList.add('show');
+        panel.setAttribute('role', 'alert');
+        panel.setAttribute('aria-live', 'assertive');
+        panel.setAttribute('aria-atomic', 'true');
+      }
+      fieldIds.forEach(id => {
+        const field = document.getElementById(id);
+        field?.closest('.field')?.classList.add('has-error');
+      });
+      const firstField = document.getElementById(fieldIds[0]) || panel?.closest('form')?.querySelector('input, select, textarea');
+      window.HSFormFeedback?.report(message, firstField, panel);
+    }
+
+    function isValidTenantDomain(value) {
+      const domain = String(value || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+      if (!domain || domain.includes('/') || domain.includes(':') || /^(localhost|127\.|0\.|10\.|192\.168\.)/.test(domain)) return false;
+      return /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain);
+    }
+
+    function currentTenantForAction() {
+      return tenants.find(item => item.id === appState.confirmTenantId) || appState.selectedTenant;
+    }
+
+    function addTenantAudit(tenant, action, result, reason, tone = 'green') {
+      const audit = {
+        id: `AL-20260718-${String(appState.auditSequence++).padStart(5, '0')}`,
+        time: platformNow(),
+        operator: appState.currentRole === '平台超管' ? 'Jeff' : appState.currentRole,
+        role: appState.currentRole,
+        tenant: tenant.name,
+        object: `${tenant.id} / ${action}`,
+        action,
+        result,
+        tone,
+        ip: '10.12.4.18',
+        device: 'Chrome macOS',
+        reason
+      };
+      auditEvents.unshift(audit);
+      return audit;
+    }
+
+    function setOperationReceipt({ title, tenant, status, detail, audit }) {
+      appState.latestReceipt = { title, tenantId: tenant.id, status, detail, auditId: audit.id, time: audit.time };
+      renderOperationReceipt();
+    }
+
+    function renderOperationReceipt() {
+      const receipt = document.getElementById('operationReceipt');
+      const data = appState.latestReceipt;
+      if (!data) {
+        receipt.className = 'operation-receipt';
+        receipt.innerHTML = '';
+        return;
+      }
+      receipt.className = 'operation-receipt show';
+      receipt.innerHTML =
+        '<div class="operation-receipt-main">' +
+          '<strong>' + data.title + ' · ' + data.status + '</strong>' +
+          '<span>' + data.tenantId + ' · ' + data.detail + ' · ' + data.time + '（UTC+8） · 审计编号 ' + data.auditId + '</span>' +
+        '</div>' +
+        '<div class="table-actions">' +
+          '<button class="btn" data-receipt-tenant="' + data.tenantId + '">查看租户</button>' +
+          '<button class="btn" data-receipt-audit="' + data.auditId + '">查看审计</button>' +
+        '</div>';
+    }
+
+    function formatMoney(value) {
+      const amount = Math.max(Number(value) || 0, 0);
+      return 'CNY ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatCurrency(value, currency) {
+      const amount = Math.max(Number(value) || 0, 0);
+      return currency + ' ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatLedgerAmount(value, currency) {
+      const amount = Math.max(Number(value) || 0, 0);
+      return currency + ' ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function getPermissions() {
+      return roleProfiles[appState.currentRole] || roleProfiles['平台超管'];
+    }
+
+    function tenantInCurrentScope(tenant) {
+      if (!tenant) return false;
+      const permissions = getPermissions();
+      return permissions.scopeCode === 'platform.all_tenants' || permissions.tenantIds.includes(tenant.id);
+    }
+
+    function canCreateTenant() {
+      const permissions = getPermissions();
+      return permissions.canCreate && permissions.scopeCode === 'platform.all_tenants';
+    }
+
+    function daysUntilExpire(tenant) {
+      const expire = new Date(tenant.expire + 'T00:00:00');
+      return Math.round((expire - today) / 86400000);
+    }
+
+    function expireLabel(tenant) {
+      const days = daysUntilExpire(tenant);
+      if (days < 0) return tag('已过期', 'red');
+      if (days <= 120) return tag(days + ' 天到期', 'orange');
+      return tag('有效', 'green');
+    }
+
+    function disabledButton(label, icon, reason) {
+      return '<button class="btn" disabled title="' + reason + '"><i data-lucide="' + icon + '"></i>' + label + '</button>';
+    }
+
+    function disabledActionLink(label, reason) {
+      return '<button class="action-link muted" disabled title="' + reason + '">' + label + '</button>';
+    }
+
+    function hasAuthorizedBusiness(tenant, aliases) {
+      return (tenant.businessCatalog || []).some(item => aliases.includes(item.name) && item.status === '已授权');
+    }
+
+    function businessAbilityCell(tenant) {
+      return '<div class="business-matrix">' + businessAbilities.map(group => (
+        '<div class="business-line">' + group.map(item => {
+          const active = hasAuthorizedBusiness(tenant, item.aliases);
+          const extraClass = item.className ? ' ' + item.className : '';
+          return '<span class="ability-pill' + extraClass + (active ? ' active' : '') + '">' + item.label + '</span>';
+        }).join('') + '</div>'
+      )).join('') + '</div>';
+    }
+
+    function walletSummaryCell(tenant) {
+      const snapshot = listWalletSnapshots[tenant.id] || {
+        withdrawable: { CNY: tenant.credit || 0 },
+        collection: { CNY: 0 },
+        payout: { CNY: tenant.available || 0 }
+      };
+      const rows = [
+        ['可提现', snapshot.withdrawable],
+        ['代收', snapshot.collection],
+        ['代付', snapshot.payout]
+      ];
+      return '<div class="wallet-ledger">' + rows.map(row => (
+        '<div class="wallet-ledger-line">' +
+          '<span class="label">' + row[0] + '</span>' +
+          '<span class="amount">' + formatLedgerAmount(row[1].CNY, 'CNY') + '</span>' +
+        '</div>'
+      )).join('') +
+        '<button class="wallet-link" data-open-wallet="' + tenant.id + '">CNY 钱包</button>' +
+      '</div>';
+    }
+
+    function renderOpsStrip() {
+      const visible = appState.filtered.length;
+      const normal = appState.filtered.filter(tenant => tenant.status === '正常').length;
+      const pending = appState.filtered.filter(tenant => tenant.status === '审核中').length;
+      const stopped = appState.filtered.filter(tenant => tenant.status === '停用').length;
+      const expiring = appState.filtered.filter(tenant => {
+        const days = daysUntilExpire(tenant);
+        return days >= 0 && days <= 120;
+      }).length;
+      const permissions = getPermissions();
+      const roleLimited = tenants.filter(tenant => !tenantInCurrentScope(tenant)).length;
+      const accessPending = appState.filtered.reduce((sum, tenant) => sum + (tenant.accessRequests || []).filter(request => ['待平台处理', '检查中'].includes(request.status)).length, 0);
+      document.getElementById('opsStrip').innerHTML =
+        '<strong>筛选结果 ' + visible + ' 个租户</strong>' +
+        '<span class="ops-chip">正常 ' + normal + '</span>' +
+        '<span class="ops-chip">审核中 ' + pending + '</span>' +
+        '<span class="ops-chip">停用 ' + stopped + '</span>' +
+        '<span class="ops-chip queue">待处理队列 审核 ' + pending + '</span>' +
+        '<span class="ops-chip queue">访问配置 ' + accessPending + '</span>' +
+        '<span class="ops-chip queue">到期 ' + expiring + '</span>' +
+        '<span class="ops-chip queue">权限受限 ' + roleLimited + '</span>' +
+        '<span class="ops-chip">当前角色 ' + appState.currentRole + '</span>' +
+        '<span class="ops-chip">当前范围 ' + (permissions.scopeCode === 'platform.all_tenants' ? '全部租户' : '指定租户 ' + permissions.tenantIds.length + ' 个') + '</span>';
+    }
+
+    function tag(text, tone) {
+      return '<span class="tag ' + tone + '">' + text + '</span>';
+    }
+
+    function renderRows() {
+      const rows = document.getElementById('tenantRows');
+      const result = appState.filtered;
+      const permissions = getPermissions();
+      const createAllowed = canCreateTenant();
+      renderOpsStrip();
+      document.getElementById('createTenantTop').disabled = !createAllowed;
+      document.getElementById('createTenantTop').title = createAllowed ? '' : (permissions.canCreate ? '新增顶层租户要求“全部租户”数据范围' : appState.currentRole + ' 无新增租户权限');
+
+      if (result.length === 0) {
+        rows.innerHTML = '<tr><td colspan="5" class="table-empty"><strong>没有符合条件的租户</strong><span>请调整筛选条件后再查看列表。</span><br><button class="btn" data-clear-filters><i data-lucide="rotate-ccw"></i>清空筛选</button></td></tr>';
+        refreshIcons();
+        return;
+      }
+
+      rows.innerHTML = result.map((tenant, index) => {
+        const accessPending = (tenant.accessRequests || []).filter(request => ['待平台处理', '检查中'].includes(request.status)).length;
+        const statusAction = !permissions.canSecurity
+          ? ''
+          : tenant.status === '正常'
+            ? '<button class="action-link danger" data-confirm="停用租户" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="停用 ' + tenant.name + ' 后，租户端与商户端后续登录和全部新业务被阻止；历史与在途继续保留。">停用</button>'
+            : tenant.status === '停用'
+              ? '<button class="action-link" data-confirm="启用租户" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="启用 ' + tenant.name + ' 只恢复租户层级的后续登录与新业务资格；下级对象状态保持不变。">启用</button>'
+              : '';
+        return '<tr data-index="' + index + '">' +
+          '<td><div class="tenant-cell"><strong>' + tenant.name + '</strong><span class="mono">' + tenant.id + ' / ' + tenant.contact + '</span>' + (accessPending ? '<span>' + tag('配置待处理 ' + accessPending, 'orange') + '</span>' : '') + '</div></td>' +
+          '<td>' + tag(tenant.status, tenant.statusTone) + '</td>' +
+          '<td>' + businessAbilityCell(tenant) + '</td>' +
+          '<td>' + walletSummaryCell(tenant) + '</td>' +
+          '<td class="action-col"><div class="table-actions">' +
+            '<button class="action-link" data-open="' + tenant.id + '">详情</button>' +
+            statusAction +
+          '</div></td>' +
+        '</tr>';
+      }).join('');
+
+      refreshIcons();
+    }
+
+    function renderAuditTableRows(rows) {
+      if (rows.length === 0) {
+        return '<tr><td colspan="7" class="table-empty"><strong>暂无审计记录</strong><span>该租户当前没有匹配的审计日志。</span></td></tr>';
+      }
+
+      return rows.map(event => (
+        '<tr>' +
+          '<td class="mono">' + event.id + '</td>' +
+          '<td class="mono">' + event.time + '</td>' +
+          '<td><strong>' + event.operator + '</strong><br><span class="mono">' + event.role + '</span></td>' +
+          '<td>' + event.action + '</td>' +
+          '<td>' + tag(event.result, event.tone) + '</td>' +
+          '<td><span class="mono">' + event.ip + '</span><br><span class="mono">' + event.device + '</span></td>' +
+          '<td><div class="table-actions"><button class="btn" data-audit-detail="' + event.id + '"><i data-lucide="eye"></i>查看</button></div></td>' +
+        '</tr>'
+      )).join('');
+    }
+
+    function renderAuthorizedChannelRows(tenant) {
+      const channels = tenant.channels || [];
+      if (channels.length === 0) {
+        return '<tr><td colspan="4" class="table-empty"><strong>暂无授权通道</strong><span>该租户当前没有已授权通道。</span></td></tr>';
+      }
+
+      return channels.map(item => {
+        const raw = String(item || '');
+        const parts = raw.split('/').map(part => part.trim()).filter(Boolean);
+        const business = parts[0] || '未标注业务';
+        const channel = parts.slice(1).join(' / ') || parts[0] || '-';
+        const businessEnabled = (tenant.businessCatalog || []).some(item => item.name === business && item.status === '已授权');
+        const readonly = tenant.status === '关闭' || raw.includes('历史') || !businessEnabled;
+        const scope = tenant.status === '停用' || !businessEnabled ? '仅存量业务' : readonly ? '历史查询' : '当前租户';
+        return '<tr>' +
+          '<td>' + business + '</td>' +
+          '<td><strong>' + channel + '</strong></td>' +
+          '<td>' + scope + '</td>' +
+          '<td>' + tag(readonly ? '历史只读' : '已授权', readonly ? 'gray' : 'green') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function accessStatusTone(status) {
+      if (status === '已启用') return 'green';
+      if (status === '已驳回') return 'red';
+      return 'orange';
+    }
+
+    function renderAccessRequestRows(tenant, permissions) {
+      const requests = tenant.accessRequests || [];
+      if (!requests.length) {
+        return '<tr><td colspan="7" class="table-empty"><strong>暂无访问域名申请</strong><span>租户提交 DAR 域名申请后在此处理。</span></td></tr>';
+      }
+      return requests.map(request => {
+        const active = ['待平台处理', '检查中'].includes(request.status);
+        const action = active && permissions.canAccessProcess
+          ? '<button class="btn primary" data-access-request="' + request.id + '" data-access-tenant="' + tenant.id + '"><i data-lucide="clipboard-check"></i>处理</button>'
+          : active
+            ? disabledButton('处理', 'clipboard-check', appState.currentRole + ' 无访问配置处理权限')
+            : '<button class="btn" data-access-request="' + request.id + '" data-access-tenant="' + tenant.id + '"><i data-lucide="eye"></i>详情</button>';
+        return '<tr>' +
+          '<td class="mono">' + request.id + '</td>' +
+          '<td>' + accessTypeLabels[request.type] + '</td>' +
+          '<td><strong>' + request.value + '</strong><br><span class="cell-sub">' + request.reason + '</span></td>' +
+          '<td>' + tag(request.status, accessStatusTone(request.status)) + '</td>' +
+          '<td class="mono">' + request.requestedAt + '</td>' +
+          '<td>' + (request.result || '-') + '</td>' +
+          '<td><div class="table-actions">' + action + '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderConfirmForm(title, detail) {
+      const form = document.getElementById('confirmForm');
+      const actionBtn = document.getElementById('confirmActionBtn');
+
+      if (title === '处理访问配置申请') {
+        const tenant = currentTenantForAction();
+        const request = (tenant.accessRequests || []).find(item => item.id === appState.confirmRequestId);
+        if (!request) {
+          form.innerHTML = '<div class="field wide"><label>处理结果</label><input value="申请记录不存在或已刷新" readonly></div>';
+          actionBtn.className = 'btn primary';
+          actionBtn.textContent = '关闭';
+          return;
+        }
+        const labels = accessCheckCatalog[request.type] || [];
+        const editable = ['待平台处理', '检查中'].includes(request.status) && getPermissions().canAccessProcess;
+        document.getElementById('confirmDetail').textContent = accessTypeLabels[request.type] + ' · ' + request.id + '；平台不能修改租户提交值，检查未全部通过时不能启用。';
+        form.innerHTML =
+          '<div class="field"><label>申请编号</label><input value="' + request.id + '" readonly></div>' +
+          '<div class="field"><label>申请类型</label><input value="' + accessTypeLabels[request.type] + '" readonly></div>' +
+          '<div class="field wide"><label>申请内容</label><input value="' + request.value + '" readonly></div>' +
+          '<div class="field"><label>申请人</label><input value="' + request.requestedBy + '" readonly></div>' +
+          '<div class="field"><label>申请时间</label><input value="' + request.requestedAt + '（UTC+8）" readonly></div>' +
+          '<div class="field wide"><label>检查项</label><div class="tag-row">' + labels.map((label, index) => '<label class="ability-pill' + (request.checks[index] ? ' active' : '') + '"><input type="checkbox" data-access-check="' + index + '" ' + (request.checks[index] ? 'checked' : '') + (editable ? '' : ' disabled') + '> ' + label + '</label>').join('') + '</div></div>' +
+          '<div class="field wide"><label for="accessProcessReason">处理说明</label><textarea id="accessProcessReason" ' + (editable ? '' : 'readonly') + '>' + (request.result === '-' ? '按申请类型完成检查并记录结果' : request.result) + '</textarea></div>' +
+          (editable ? '<div class="field wide"><label for="accessProcess2fa">当前操作人 2FA 验证码</label><input id="accessProcess2fa" inputmode="numeric" maxlength="6" placeholder="启用或驳回时填写 6 位验证码" autocomplete="one-time-code"></div>' +
+            '<div class="field wide"><div class="tag-row"><button class="btn" type="button" data-access-process="check"><i data-lucide="list-checks"></i>保存检查结果</button><button class="btn danger" type="button" data-access-process="reject"><i data-lucide="x-circle"></i>驳回申请</button><button class="btn primary" type="button" data-access-process="enable"><i data-lucide="shield-check"></i>启用配置</button></div></div>' : '') +
+          '<div class="field wide"><label>当前状态</label><input value="' + request.status + ' / ' + (request.result || '-') + '" readonly></div>';
+        actionBtn.className = 'btn primary';
+        actionBtn.innerHTML = '<i data-lucide="x"></i>关闭';
+        return;
+      }
+
+      if (title === '重置账号') {
+        const tenant = currentTenantForAction();
+        document.getElementById('confirmDetail').textContent = '请输入新的管理账号，并通过当前操作人 2FA 验证。保存后通知租户重新登录。';
+        form.innerHTML =
+          '<div class="field">' +
+            '<label for="resetCurrentAccount">当前管理账号</label>' +
+            '<input id="resetCurrentAccount" value="' + tenant.admin + '" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetNewAccount">新管理账号</label>' +
+            '<input id="resetNewAccount" placeholder="请输入新的管理账号" autocomplete="off">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetOperator">当前操作人</label>' +
+            '<input id="resetOperator" value="Jeff / 平台超管" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetOperator2fa">当前操作人 2FA 验证码</label>' +
+            '<input id="resetOperator2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code">' +
+          '</div>';
+        actionBtn.className = 'btn danger';
+        actionBtn.innerHTML = '<i data-lucide="user-round-cog"></i>重置账号';
+        return;
+      }
+
+      if (title === '重置密码') {
+        const tenant = currentTenantForAction();
+        document.getElementById('confirmDetail').textContent = '将为管理账号发起密码重置，并通过当前操作人 2FA 验证。保存后通知租户重新设置。';
+        form.innerHTML =
+          '<div class="field">' +
+            '<label for="resetPasswordAccount">管理账号</label>' +
+            '<input id="resetPasswordAccount" value="' + tenant.admin + '" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetPasswordMethod">重置方式</label>' +
+            '<input id="resetPasswordMethod" value="发送密码重置通知" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetPasswordOperator">当前操作人</label>' +
+            '<input id="resetPasswordOperator" value="Jeff / 平台超管" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="resetPasswordOperator2fa">当前操作人 2FA 验证码</label>' +
+            '<input id="resetPasswordOperator2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code">' +
+          '</div>';
+        actionBtn.className = 'btn danger';
+        actionBtn.innerHTML = '<i data-lucide="key-round"></i>重置密码';
+        return;
+      }
+
+      if (title === '重置 2FA') {
+        const tenant = currentTenantForAction();
+        const twoFaStatus = tenant.status === '审核中' ? '待启用' : '已绑定';
+        document.getElementById('confirmDetail').textContent = '将解除当前管理账号的 2FA 绑定，并通过当前操作人 2FA 验证。管理员下次登录需重新绑定。';
+        form.innerHTML =
+          '<div class="field">' +
+            '<label for="reset2faAccount">管理账号</label>' +
+            '<input id="reset2faAccount" value="' + tenant.admin + '" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="reset2faStatus">当前 2FA 状态</label>' +
+            '<input id="reset2faStatus" value="' + twoFaStatus + '" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="reset2faResult">重置后状态</label>' +
+            '<input id="reset2faResult" value="下次登录重新绑定" readonly>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label for="reset2faOperator">当前操作人</label>' +
+            '<input id="reset2faOperator" value="Jeff / 平台超管" readonly>' +
+          '</div>' +
+          '<div class="field wide">' +
+            '<label for="reset2faOperator2fa">当前操作人 2FA 验证码</label>' +
+            '<input id="reset2faOperator2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code">' +
+          '</div>';
+        actionBtn.className = 'btn danger';
+        actionBtn.innerHTML = '<i data-lucide="shield"></i>重置 2FA';
+        return;
+      }
+
+      document.getElementById('confirmDetail').textContent = detail || '此操作需要二次确认并写审计日志。';
+      const tenant = currentTenantForAction();
+      form.innerHTML =
+        '<div class="field">' +
+          '<label for="confirmOperator">操作人</label>' +
+          '<input id="confirmOperator" value="Jeff / ' + appState.currentRole + '" readonly>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label for="confirmTarget">操作对象</label>' +
+          '<input id="confirmTarget" value="' + (tenant ? tenant.id + ' / ' + tenant.name : '租户记录不可用') + '" readonly>' +
+        '</div>' +
+        '<div class="field wide">' +
+          '<label for="confirmReason">原因</label>' +
+          '<textarea id="confirmReason">风险处理或安全维护，需保留审计记录。</textarea>' +
+        '</div>' +
+        '<div class="field wide">' +
+          '<label for="confirmOperator2fa">当前操作人 2FA 验证码</label>' +
+          '<input id="confirmOperator2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code">' +
+        '</div>';
+      if (title === '停用租户') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><label>跨端影响</label><input value="租户端、商户端后续登录与全部新业务被阻止" readonly></div>' +
+          '<div class="field wide"><label>保留与边界</label><input value="历史与在途保留；不推定既有会话强制失效" readonly></div>'
+        );
+      }
+      if (title === '启用租户') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><label>恢复范围</label><input value="只恢复租户层级资格；下级商户、账号、业务与安全配置保持原状态" readonly></div>'
+        );
+      }
+      if (title === '关闭业务授权') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><label>三端新单结果</label><input value="商户 API、商户后台和租户端不再接受本方向新单" readonly></div>' +
+          '<div class="field wide"><label>存量业务</label><input value="历史与已创建业务继续按授权、通道和费用快照处理" readonly></div>'
+        );
+      }
+      if (title === '重新开通业务授权') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><label>重新开通条件</label><input value="租户有效、唯一启用套餐、至少一个可用授权通道" readonly></div>' +
+          '<div class="field wide"><label>恢复边界</label><input value="只恢复后续新单资格；下级对象状态保持不变" readonly></div>'
+        );
+      }
+      actionBtn.className = 'btn danger';
+      actionBtn.innerHTML = '<i data-lucide="shield-check"></i>确认并记录';
+    }
+
+    function openAuditDetail(auditId) {
+      const audit = auditEvents.find(item => item.id === auditId);
+      if (!audit) return;
+      appState.currentConfirm = '审计详情';
+      document.getElementById('confirmTitle').textContent = '审计详情';
+      document.getElementById('confirmHeadline').textContent = audit.id;
+      document.getElementById('confirmDetail').textContent = '只读查看审计对象、原因、结果和来源设备。';
+      document.getElementById('confirmForm').innerHTML =
+        '<div class="field">' +
+          '<label>日志编号</label>' +
+          '<input value="' + audit.id + '" readonly>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>时间</label>' +
+          '<input value="' + audit.time + '" readonly>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>操作人 / 角色</label>' +
+          '<input value="' + audit.operator + ' / ' + audit.role + '" readonly>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>结果</label>' +
+          '<input value="' + audit.result + '" readonly>' +
+        '</div>' +
+        '<div class="field wide">' +
+          '<label>对象</label>' +
+          '<input value="' + audit.object + '" readonly>' +
+        '</div>' +
+        '<div class="field wide">' +
+          '<label>原因</label>' +
+          '<textarea readonly>' + audit.reason + '</textarea>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>IP</label>' +
+          '<input value="' + audit.ip + '" readonly>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>设备</label>' +
+          '<input value="' + audit.device + '" readonly>' +
+        '</div>';
+      const actionBtn = document.getElementById('confirmActionBtn');
+      actionBtn.className = 'btn primary';
+      actionBtn.innerHTML = '<i data-lucide="x"></i>关闭';
+      document.getElementById('modalBackdrop').classList.add('open');
+      showTenantDialog(document.getElementById('confirmModal'));
+      refreshIcons();
+    }
+
+    function clearFilters() {
+      document.getElementById('keywordFilter').value = '';
+      document.getElementById('globalSearch').value = '';
+      document.getElementById('statusFilter').value = 'all';
+      document.getElementById('businessFilter').value = 'all';
+      document.getElementById('expireFilter').value = 'all';
+      applyFilters(false);
+    }
+
+    function applyFilters(announce = true) {
+      const keyword = document.getElementById('keywordFilter').value.trim().toLowerCase();
+      const globalKeyword = document.getElementById('globalSearch').value.trim().toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      const business = document.getElementById('businessFilter').value;
+      const expire = document.getElementById('expireFilter').value;
+      const search = keyword || globalKeyword;
+
+      appState.filtered = tenants.filter(tenant => {
+        const text = [tenant.id, tenant.name, tenant.contact, tenant.phone, tenant.domain].join(' ').toLowerCase();
+        const days = daysUntilExpire(tenant);
+        const okSearch = !search || text.includes(search);
+        const okStatus = status === 'all' || tenant.status === status;
+        const okBusiness = business === 'all' || tenant.businessTypes.includes(business);
+        const okExpire = expire === 'all' || (expire === 'expiring' && days >= 0 && days <= 120) || (expire === 'expired' && days < 0);
+        return tenantInCurrentScope(tenant) && okSearch && okStatus && okBusiness && okExpire;
+      });
+
+      renderRows();
+      if (announce) showToast('筛选已更新', '结果已按租户、业务和状态刷新。');
+    }
+
+    function openDetailModal(tenantId) {
+      const tenant = tenants.find(item => item.id === tenantId);
+      if (!tenantInCurrentScope(tenant)) {
+        showToast('记录不存在或无权访问', '请返回当前授权范围重新查询。');
+        return;
+      }
+      appState.selectedTenant = tenant;
+      document.getElementById('detailTenantName').textContent = tenant.name;
+      document.getElementById('detailTenantMeta').textContent = tenant.id + ' / ' + tenant.contact + ' / ' + tenant.domain;
+      document.getElementById('detailTags').innerHTML = [
+        tag(tenant.status, tenant.statusTone)
+      ].join('');
+      renderDetailSections(tenant);
+      document.getElementById('detailBackdrop').classList.add('open');
+      showTenantDialog(document.getElementById('tenantDetailModal'));
+      activateDetailTab('overview');
+      refreshIcons();
+    }
+
+    function closeDetailModal() {
+      const dialog = document.getElementById('tenantDetailModal');
+      if (!dialog.classList.contains('open')) return;
+      document.getElementById('detailBackdrop').classList.remove('open');
+      dialog.classList.remove('open');
+      dialog.setAttribute('aria-hidden', 'true');
+      restoreTenantDialogFocus(dialog, '[data-open="' + (appState.selectedTenant?.id || '') + '"]');
+    }
+
+    function renderDetailSections(tenant) {
+      const tenantAuditRows = auditEvents.filter(event => event.tenant === tenant.name || event.object.includes(tenant.id));
+      const permissions = getPermissions();
+      const closed = tenant.status === '关闭';
+      const stopped = tenant.status === '停用';
+      const readonlyTenant = closed || stopped;
+      const editProfileAction = permissions.canEdit
+        ? '<button class="btn primary" data-edit="' + tenant.id + '"><i data-lucide="file-pen-line"></i>编辑资料</button>'
+        : disabledButton('编辑资料', 'file-pen-line', appState.currentRole + ' 无编辑租户资料权限');
+
+      document.getElementById('tab-overview').innerHTML = sectionTitle('基础资料') +
+        '<div class="kv-grid">' +
+          kv('租户编号', tenant.id) +
+          kv('联系人', tenant.contact + ' / ' + tenant.phone) +
+          kv('过期时间', tenant.expire) +
+          kv('提款钱包可用', formatMoney(tenant.credit)) +
+          kv('代付钱包总额', formatMoney(tenant.wallet)) +
+          kv('当前状态', tenant.status) +
+        '</div>' +
+        sectionTitle('访问配置') +
+        '<div class="kv-grid">' +
+          kv('当前访问域名', tenant.domain) +
+          kv('内部数据方式', '平台与租户读取同一份按租户隔离的数据') +
+        '</div>' +
+        sectionTitle('访问域名申请') +
+        '<div class="table-wrap detail-table"><table aria-label="访问域名申请表"><thead><tr><th>申请编号</th><th>类型</th><th>申请域名</th><th>状态</th><th>申请时间</th><th>处理结果</th><th style="text-align:right;">操作</th></tr></thead><tbody>' +
+          renderAccessRequestRows(tenant, permissions) +
+        '</tbody></table></div>' +
+        sectionTitle('详情操作') +
+        '<div class="tag-row">' +
+          editProfileAction +
+        '</div>';
+
+      document.getElementById('tab-business').innerHTML = sectionTitle('业务开通') +
+        '<div class="table-wrap detail-table"><table aria-label="租户业务授权表"><thead><tr><th>业务</th><th>授权状态</th><th>归属模块</th><th>最近变更</th><th style="text-align:right;">操作</th></tr></thead><tbody>' +
+        (tenant.businessCatalog || []).map(item => {
+          const authorized = item.status === '已授权';
+          const stopped = item.status === '已停用';
+          const readonly = item.status === '历史只读' || closed;
+          const changeText = authorized ? '2026-07-04 / 授权生效' : stopped ? '新订单已阻断 / 存量继续' : readonly ? '历史只读' : '待申请';
+          const action = !permissions.canBusinessAuth
+            ? disabledButton(authorized ? '停用业务' : stopped ? '重新开通' : '发起授权', authorized ? 'ban' : 'toggle-right', appState.currentRole + ' 无业务授权操作权限')
+            : authorized && !readonly
+              ? '<button class="btn danger" data-confirm="关闭业务授权" data-confirm-tenant="' + tenant.id + '" data-confirm-business="' + item.name + '" data-confirm-detail="停用 ' + tenant.name + ' 的 ' + item.name + ' 后，商户 API、商户后台和租户端不再接受新单；历史和已创建业务继续按快照处理。"><i data-lucide="ban"></i>停用业务</button>'
+              : readonly
+                ? disabledButton('不可授权', 'lock', '关闭租户或历史业务只允许查看')
+                : stopped
+                  ? '<button class="btn primary" data-confirm="重新开通业务授权" data-confirm-tenant="' + tenant.id + '" data-confirm-business="' + item.name + '" data-confirm-detail="重新开通前校验租户、唯一启用套餐和可用授权通道；成功只恢复后续新单资格，下级状态保持不变。"><i data-lucide="toggle-right"></i>重新开通</button>'
+                  : '<button class="btn primary" data-confirm="发起业务授权" data-confirm-tenant="' + tenant.id + '" data-confirm-business="' + item.name + '" data-confirm-detail="从租户详情为 ' + tenant.name + ' 发起 ' + item.name + ' 授权；确认后直接生效并同步业务开通记录。"><i data-lucide="toggle-right"></i>发起授权</button>';
+          return '<tr>' +
+            '<td><strong>' + item.name + '</strong></td>' +
+            '<td>' + tag(item.status, item.tone) + '</td>' +
+            '<td>业务开通模块</td>' +
+            '<td class="cell-sub">' + changeText + '</td>' +
+            '<td><div class="table-actions">' + action + '</div></td>' +
+          '</tr>';
+        }).join('') + '</tbody></table></div>' +
+        sectionTitle('已授权通道列表') +
+        '<div class="table-wrap detail-table"><table aria-label="已授权通道列表"><thead><tr><th>业务</th><th>授权通道</th><th>授权范围</th><th>状态</th></tr></thead><tbody>' +
+          renderAuthorizedChannelRows(tenant) +
+        '</tbody></table></div>';
+
+      document.getElementById('tab-security').innerHTML = sectionTitle('账号安全') +
+        '<div class="form-grid">' +
+          '<div class="field"><label>管理账号</label><input value="' + tenant.admin + '" readonly></div>' +
+          '<div class="field"><label>2FA 状态</label><input value="' + (tenant.status === '审核中' ? '待启用' : '已绑定') + '" readonly></div>' +
+        '</div>' +
+        '<div class="tag-row">' +
+          (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置账号" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="请输入新的管理账号，并通过当前操作人 2FA 验证。保存后通知租户重新登录。"><i data-lucide="user-round-cog"></i>重置账号</button>' : disabledButton('重置账号', 'user-round-cog', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
+          (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置密码" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="将为管理账号发起密码重置，并通过当前操作人 2FA 验证。保存后通知租户重新设置。"><i data-lucide="key-round"></i>重置密码</button>' : disabledButton('重置密码', 'key-round', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
+          (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置 2FA" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="解除当前管理账号的 2FA 绑定，并通过当前操作人 2FA 验证。管理员下次登录需重新绑定。"><i data-lucide="shield"></i>重置 2FA</button>' : disabledButton('重置 2FA', 'shield', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
+        '</div>' +
+        sectionTitle('状态操作') +
+        '<div class="tag-row">' +
+          (permissions.canSecurity && !closed ? '<button class="btn danger" data-confirm="关闭租户" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="关闭后只允许历史查看，不允许创建新业务或新资金申请。"><i data-lucide="ban"></i>关闭</button>' : disabledButton('关闭', 'ban', closed ? '已关闭租户不可重复关闭' : appState.currentRole + ' 无状态操作权限')) +
+        '</div>';
+
+      const walletAccounts = tenant.wallets || [];
+      const walletCards = walletAccounts.map(wallet => (
+        walletCard(wallet.network, formatCurrency(wallet.balance, wallet.currency), wallet.tone, '首版仅 CNY')
+      )).join('');
+      const walletRows = walletAccounts.map(wallet => (
+        '<tr>' +
+          '<td><strong>' + wallet.currency + '</strong><br><span class="mono">' + wallet.network + '</span></td>' +
+          '<td class="amount">' + formatCurrency(wallet.balance, wallet.currency) + '</td>' +
+          '<td class="amount">' + formatCurrency(wallet.available, wallet.currency) + '</td>' +
+          '<td class="amount">' + formatCurrency(wallet.frozen, wallet.currency) + '</td>' +
+          '<td>' + tag(wallet.status, wallet.tone) + '</td>' +
+        '</tr>'
+      )).join('');
+
+      document.getElementById('tab-wallet').innerHTML = sectionTitle('租户钱包') +
+        '<div class="wallet-grid">' +
+          walletCards +
+        '</div>' +
+        sectionTitle('CNY 钱包列表') +
+        '<div class="table-wrap"><table><thead><tr><th>钱包</th><th>余额</th><th>可用余额</th><th>冻结金额</th><th>状态</th></tr></thead><tbody>' +
+          walletRows +
+        '</tbody></table></div>' +
+        sectionTitle('最近资金摘要') +
+        '<div class="table-wrap"><table><thead><tr><th>类型</th><th>金额</th><th>来源</th><th>状态</th><th>关联信息</th></tr></thead><tbody>' +
+          '<tr><td>外部存款</td><td class="amount">' + formatMoney(Math.max(tenant.wallet * 0.18, 0)) + '</td><td>通道商入账结果</td><td>' + tag('已入账', 'green') + '</td><td class="mono">' + tenant.tx + '</td></tr>' +
+          '<tr><td>服务费扣款</td><td class="amount">CNY 3,580.12</td><td>' + tenant.feePolicy + '</td><td>' + tag('已扣款', 'green') + '</td><td>订单成功后实时入账</td></tr>' +
+          '<tr><td>人工加款</td><td class="amount">CNY 8,000.00</td><td>租户财务申请</td><td>' + tag('待平台审核', 'orange') + '</td><td>平台不替租户创建申请</td></tr>' +
+        '</tbody></table></div>' +
+        '<div class="notice"><i data-lucide="info"></i><div><strong>页面边界：</strong>租户详情只保留钱包和待处理摘要，不在本页审核、查单、登记结果或直接改账。</div></div>' +
+        '<div class="tag-row">' +
+          '<button class="btn primary" data-master-page="wallets" data-master-note="进入独立租户平台钱包并带入当前租户筛选。"><i data-lucide="wallet-cards"></i>前往租户平台钱包</button>' +
+          '<button class="btn" data-master-page="funds" data-master-note="进入独立资金待办并带入当前租户筛选。"><i data-lucide="list-checks"></i>前往资金待办</button>' +
+        '</div>';
+
+      document.getElementById('tab-audit').innerHTML = sectionTitle('审计日志') +
+        '<div class="table-wrap"><table aria-label="租户详情审计日志表格"><thead><tr>' +
+          '<th>日志编号</th>' +
+          '<th>时间</th>' +
+          '<th>操作人 / 角色</th>' +
+          '<th>动作类型</th>' +
+          '<th>结果</th>' +
+          '<th>IP / 设备</th>' +
+          '<th style="text-align:right;">操作</th>' +
+        '</tr></thead><tbody>' + renderAuditTableRows(tenantAuditRows) + '</tbody></table></div>';
+    }
+
+    function sectionTitle(text) {
+      return '<div class="panel-header" style="border:1px solid var(--border); border-radius: var(--radius-lg);"><h3>' + text + '</h3></div>';
+    }
+
+    function kv(label, value) {
+      return '<div class="kv"><span>' + label + '</span><strong>' + value + '</strong></div>';
+    }
+
+    function walletCard(label, value, tone, note) {
+      return '<div class="wallet-card"><span>' + label + '</span><strong>' + value + '</strong><div class="tag-row">' + tag(note, 'gray') + tag(tone === 'red' ? '风险' : tone === 'orange' ? '关注' : tone === 'gray' ? '只读' : '正常', tone) + '</div></div>';
+    }
+
+    function activateDetailTab(tab) {
+      document.querySelectorAll('.detail-tab').forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === tab);
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-selected', String(button.dataset.tab === tab));
+        button.tabIndex = button.dataset.tab === tab ? 0 : -1;
+      });
+      document.querySelectorAll('.detail-section').forEach(section => {
+        section.classList.toggle('active', section.id === 'tab-' + tab);
+      });
+    }
+
+    function openTenantModal(mode, tenantId) {
+      const permissions = getPermissions();
+      if (mode === 'create' && !canCreateTenant()) {
+        showToast('当前范围不能新增租户', permissions.canCreate ? '新增顶层租户要求“全部租户”数据范围。' : '当前账号没有新增租户权限。');
+        return;
+      }
+      const tenant = mode === 'edit' ? tenants.find(item => item.id === tenantId) : tenants[0];
+      if (mode === 'edit' && !tenantInCurrentScope(tenant)) {
+        showToast('记录不存在或无权访问', '请返回当前授权范围重新查询。');
+        return;
+      }
+      appState.editingTenantId = mode === 'edit' ? tenant.id : '';
+      clearFormError('tenantFormError');
+      document.getElementById('tenantModalTitle').textContent = mode === 'edit' ? '编辑租户' : '新增租户';
+      document.getElementById('tenantNameInput').value = mode === 'edit' ? tenant.name : '汇盛新租户';
+      document.getElementById('tenantCodeInput').value = mode === 'edit' ? tenant.id : '系统自动生成';
+      document.getElementById('contactInput').value = mode === 'edit' ? tenant.contact : '新联系人';
+      document.getElementById('mobileInput').value = mode === 'edit' ? tenant.phone : '+63 900 000 0000';
+      document.getElementById('expireInput').value = mode === 'edit' ? tenant.expire : '2027-07-18';
+      document.getElementById('domainInput').value = mode === 'edit' ? 'https://' + tenant.domain : '保存后按租户编号生成';
+      document.getElementById('adminInput').value = mode === 'edit' ? tenant.admin : '创建成功后生成唯一超级管理员账号';
+      document.getElementById('tenantRemarkInput').value = mode === 'edit' ? tenant.remark : '';
+      document.getElementById('modalBackdrop').classList.add('open');
+      showTenantDialog(document.getElementById('tenantModal'));
+    }
+
+    function closeTenantModal() {
+      const dialog = document.getElementById('tenantModal');
+      if (!dialog.classList.contains('open')) return;
+      clearFormError('tenantFormError');
+      document.getElementById('modalBackdrop').classList.remove('open');
+      dialog.classList.remove('open');
+      dialog.setAttribute('aria-hidden', 'true');
+      restoreTenantDialogFocus(dialog, appState.editingTenantId ? '[data-open="' + appState.editingTenantId + '"]' : '#createTenantTop');
+    }
+
+    function openConfirm(title, detail, tenantId = '', businessName = '') {
+      const targetTenant = tenantId ? tenants.find(item => item.id === tenantId) : appState.selectedTenant;
+      if (targetTenant && !tenantInCurrentScope(targetTenant)) {
+        showToast('记录不存在或无权访问', '请返回当前授权范围重新查询。');
+        return;
+      }
+      appState.currentConfirm = title;
+      appState.confirmTenantId = tenantId || appState.selectedTenant?.id || '';
+      appState.confirmBusinessName = businessName || '';
+      clearFormError('confirmFormError');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmHeadline').textContent = title;
+      renderConfirmForm(title, detail);
+      document.getElementById('modalBackdrop').classList.add('open');
+      showTenantDialog(document.getElementById('confirmModal'));
+      refreshIcons();
+    }
+
+    function openAccessRequest(tenantId, requestId) {
+      appState.confirmRequestId = requestId;
+      openConfirm('处理访问配置申请', '查看申请、检查结果和处理状态。', tenantId);
+    }
+
+    function processAccessRequest(action) {
+      const tenant = currentTenantForAction();
+      const request = (tenant?.accessRequests || []).find(item => item.id === appState.confirmRequestId);
+      if (!tenant || !request || !['待平台处理', '检查中'].includes(request.status)) {
+        showFormError('confirmFormError', '申请状态已变化，请关闭后刷新最新记录。');
+        return;
+      }
+      if (!getPermissions().canAccessProcess) {
+        showFormError('confirmFormError', '当前角色没有访问配置处理权限。');
+        return;
+      }
+      const checks = [...document.querySelectorAll('[data-access-check]')].map(input => input.checked);
+      const reason = document.getElementById('accessProcessReason')?.value.trim() || '';
+      if (!reason) {
+        showFormError('confirmFormError', '请填写处理说明。', ['accessProcessReason']);
+        return;
+      }
+      request.checks = checks;
+      if (action === 'check') {
+        request.status = '检查中';
+        request.result = `检查通过 ${checks.filter(Boolean).length}/${checks.length}`;
+        const audit = addTenantAudit(tenant, '保存访问配置检查', '检查中', request.id + ' / ' + request.result, 'orange');
+        setOperationReceipt({ title: '访问配置检查已保存', tenant, status: '检查中', detail: request.id + ' · ' + request.result, audit });
+        renderRows();
+        renderDetailSections(tenant);
+        renderConfirmForm('处理访问配置申请', '检查结果已保存');
+        refreshIcons();
+        showToast('检查结果已保存', request.id + ' 当前仍未生效。');
+        return;
+      }
+      const otp = document.getElementById('accessProcess2fa')?.value.trim() || '';
+      if (!/^\d{6}$/.test(otp)) {
+        const otpField = document.getElementById('accessProcess2fa');
+        if (otpField) otpField.value = '';
+        showFormError('confirmFormError', '启用或驳回需要当前操作人的 6 位 Google 2FA 验证码。', ['accessProcess2fa']);
+        return;
+      }
+      if (action === 'reject') {
+        request.status = '已驳回';
+        request.result = reason;
+        request.processedAt = platformNow();
+        request.processedBy = appState.currentRole;
+        const audit = addTenantAudit(tenant, '驳回访问配置申请', '已驳回', request.id + ' / ' + reason, 'red');
+        setOperationReceipt({ title: '访问配置申请已驳回', tenant, status: '已驳回', detail: request.id + ' · 当前配置未变化', audit });
+        renderRows();
+        renderDetailSections(tenant);
+        closeConfirm();
+        showToast('申请已驳回', request.id + ' 当前配置保持不变。');
+        return;
+      }
+      if (!checks.length || checks.some(value => !value)) {
+        const otpField = document.getElementById('accessProcess2fa');
+        if (otpField) otpField.value = '';
+        showFormError('confirmFormError', '全部域名检查通过后才能启用。');
+        return;
+      }
+      if (request.type !== 'domain') {
+        showFormError('confirmFormError', '当前只处理 DAR 访问域名申请。');
+        return;
+      }
+      const hostname = String(request.value || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const duplicate = tenants.find(item => item.id !== tenant.id && item.domain === hostname);
+      if (duplicate) {
+        showFormError('confirmFormError', '域名已被 ' + duplicate.id + ' 使用，不能启用。');
+        return;
+      }
+      const previous = tenant.domain;
+      tenant.previousDomain = { value: tenant.domain, status: '72 小时跳转过渡', expiresAt: '2026-07-21 ' + platformNow().slice(11) };
+      tenant.domain = hostname;
+      request.result = '新域名已启用；旧域名保留 72 小时跳转';
+      request.status = '已启用';
+      request.processedAt = platformNow();
+      request.processedBy = appState.currentRole;
+      const audit = addTenantAudit(tenant, '启用访问域名', '已启用', request.id + ' / ' + previous + ' → ' + tenant.domain);
+      setOperationReceipt({ title: '访问域名已启用', tenant, status: '已启用', detail: request.id + ' · ' + request.result, audit });
+      renderRows();
+      renderDetailSections(tenant);
+      closeConfirm();
+      showToast('访问域名已启用', request.result + '；审计编号 ' + audit.id + '。');
+    }
+
+    function closeConfirm() {
+      const dialog = document.getElementById('confirmModal');
+      if (!dialog.classList.contains('open')) return;
+      clearFormError('confirmFormError');
+      document.getElementById('confirmForm').querySelectorAll('input[type="password"], input[inputmode="numeric"], input[autocomplete="one-time-code"], input[id*="2fa" i]').forEach(input => { input.value = ''; });
+      if (appState.currentConfirm === '租户创建结果') {
+        document.getElementById('confirmForm').innerHTML = '';
+        document.getElementById('confirmDetail').textContent = '创建结果已关闭，一次性密码不再显示。';
+        appState.currentConfirm = '高风险操作';
+      }
+      document.getElementById('modalBackdrop').classList.remove('open');
+      dialog.classList.remove('open');
+      dialog.setAttribute('aria-hidden', 'true');
+      restoreTenantDialogFocus(dialog, '[data-open="' + (appState.confirmTenantId || appState.selectedTenant?.id || '') + '"]');
+    }
+
+    function showToast(title, message) {
+      const stack = document.getElementById('toastStack');
+      const node = document.createElement('div');
+      node.className = 'toast';
+      node.innerHTML = '<strong>' + title + '</strong><span>' + message + '</span>';
+      stack.appendChild(node);
+      setTimeout(() => {
+        node.remove();
+      }, 2600);
+    }
+
+    function refreshIcons() {
+      if (window.lucide) {
+        window.lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+      }
+    }
+
+    const platformMasterRoutes = {
+      home: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#home',
+      business: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#business',
+      channels: '../03-通道管理/平台端通道管理-demo.html',
+      report: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#report',
+      ledger: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#ledger',
+      orders: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#orders',
+      audit: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#audit',
+      settings: '../10-系统管理/平台端系统管理-demo.html#users',
+      wallets: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#wallets',
+      funds: '../00-平台端功能导航索引/平台端功能导航索引-demo.html#funds'
+    };
+    const platformMasterPermissions = {
+      home: 'platform.dashboard.view', tenants: 'platform.tenant.view', business: 'platform.business_grant.view',
+      channels: 'platform.channel.view', report: 'platform.report.view', ledger: 'platform.ledger.view',
+      orders: 'platform.order.view', audit: 'platform.audit.view', settings: 'platform.user.manage',
+      wallets: 'platform.wallet.view', funds: 'platform.fund_task.view'
+    };
+
+    function navigatePlatformMaster(pageId, href) {
+      return window.HSPlatformAuthRouteGuard.navigateAuthorized({ href, pagePermission: platformMasterPermissions[pageId] });
+    }
+
+    function applyPlatformTenantAuthorization() {
+      if (!platformTenantAuthorization) return;
+      document.querySelectorAll('[data-master-page]').forEach(button => {
+        const required = platformMasterPermissions[button.dataset.masterPage];
+        button.hidden = !required || !platformTenantAuthorization.pagePermissions.includes(required);
+      });
+      const create = document.getElementById('createTenantTop');
+      if (create) create.hidden = !platformTenantActionPermissions.has('platform.tenant.manage');
+      const roleSelect = document.getElementById('roleSelect');
+      if (roleSelect) {
+        roleSelect.add(new Option(`登录账号 · ${platformTenantAuthorization.account}`, '登录账号'));
+        roleSelect.value = '登录账号';
+        roleSelect.disabled = true;
+      }
+    }
+
+    function openTenantCreatedResult(tenant, oneTimePassword) {
+      appState.currentConfirm = '租户创建结果';
+      appState.confirmTenantId = tenant.id;
+      document.getElementById('confirmTitle').textContent = '租户创建完成';
+      document.getElementById('confirmHeadline').textContent = tenant.id + ' 已创建';
+      document.getElementById('confirmDetail').textContent = '初始系统访问地址、三个 CNY 钱包和唯一超级管理员账号已建立；一次性密码仅在本结果中显示，关闭后不再展示。';
+      document.getElementById('confirmForm').innerHTML =
+        '<div class="field"><label>租户编号</label><input value="' + tenant.id + '" readonly></div>' +
+        '<div class="field"><label>当前状态</label><input value="审核中" readonly></div>' +
+        '<div class="field wide"><label>初始系统访问地址</label><input value="https://' + tenant.domain + '" readonly></div>' +
+        '<div class="field"><label>超级管理员账号</label><input value="' + tenant.admin + '" readonly></div>' +
+        '<div class="field"><label>一次性密码</label><input value="' + oneTimePassword + '" readonly></div>' +
+        '<div class="field wide"><label>首次登录要求</label><input value="24 小时内登录，修改密码并绑定 Google 2FA" readonly></div>';
+      const actionBtn = document.getElementById('confirmActionBtn');
+      actionBtn.className = 'btn primary';
+      actionBtn.innerHTML = '<i data-lucide="check"></i>知道了';
+      document.getElementById('modalBackdrop').classList.add('open');
+      showTenantDialog(document.getElementById('confirmModal'));
+      refreshIcons();
+    }
+
+    function saveTenantProfile() {
+      const permissions = getPermissions();
+      const editing = Boolean(appState.editingTenantId);
+      if ((editing && (!permissions.canEdit || !tenantInCurrentScope(tenants.find(item => item.id === appState.editingTenantId)))) || (!editing && !canCreateTenant())) {
+        showFormError('tenantFormError', '当前角色没有本次租户资料操作权限，未保存任何数据。');
+        return;
+      }
+      const values = {
+        name: document.getElementById('tenantNameInput').value.trim(),
+        contact: document.getElementById('contactInput').value.trim(),
+        phone: document.getElementById('mobileInput').value.trim(),
+        expire: document.getElementById('expireInput').value,
+        remark: document.getElementById('tenantRemarkInput').value.trim()
+      };
+      const missing = [
+        ['name', 'tenantNameInput'], ['contact', 'contactInput'], ['phone', 'mobileInput'],
+        ['expire', 'expireInput']
+      ].filter(([key]) => !values[key]).map(([, id]) => id);
+      if (missing.length) {
+        showFormError('tenantFormError', '请补全租户名称、联系人、联系手机和过期时间。', missing);
+        return;
+      }
+      if (values.phone.replace(/\D/g, '').length < 8) {
+        showFormError('tenantFormError', '联系手机格式不正确，请至少填写 8 位数字并保留国家或地区区号。', ['mobileInput']);
+        return;
+      }
+      const duplicateName = tenants.find(item => item.id !== appState.editingTenantId && item.name.toLowerCase() === values.name.toLowerCase());
+      if (duplicateName) {
+        showFormError('tenantFormError', `租户名称已存在，对应租户 ${duplicateName.id}；本次未创建重复租户。`, ['tenantNameInput']);
+        return;
+      }
+      let tenant;
+      let action;
+      let oneTimePassword = '';
+      if (editing) {
+        tenant = tenants.find(item => item.id === appState.editingTenantId);
+        if (!tenant || tenant.status === '关闭') {
+          showFormError('tenantFormError', '租户不存在或已关闭，只能查看历史资料，不能继续编辑。');
+          return;
+        }
+        Object.assign(tenant, values);
+        action = '编辑租户资料';
+      } else {
+        const id = `HS-TEN-${String(appState.tenantSequence++).padStart(3, '0')}`;
+        const suffix = id.slice(-3);
+        oneTimePassword = `Hs@${suffix}Q8!`;
+        tenant = {
+          id,
+          ...values,
+          domain: `tenant-${suffix}.hs-pay.com`,
+          accessRequests: [],
+          status: '审核中',
+          statusTone: 'orange',
+          business: [],
+          businessCatalog: [
+            { name: '法币代收', status: '未授权', tone: 'gray' },
+            { name: '法币代付', status: '未授权', tone: 'gray' }
+          ],
+          businessTypes: ['法币业务'],
+          wallet: 0,
+          available: 0,
+          frozen: 0,
+          wallets: [
+            { currency: 'CNY', network: '代收钱包', balance: 0, available: 0, frozen: 0, status: '正常', tone: 'green' },
+            { currency: 'CNY', network: '代付钱包', balance: 0, available: 0, frozen: 0, status: '正常', tone: 'green' },
+            { currency: 'CNY', network: '提款钱包', balance: 0, available: 0, frozen: 0, status: '正常', tone: 'green' }
+          ],
+          credit: 0,
+          admin: `admin_${suffix}`,
+          channels: [],
+          tx: '-',
+          feePolicy: '待业务开通绑定套餐',
+          audit: []
+        };
+        tenants.unshift(tenant);
+        listWalletSnapshots[id] = {
+          withdrawable: { CNY: 0 },
+          collection: { CNY: 0 },
+          payout: { CNY: 0 }
+        };
+        action = '新增租户';
+      }
+
+      appState.selectedTenant = tenant;
+      ensureTenantAccessState(tenant);
+      const audit = addTenantAudit(tenant, action, '成功', editing ? '更新租户基础资料，访问配置、管理账号和白名单未改变' : '创建租户、初始系统访问地址、三个 CNY 钱包和唯一超级管理员账号');
+      setOperationReceipt({
+        title: editing ? '租户资料已保存并生效' : '租户已创建',
+        tenant,
+        status: editing ? tenant.status : '审核中',
+        detail: editing ? '列表与详情已更新' : '钱包和超级管理员已建立，等待平台内部审核',
+        audit
+      });
+      closeTenantModal();
+      applyFilters(false);
+      showToast(editing ? '租户资料已保存' : '租户已创建', tenant.id + ' 已同步列表、详情和审计日志。');
+      if (!editing) openTenantCreatedResult(tenant, oneTimePassword);
+    }
+
+    function finishTenantAction(tenant, { action, result = '成功', detail, reason, tone = 'green' }) {
+      const audit = addTenantAudit(tenant, action, result, reason, tone);
+      appState.selectedTenant = tenant;
+      setOperationReceipt({ title: action + '已完成', tenant, status: result, detail, audit });
+      applyFilters(false);
+      if (document.getElementById('tenantDetailModal').classList.contains('open')) {
+        document.getElementById('detailTenantMeta').textContent = tenant.id + ' / ' + tenant.contact + ' / ' + tenant.domain;
+        document.getElementById('detailTags').innerHTML = tag(tenant.status, tenant.statusTone);
+        renderDetailSections(tenant);
+      }
+      closeConfirm();
+      showToast(action + '已完成', detail + '；审计编号 ' + audit.id + '。');
+    }
+
+    function applyTenantConfirm() {
+      if (appState.currentConfirm === '审计详情' || appState.currentConfirm === '租户创建结果' || appState.currentConfirm === '处理访问配置申请') {
+        closeConfirm();
+        return;
+      }
+      const tenant = currentTenantForAction();
+      if (!tenant) {
+        showFormError('confirmFormError', '租户记录不存在，本次操作未执行。');
+        return;
+      }
+      if (tenant.status === '关闭') {
+        showFormError('confirmFormError', '该租户已关闭，只能查看历史资料，本次操作未执行。');
+        return;
+      }
+
+      if (appState.currentConfirm === '重置账号') {
+        const newAccount = document.getElementById('resetNewAccount').value.trim();
+        const otp = document.getElementById('resetOperator2fa').value.trim();
+        if (!newAccount || !/^\d{6}$/.test(otp)) {
+          document.getElementById('resetOperator2fa').value = '';
+          showFormError('confirmFormError', '需要输入新的管理账号，并填写当前操作人的 6 位 Google 2FA 验证码。', [!newAccount ? 'resetNewAccount' : 'resetOperator2fa']);
+          return;
+        }
+        if (tenants.some(item => item.id !== tenant.id && item.admin === newAccount)) {
+          document.getElementById('resetOperator2fa').value = '';
+          showFormError('confirmFormError', '该管理账号已被其他租户使用，请更换账号。', ['resetNewAccount']);
+          return;
+        }
+        tenant.admin = newAccount;
+        finishTenantAction(tenant, { action: '重置管理账号', detail: '新账号已生效，原账号会话已失效', reason: '通过当前操作人 Google 2FA 重置租户管理账号' });
+        return;
+      }
+
+      if (appState.currentConfirm === '重置密码' || appState.currentConfirm === '重置 2FA') {
+        const fieldId = appState.currentConfirm === '重置密码' ? 'resetPasswordOperator2fa' : 'reset2faOperator2fa';
+        const otp = document.getElementById(fieldId).value.trim();
+        if (!/^\d{6}$/.test(otp)) {
+          document.getElementById(fieldId).value = '';
+          showFormError('confirmFormError', '需要填写当前操作人的 6 位 Google 2FA 验证码。', [fieldId]);
+          return;
+        }
+        const action = appState.currentConfirm;
+        finishTenantAction(tenant, {
+          action,
+          detail: action === '重置密码' ? '租户需通过重置流程设置新密码' : '旧绑定已解除，下次登录必须重新绑定',
+          reason: action + '已通过当前操作人 Google 2FA 验证'
+        });
+        return;
+      }
+
+      const reason = document.getElementById('confirmReason')?.value.trim() || '';
+      const otpField = document.getElementById('confirmOperator2fa');
+      const otp = otpField?.value.trim() || '';
+      if (!reason || !/^\d{6}$/.test(otp)) {
+        if (otpField) otpField.value = '';
+        showFormError('confirmFormError', '请填写操作原因并输入当前操作人的 6 位 Google 2FA 验证码。', [!reason ? 'confirmReason' : 'confirmOperator2fa']);
+        return;
+      }
+
+      if (appState.currentConfirm === '停用租户' || appState.currentConfirm === '启用租户' || appState.currentConfirm === '关闭租户') {
+        const expected = appState.currentConfirm === '停用租户' ? '正常' : appState.currentConfirm === '启用租户' ? '停用' : null;
+        if (expected && tenant.status !== expected) {
+          otpField.value = '';
+          showFormError('confirmFormError', `租户状态已变为${tenant.status}，请关闭弹窗并刷新后重新确认。`);
+          return;
+        }
+        tenant.status = appState.currentConfirm === '停用租户' ? '停用' : appState.currentConfirm === '启用租户' ? '正常' : '关闭';
+        tenant.statusTone = statusTone[tenant.status];
+        finishTenantAction(tenant, {
+          action: appState.currentConfirm,
+          detail: tenant.status === '正常'
+            ? '租户层级后续登录与新业务资格已恢复；下级对象状态保持不变'
+            : tenant.status === '停用'
+              ? '租户端、商户端后续登录与全部新业务已阻止；历史与在途继续保留'
+              : '租户转为历史只读',
+          reason
+        });
+        return;
+      }
+
+      if (appState.currentConfirm === '关闭业务授权' || appState.currentConfirm === '发起业务授权' || appState.currentConfirm === '重新开通业务授权') {
+        const item = (tenant.businessCatalog || []).find(entry => entry.name === appState.confirmBusinessName);
+        if (!item) {
+          otpField.value = '';
+          showFormError('confirmFormError', '业务配置不存在，本次授权未执行。');
+          return;
+        }
+        const enabling = appState.currentConfirm !== '关闭业务授权';
+        if ((enabling && item.status === '已授权') || (!enabling && item.status !== '已授权')) {
+          otpField.value = '';
+          showFormError('confirmFormError', '业务授权状态已变化，请关闭弹窗并刷新后重新确认。');
+          return;
+        }
+        if (enabling) {
+          const hasFeeBinding = Boolean(tenant.feePolicy) && !/待业务开通|待计费/.test(tenant.feePolicy);
+          const hasUsableChannel = (tenant.channels || []).some(channel => channel.startsWith(item.name + ' / '));
+          if (tenant.status !== '正常' || !hasFeeBinding || !hasUsableChannel) {
+            otpField.value = '';
+            const missing = [tenant.status !== '正常' && '租户当前不是正常状态', !hasFeeBinding && '没有唯一启用套餐', !hasUsableChannel && '没有可用授权通道'].filter(Boolean).join('；');
+            showFormError('confirmFormError', `${missing}，业务继续保持原状态，本次未重置任何下级状态。`);
+            return;
+          }
+        }
+        item.status = enabling ? '已授权' : '已停用';
+        item.tone = enabling ? 'green' : 'red';
+        tenant.business = enabling
+          ? Array.from(new Set([...(tenant.business || []), item.name]))
+          : (tenant.business || []).filter(name => name !== item.name);
+        finishTenantAction(tenant, {
+          action: enabling ? '开通业务授权' : '关闭业务授权',
+          detail: `${item.name}${enabling ? '已恢复后续新单资格；下级状态保持不变' : '已阻断三端新单；存量订单、历史通道和费用快照保留'}`,
+          reason
+        });
+        return;
+      }
+
+      showFormError('confirmFormError', '当前操作没有可执行的业务规则，本次未写入任何数据。');
+    }
+
+    function bindEvents() {
+      document.addEventListener('click', event => {
+        const receiptTenant = event.target.closest('[data-receipt-tenant]');
+        if (receiptTenant) {
+          openDetailModal(receiptTenant.dataset.receiptTenant);
+          return;
+        }
+
+        const receiptAudit = event.target.closest('[data-receipt-audit]');
+        if (receiptAudit) {
+          openAuditDetail(receiptAudit.dataset.receiptAudit);
+          return;
+        }
+
+        const masterNav = event.target.closest('[data-master-page]');
+        if (masterNav) {
+          const route = platformMasterRoutes[masterNav.dataset.masterPage];
+          if (route) navigatePlatformMaster(masterNav.dataset.masterPage, route);
+          else showToast('当前页面', masterNav.dataset.masterNote);
+          return;
+        }
+
+        const detailTabBtn = event.target.closest('.detail-tab');
+        if (detailTabBtn) {
+          activateDetailTab(detailTabBtn.dataset.tab);
+          return;
+        }
+
+        const clearBtn = event.target.closest('[data-clear-filters]');
+        if (clearBtn) {
+          clearFilters();
+          return;
+        }
+
+        const auditDetailBtn = event.target.closest('[data-audit-detail]');
+        if (auditDetailBtn) {
+          openAuditDetail(auditDetailBtn.dataset.auditDetail);
+          return;
+        }
+
+        const openWalletBtn = event.target.closest('[data-open-wallet]');
+        if (openWalletBtn) {
+          openDetailModal(openWalletBtn.dataset.openWallet);
+          activateDetailTab('wallet');
+          return;
+        }
+
+        const accessRequestBtn = event.target.closest('[data-access-request]');
+        if (accessRequestBtn) {
+          openAccessRequest(accessRequestBtn.dataset.accessTenant, accessRequestBtn.dataset.accessRequest);
+          return;
+        }
+
+        const accessProcessBtn = event.target.closest('[data-access-process]');
+        if (accessProcessBtn) {
+          processAccessRequest(accessProcessBtn.dataset.accessProcess);
+          return;
+        }
+
+        const openBtn = event.target.closest('[data-open]');
+        if (openBtn) {
+          openDetailModal(openBtn.dataset.open);
+          return;
+        }
+
+        const editBtn = event.target.closest('[data-edit]');
+        if (editBtn) {
+          openTenantModal('edit', editBtn.dataset.edit);
+          return;
+        }
+
+        const confirmBtn = event.target.closest('[data-confirm]');
+        if (confirmBtn) {
+          openConfirm(confirmBtn.dataset.confirm, confirmBtn.dataset.confirmDetail, confirmBtn.dataset.confirmTenant, confirmBtn.dataset.confirmBusiness);
+        }
+      });
+
+      document.getElementById('applyFilter').addEventListener('click', applyFilters);
+      document.getElementById('clearFilter').addEventListener('click', clearFilters);
+      document.getElementById('globalSearch').addEventListener('input', applyFilters);
+      document.getElementById('roleSelect').addEventListener('change', event => {
+        appState.currentRole = event.target.value;
+        applyFilters(false);
+        if (!tenantInCurrentScope(appState.selectedTenant)) appState.selectedTenant = appState.filtered[0] || null;
+        renderDetailSections(appState.selectedTenant);
+        showToast('角色视角已切换', '当前按 ' + appState.currentRole + ' 展示可操作入口。');
+      });
+      document.getElementById('keywordFilter').addEventListener('keydown', event => {
+        if (event.key === 'Enter') applyFilters();
+      });
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        applyFilters(false);
+        showToast('数据已刷新', '已保留当前筛选并重新加载租户列表。');
+      });
+      document.getElementById('createTenantTop').addEventListener('click', () => openTenantModal('create'));
+      document.getElementById('saveTenantBtn').addEventListener('click', saveTenantProfile);
+      document.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', closeTenantModal));
+      document.querySelectorAll('[data-close-confirm]').forEach(button => button.addEventListener('click', closeConfirm));
+      document.getElementById('confirmActionBtn').addEventListener('click', applyTenantConfirm);
+      document.getElementById('detailClose').addEventListener('click', closeDetailModal);
+      document.getElementById('detailBackdrop').addEventListener('click', closeDetailModal);
+      document.getElementById('modalBackdrop').addEventListener('click', () => {
+        closeTenantModal();
+        closeConfirm();
+      });
+      document.querySelectorAll('.detail-tab').forEach(button => {
+        button.addEventListener('click', () => activateDetailTab(button.dataset.tab));
+        button.addEventListener('keydown', event => {
+          if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+          event.preventDefault();
+          const tabs = [...document.querySelectorAll('.detail-tab')];
+          const current = tabs.indexOf(button);
+          const next = event.key === 'ArrowRight' ? (current + 1) % tabs.length : (current - 1 + tabs.length) % tabs.length;
+          activateDetailTab(tabs[next].dataset.tab);
+          tabs[next].focus();
+        });
+      });
+      document.addEventListener('keydown', event => {
+        const dialogs = ['confirmModal', 'tenantModal', 'tenantDetailModal']
+          .map(id => document.getElementById(id))
+          .filter(dialog => dialog.classList.contains('open'));
+        const topDialog = dialogs[0];
+        if (!topDialog) return;
+        if (event.key === 'Escape') {
+          if (topDialog.id === 'confirmModal') closeConfirm();
+          else if (topDialog.id === 'tenantModal') closeTenantModal();
+          else closeDetailModal();
+        } else if (event.key === 'Tab') {
+          trapTenantDialogFocus(event, topDialog);
+        }
+      });
+    }
+
+    function init() {
+      applyFilters(false);
+      renderOperationReceipt();
+      bindEvents();
+      applyPlatformTenantAuthorization();
+      refreshIcons();
+    }
+
+    window.__platformTenantTest = {
+      getTenants: () => tenants.map(tenant => ({
+        id: tenant.id,
+        name: tenant.name,
+        contact: tenant.contact,
+        status: tenant.status,
+        admin: tenant.admin,
+        domain: tenant.domain,
+        previousDomain: tenant.previousDomain ? { ...tenant.previousDomain } : null,
+        accessRequests: (tenant.accessRequests || []).map(request => ({ ...request, checks: [...request.checks] })),
+        businessCatalog: (tenant.businessCatalog || []).map(item => ({ ...item })),
+        wallets: (tenant.wallets || []).map(wallet => ({ ...wallet }))
+      })),
+      getAudits: () => auditEvents.map(item => ({ ...item })),
+      getLatestReceipt: () => appState.latestReceipt ? { ...appState.latestReceipt } : null,
+      getCurrentScope: () => ({ role: appState.currentRole, scopeCode: getPermissions().scopeCode, tenantIds: [...getPermissions().tenantIds] }),
+      getVisibleTenantIds: () => appState.filtered.map(tenant => tenant.id),
+      canCreateTenant: () => canCreateTenant(),
+      canAccessTenant: tenantId => tenantInCurrentScope(tenants.find(tenant => tenant.id === tenantId))
+    };
+
+    init();
+    }
+  </script>
+  <script>
+    (() => {
+      const liveId = "hsFormErrorLive";
+      const nativeErrorClass = "hs-native-field-error";
+      const errorSelector = `.form-error, .field-error, .error-text, [data-error], .${nativeErrorClass}`;
+      const fieldSelector = 'input:not([type="hidden"]), select, textarea';
+      const fieldContainerSelector = '.field, .form-field, .modal-field, .blue-row, .setting-row, .filter-item, .form-group, .control-group';
+      let errorSequence = 0;
+      let fieldLabelSequence = 0;
+
+      function normalizedLabelText(label) {
+        if (!(label instanceof HTMLElement)) return "";
+        const copy = label.cloneNode(true);
+        copy.querySelectorAll("input, select, textarea, button, svg, i").forEach(node => node.remove());
+        return copy.textContent.replace(/\s+/g, " ").trim();
+      }
+
+      function hasAccessibleFieldName(field) {
+        if ((field.getAttribute("aria-label") || "").trim()) return true;
+        const labelledByText = (field.getAttribute("aria-labelledby") || "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(id => document.getElementById(id)?.textContent?.replace(/\s+/g, " ").trim() || "")
+          .filter(Boolean)
+          .join(" ");
+        if (labelledByText) return true;
+        return Array.from(field.labels || []).some(label => normalizedLabelText(label));
+      }
+
+      function upgradeFieldName(field) {
+        if (!(field instanceof HTMLElement) || !field.matches(fieldSelector) || hasAccessibleFieldName(field)) return;
+        const container = field.closest(fieldContainerSelector);
+        const label = container?.querySelector("label");
+        if (!label || !normalizedLabelText(label)) return;
+        if (!label.id) label.id = `hsFieldLabel${++fieldLabelSequence}`;
+        const ids = new Set((field.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean));
+        ids.add(label.id);
+        field.setAttribute("aria-labelledby", [...ids].join(" "));
+      }
+
+      function ensureNativeErrorStyles() {
+        if (document.getElementById("hsNativeFieldErrorStyles")) return;
+        const style = document.createElement("style");
+        style.id = "hsNativeFieldErrorStyles";
+        style.textContent = `
+          .${nativeErrorClass} {
+            display: block;
+            flex: 0 0 100%;
+            width: 100%;
+            max-width: 100%;
+            margin: 6px 0 0;
+            color: var(--color-danger, var(--danger, #b42318));
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.45;
+          }
+          .${nativeErrorClass}[hidden] { display: none !important; }
+        `;
+        document.head.appendChild(style);
+      }
+
+      function fieldKey(field) {
+        if (!field.dataset.hsFeedbackKey) {
+          field.dataset.hsFeedbackKey = field.id || `hsFeedbackField${++errorSequence}`;
+        }
+        return field.dataset.hsFeedbackKey;
+      }
+
+      function ensureLiveRegion() {
+        let live = document.getElementById(liveId);
+        if (live) return live;
+        live = document.createElement("div");
+        live.id = liveId;
+        live.setAttribute("role", "alert");
+        live.setAttribute("aria-live", "assertive");
+        live.setAttribute("aria-atomic", "true");
+        live.style.cssText = "position:fixed;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+        document.body.appendChild(live);
+        return live;
+      }
+
+      function upgradeErrorNode(node) {
+        if (!(node instanceof HTMLElement) || !node.matches(errorSelector)) return null;
+        if (!node.id) node.id = `hsFieldError${++errorSequence}`;
+        node.setAttribute("role", "alert");
+        node.setAttribute("aria-live", "assertive");
+        node.setAttribute("aria-atomic", "true");
+        return node;
+      }
+
+      function ensureNativeError(field) {
+        let node = field.dataset.hsNativeErrorId
+          ? document.getElementById(field.dataset.hsNativeErrorId)
+          : null;
+        if (!node) {
+          node = document.createElement("div");
+          node.id = `hsNativeFieldError${++errorSequence}`;
+          node.className = nativeErrorClass;
+          node.dataset.hsNativeError = "true";
+          node.hidden = true;
+          field.insertAdjacentElement("afterend", node);
+          field.dataset.hsNativeErrorId = node.id;
+        }
+        return upgradeErrorNode(node);
+      }
+
+      function linkField(field, errorNode, focusField = true) {
+        if (!(field instanceof HTMLElement) || !field.matches("input, select, textarea, [contenteditable='true']")) return;
+        field.setAttribute("aria-invalid", "true");
+        const ids = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+        ids.add(errorNode.id);
+        field.setAttribute("aria-describedby", [...ids].join(" "));
+        errorNode.dataset.hsErrorFor = fieldKey(field);
+        if (!focusField || !field.isConnected) return;
+        field.focus({ preventScroll: true });
+        requestAnimationFrame(() => {
+          if (!field.isConnected || document.activeElement !== field) return;
+          field.scrollIntoView({ block: "nearest", inline: "nearest" });
+        });
+      }
+
+      function clearField(field) {
+        if (!(field instanceof HTMLElement) || field.getAttribute("aria-invalid") !== "true") return;
+        field.removeAttribute("aria-invalid");
+        const key = field.dataset.hsFeedbackKey || field.id || "";
+        const ids = (field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        const kept = ids.filter(id => id !== liveId && document.getElementById(id)?.dataset.hsErrorFor !== key);
+        if (kept.length) field.setAttribute("aria-describedby", kept.join(" "));
+        else field.removeAttribute("aria-describedby");
+        ids.forEach(id => {
+          const node = document.getElementById(id);
+          if (!node || node.dataset.hsErrorFor !== key) return;
+          if (node.dataset.hsNativeError === "true") {
+            if (field.dataset.hsNativeErrorId === node.id) delete field.dataset.hsNativeErrorId;
+            node.remove();
+            return;
+          }
+          node.textContent = "";
+          node.classList.remove("show");
+          if (node.hasAttribute("hidden")) node.hidden = true;
+          delete node.dataset.hsErrorFor;
+        });
+      }
+
+      function report(message, field = null, errorNode = null, focusField = true) {
+        const live = ensureLiveRegion();
+        const target = upgradeErrorNode(errorNode) || live;
+        if (errorNode && message) {
+          target.textContent = message;
+          target.hidden = false;
+          target.classList.add("show");
+        }
+        live.textContent = "";
+        requestAnimationFrame(() => { live.textContent = message || "请检查表单内容。"; });
+        if (field) linkField(field, target, focusField);
+        return false;
+      }
+
+      window.HSFormFeedback = { report, clear: clearField, upgrade: upgradeErrorNode };
+      ensureNativeErrorStyles();
+      ensureLiveRegion();
+      document.querySelectorAll(errorSelector).forEach(upgradeErrorNode);
+      document.querySelectorAll(fieldSelector).forEach(upgradeFieldName);
+
+      document.addEventListener("invalid", event => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement)) return;
+        const firstInvalid = field.form?.querySelector(":invalid");
+        const error = ensureNativeError(field);
+        report(
+          field.validationMessage || "请检查此字段。",
+          field,
+          error,
+          !firstInvalid || firstInvalid === field
+        );
+      }, true);
+
+      ["input", "change"].forEach(type => {
+        document.addEventListener(type, event => {
+          const field = event.target;
+          if (!(field instanceof HTMLElement)) return;
+          if (field.matches("input, select, textarea") && field.willValidate && !field.validity.valid) return;
+          clearField(field);
+        }, true);
+      });
+
+      new MutationObserver(records => {
+        records.forEach(record => {
+          if (record.target instanceof HTMLElement) {
+            const node = record.target.matches?.(errorSelector) ? record.target : record.target.closest?.(errorSelector);
+            if (node) {
+              upgradeErrorNode(node);
+              if (node.textContent.trim() && !node.hidden) ensureLiveRegion().textContent = node.textContent.trim();
+            }
+          }
+          record.addedNodes.forEach(added => {
+            if (!(added instanceof HTMLElement)) return;
+            if (added.matches(errorSelector)) upgradeErrorNode(added);
+            added.querySelectorAll?.(errorSelector).forEach(upgradeErrorNode);
+            if (added.matches(fieldSelector)) upgradeFieldName(added);
+            added.querySelectorAll?.(fieldSelector).forEach(upgradeFieldName);
+            const labelContainers = added.matches("label") ? [added] : Array.from(added.querySelectorAll?.("label") || []);
+            labelContainers.forEach(label => label.closest(fieldContainerSelector)?.querySelectorAll(fieldSelector).forEach(upgradeFieldName));
+          });
+        });
+      }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    })();
+  </script>
+
+</body>
+</html>
