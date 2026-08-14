@@ -6,7 +6,7 @@
 
 - **React 壳**（`src/`）：侧边导航、工具栏、全局搜索、模块路由，Arco Design 样式基座。
 - **内页源**（`public/legacy/sources/`）：15 个真实高保真 HTML 文件，经 `src/embed.js` 管线注入 iframe，业务口径零改动。
-- **模块注册表**（`src/legacy/modules.json`）：31 个模块 → 源文件 + hash 路由。
+- **模块注册表**（`src/legacy/modules.json`）：32 个模块 → 源文件 + hash 路由。
 
 ## 维护入口
 

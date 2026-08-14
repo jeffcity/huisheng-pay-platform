@@ -69,9 +69,19 @@
   "initialHash": "detail-security",
   "navId": "tenant-list"
  },
+ "tenant-detail-domains": {
+  "label": "租户详情·域名管理",
+  "code": "01-06",
+  "group": "01 租户管理",
+  "description": "租户后台与商户端共享域名的录入、启停和解绑",
+  "sourceName": "平台端租户管理-demo.html",
+  "sourceKey": "tenants",
+  "initialHash": "detail-domains",
+  "navId": "tenant-list"
+ },
  "tenant-detail-wallet": {
   "label": "租户详情·钱包",
-  "code": "01-06",
+  "code": "01-07",
   "group": "01 租户管理",
   "description": "三类 CNY 钱包摘要与独立页面入口",
   "sourceName": "平台端租户管理-demo.html",
@@ -81,7 +91,7 @@
  },
  "tenant-detail-audit": {
   "label": "租户详情·审计",
-  "code": "01-07",
+  "code": "01-08",
   "group": "01 租户管理",
   "description": "租户相关操作与状态变更记录",
   "sourceName": "平台端租户管理-demo.html",

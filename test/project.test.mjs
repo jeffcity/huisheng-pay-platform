@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const modules = JSON.parse(await readFile(path.join(root, "src/legacy/modules.json"), "utf8"));
 
-test("模块数量与旧单体一致（31 个模块）", () => {
-  assert.equal(Object.keys(modules).length, 31);
+test("模块注册表包含 32 个统一入口", () => {
+  assert.equal(Object.keys(modules).length, 32);
 });
 
 test("每个模块的源文件存在于 public/legacy/sources", async () => {

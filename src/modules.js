@@ -1,4 +1,4 @@
-// 模块注册表：31 个模块 → 15 个源文件 + hash 路由（从旧单体 const modules 原样迁出）。
+// 模块注册表：32 个模块 → 15 个源文件 + hash 路由。
 import modules from './legacy/modules.json';
 
 export const MODULES = modules;
