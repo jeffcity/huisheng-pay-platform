@@ -1533,6 +1533,91 @@
       color: var(--primary);
     }
 
+    .switch-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 36px;
+      width: fit-content;
+      cursor: pointer;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .switch-control input {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .switch-track {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      transition: background 180ms ease;
+      flex: 0 0 auto;
+    }
+
+    .switch-track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.22);
+      transition: transform 180ms ease;
+    }
+
+    .switch-control input:checked + .switch-track {
+      background: var(--primary);
+    }
+
+    .switch-control input:checked + .switch-track::after {
+      transform: translateX(20px);
+    }
+
+    .switch-control input:focus-visible + .switch-track {
+      outline: 3px solid rgba(37, 99, 235, 0.22);
+      outline-offset: 2px;
+    }
+
+    .switch-control:has(input:disabled) {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    .inline-setting {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 44px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: #f8fbfc;
+    }
+
+    .inline-setting span,
+    .inline-setting strong {
+      display: block;
+    }
+
+    .inline-setting > div > span {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
     .auth-risk {
       display: grid;
       gap: 8px;
@@ -1999,7 +2084,7 @@
           <section class="page-head">
             <div>
               <h1 id="pageTitle">用户与角色管理</h1>
-              <p class="page-desc" id="pageDesc">维护平台内部账号、角色、菜单权限、按钮权限和数据范围。平台账号不包含租户端和商户端账号。</p>
+              <p class="page-desc" id="pageDesc">维护平台内部账号、角色、菜单权限和按钮权限。平台账号不包含租户端和商户端账号。</p>
             </div>
             <div class="head-actions" id="headActions"></div>
           </section>
@@ -2165,7 +2250,7 @@
     const moduleMeta = {
       users: {
         title: "用户与角色管理",
-        desc: "维护平台内部账号、角色、菜单权限、按钮权限和数据范围。平台账号不包含租户端和商户端账号。",
+        desc: "维护平台内部账号、角色、菜单权限和按钮权限。平台账号不包含租户端和商户端账号。",
         metrics: []
       },
       security: {
@@ -2188,8 +2273,8 @@
 
     const accounts = [
       { id: "jeff", login: "jeff.admin", name: "Jeff", dept: "产品 / 超管", roles: ["平台超管", "风控审计"], status: "正常", twofa: "已绑定", credential: "正常", sessionVersion: 3, permissionVersion: 12, ip: "103.18.42.21", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], last: "2026-07-04 15:22" },
-      { id: "ops01", login: "ops.lina", name: "Lina", dept: "平台运营", roles: ["平台运营"], status: "正常", twofa: "已绑定", credential: "正常", sessionVersion: 5, permissionVersion: 8, ip: "103.18.42.44", scope: "指定租户：汇盛东南亚、星河支付", scopeCode: "platform.assigned_tenants", tenantIds: ["HS-TEN-001", "HS-TEN-002"], last: "2026-07-04 14:18" },
-      { id: "fin01", login: "fin.ming", name: "Ming", dept: "平台财务", roles: ["平台财务"], status: "锁定", twofa: "待重新绑定", credential: "正常", sessionVersion: 8, permissionVersion: 6, ip: "103.18.42.61", scope: "指定租户：汇盛东南亚", scopeCode: "platform.assigned_tenants", tenantIds: ["HS-TEN-001"], last: "2026-07-03 19:06" },
+      { id: "ops01", login: "ops.lina", name: "Lina", dept: "平台运营", roles: ["平台运营"], status: "正常", twofa: "已绑定", credential: "正常", sessionVersion: 5, permissionVersion: 8, ip: "103.18.42.44", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], last: "2026-07-04 14:18" },
+      { id: "fin01", login: "fin.ming", name: "Ming", dept: "平台财务", roles: ["平台财务"], status: "锁定", twofa: "待重新绑定", credential: "正常", sessionVersion: 8, permissionVersion: 6, ip: "103.18.42.61", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], last: "2026-07-03 19:06" },
       { id: "risk01", login: "risk.chen", name: "Chen", dept: "风控审计", roles: ["风控审计"], status: "正常", twofa: "已绑定", credential: "正常", sessionVersion: 2, permissionVersion: 9, ip: "103.18.42.73", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], last: "2026-07-04 13:42" }
     ];
 
@@ -2466,14 +2551,12 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>登录账号</th><th>姓名</th><th>部门</th><th>角色</th><th>数据范围</th><th>状态</th><th>2FA</th><th>权限版本</th><th>最近登录 IP</th><th>操作</th></tr></thead>
+              <thead><tr><th>登录账号</th><th>姓名</th><th>角色</th><th>状态</th><th>2FA</th><th>权限版本</th><th>最近登录 IP</th><th>操作</th></tr></thead>
               <tbody>${accounts.map(account => `
                 <tr class="${state.selectedAccount === account.id ? "selected" : ""}" data-account="${account.id}">
                   <td class="mono">${account.login}</td>
                   <td>${account.name}</td>
-                  <td>${account.dept}</td>
                   <td><div class="role-stack">${account.roles.map(role => `<span class="tag info">${role}</span>`).join("")}</div><small class="muted">${platformDataAccessSummary(account.roles)}</small></td>
-                  <td>${account.scope}</td>
                   <td>${statusTag(account.status)}</td>
                   <td>${account.twofa === "已绑定" ? `<span class="tag success">已绑定</span>` : `<span class="tag warning">${account.twofa}</span>`}</td>
                   <td class="mono">P${account.permissionVersion}</td>
@@ -2516,42 +2599,33 @@
         <div class="role-config">
           <div class="role-section">
             <div class="role-section-head">
-              <div><strong>角色列表</strong><span>维护平台端角色档案、成员数、数据范围、状态和授权入口</span></div>
+              <div><strong>角色列表</strong><span>维护平台端角色档案、成员、状态和授权入口</span></div>
               <div class="row-actions">
                 <button class="btn primary" type="button" data-action="modal" data-message="role:create"><i data-lucide="plus"></i><span>新增角色</span></button>
                 ${role.id === "super" ? `<span class="tag info">系统超级管理员受保护</span>` : `
                   <button class="btn" type="button" data-action="modal" data-message="role:edit:${role.id}"><i data-lucide="pencil"></i><span>编辑角色</span></button>
-                  <button class="btn ${role.status === "启用" ? "warning" : "primary"}" type="button" data-action="modal" data-message="role:state:${role.id}"><i data-lucide="power"></i><span>${role.status === "启用" ? "停用角色" : "重新启用"}</span></button>
                   <button class="btn warning" type="button" data-action="modal" data-message="role:delete:${role.id}"><i data-lucide="trash-2"></i><span>删除角色</span></button>`}
               </div>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>角色名称</th><th>成员</th><th>数据范围</th><th>状态</th><th>已授权页面</th><th>按钮权限</th><th>说明</th><th>操作</th></tr></thead>
+                <thead><tr><th>角色名称</th><th>成员</th><th>状态</th><th>说明</th><th>操作</th></tr></thead>
                 <tbody>
-                  ${roles.map(item => {
-                    const pageCount = grantedPageCount(item.id);
-                    const actionCount = grantedActionCount(item.id);
-                    return `
+                  ${roles.map(item => `
                       <tr class="${state.selectedRole === item.id ? "selected" : ""}" data-role="${item.id}">
                         <td><strong>${item.name}</strong></td>
                         <td>${item.members} 名</td>
-                        <td>${item.scope}</td>
                         <td>${item.status.includes("停用") ? `<span class="tag warning">${item.status}</span>` : `<span class="tag success">${item.status}</span>`}</td>
-                        <td><span class="tag info">${pageCount} 个页面</span></td>
-                        <td><span class="tag neutral">${actionCount} 项按钮</span></td>
                         <td>${item.note}</td>
                         <td>
                           ${item.id === "super" ? `<span class="tag info">系统角色受保护</span>` : `<div class="row-actions">
                             <button class="btn ghost" type="button" data-action="modal" data-message="role:edit:${item.id}"><i data-lucide="pencil"></i><span>编辑</span></button>
                             <button class="btn primary" type="button" data-action="modal" data-message="role:authorize:${item.id}"><i data-lucide="shield-check"></i><span>授权</span></button>
                             <button class="btn ghost" type="button" data-action="modal" data-message="role:members:${item.id}"><i data-lucide="users"></i><span>成员</span></button>
-                            <button class="btn ${item.status === "启用" ? "warning" : "primary"}" type="button" data-action="modal" data-message="role:state:${item.id}"><i data-lucide="power"></i><span>${item.status === "启用" ? "停用" : "启用"}</span></button>
                             <button class="btn ghost" type="button" data-action="modal" data-message="role:delete:${item.id}"><i data-lucide="trash-2"></i><span>删除</span></button>
                           </div>`}
                         </td>
-                      </tr>`;
-                  }).join("")}
+                      </tr>`).join("")}
                 </tbody>
               </table>
             </div>
@@ -2561,7 +2635,6 @@
             <div class="row-actions">
               ${role.id === "super" ? `<span class="tag info">不可停用、删除或修改授权</span>` : `
               <button class="btn" type="button" data-action="modal" data-message="role:members:${role.id}"><i data-lucide="users"></i><span>查看成员</span></button>
-              <button class="btn ${role.status === "启用" ? "warning" : "primary"}" type="button" data-action="modal" data-message="role:state:${role.id}"><i data-lucide="power"></i><span>${role.status === "启用" ? "停用并收权" : "重新启用"}</span></button>
               `}
             </div>
           </div>
@@ -2642,23 +2715,18 @@
         </div>
         <div class="security-grid">
           <div class="mini-panel" style="grid-column: 1 / -1;">
-            <h3>白名单开关与防锁死校验</h3>
+            <h3>白名单设置</h3>
             <div class="settings-form">
               <label class="setting-row">
-                <span><strong>IP 白名单</strong><small>白名单为空或当前登录 IP 未命中时，不允许启用</small></span>
+                <span><strong>IP 白名单</strong><small>启用后，只有已启用规则中的 IP 可以登录平台。保存前，当前登录 IP（${state.security.currentIp}）必须已在名单中并处于启用状态。</small></span>
                 <select class="select setting-control" id="securityToggle" aria-label="IP 白名单开关">
                   <option ${state.security.enabled ? "" : "selected"}>关闭</option>
                   <option ${state.security.enabled ? "selected" : ""}>启用</option>
                 </select>
               </label>
-              <label class="setting-row">
-                <span><strong>当前登录 IP</strong><small>保存前必须保留当前 IP 的访问能力，避免配置后立即失去后台访问</small></span>
-                <input class="search setting-control mono" value="${state.security.currentIp}" aria-label="当前登录 IP" readonly>
-              </label>
             </div>
-            <div class="state-band">
-              <span>若平台全部管理员因白名单无法登录，由运维工程师依据内部工单直接修正数据库并永久留痕；本页不提供应急关闭、隐藏绕过接口或永久绕过账号。首版不做会话、空闲时间、在线设备或异常设备限制。</span>
-              <button class="btn primary" type="button" data-action="security-save"><i data-lucide="save"></i><span>保存全局开关</span></button>
+            <div class="row-actions" style="justify-content:flex-end;margin-top:12px">
+              <button class="btn primary" type="button" data-action="security-save"><i data-lucide="save"></i><span>保存</span></button>
             </div>
           </div>
           <div class="mini-panel" style="grid-column: 1 / -1;">
@@ -2668,7 +2736,7 @@
             <div class="filter-line">
               <input class="search mono" id="securityEntryValue" placeholder="例如 103.18.42.80 或 103.18.43.0/24" aria-label="新增 IP 或 CIDR">
               <input class="search" id="securityEntryName" placeholder="用途说明，例如风控办公出口" aria-label="IP 规则用途说明">
-              <button class="btn primary" type="button" data-action="security-entry-add"><i data-lucide="plus"></i><span>新增并启用</span></button>
+              <button class="btn primary" type="button" data-action="security-entry-add"><i data-lucide="plus"></i><span>新增</span></button>
             </div>
             <div class="table-wrap" style="margin-top:14px">
               <table aria-label="平台登录 IP 白名单规则">
@@ -2959,7 +3027,7 @@
           <input type="checkbox" data-role-name="${role.name}" data-role-status="${role.status}" ${selectedRoles.includes(role.name) ? "checked" : ""}>
           <span>
             <strong>${role.name}</strong><br>
-            <small>${role.scope} · ${role.status === "停用" ? "已绑定停用角色，可保留或移除，当前不贡献权限" : "启用，可参与权限合并"}</small>
+            <small>${role.status === "停用" ? "已绑定停用角色，可保留或移除，当前不贡献权限" : "启用，可参与权限合并"}</small>
           </span>
         </label>
       `).join("");
@@ -2983,10 +3051,6 @@
             <input class="input" id="accountNameCreate" value="Kelly" aria-label="姓名">
           </div>
           <div class="form-field">
-            <label for="accountDeptCreate">部门 / 岗位</label>
-            <input class="input" id="accountDeptCreate" value="平台运营 / 运营主管" aria-label="部门岗位">
-          </div>
-          <div class="form-field">
             <label for="accountInitialState">初始状态</label>
             <input class="input" id="accountInitialState" value="正常 / 首次登录必须改密并绑定 2FA" aria-label="初始状态" readonly>
           </div>
@@ -2998,7 +3062,6 @@
             <label for="accountEmailCreate">邮箱</label>
             <input class="input mono" id="accountEmailCreate" value="kelly.ops@hs-pay.local" aria-label="邮箱">
           </div>
-          ${platformScopeField("accountCreate", "platform.assigned_tenants", ["HS-TEN-001", "HS-TEN-002"], "账号数据范围", true)}
           <div class="form-field">
             <label for="accountPasswordCreate">初始密码</label>
             <input class="input" id="accountPasswordCreate" aria-label="初始密码" value="系统生成 24 小时一次性密码，由创建人安全交付" readonly>
@@ -3008,18 +3071,17 @@
             <input class="input" id="accountTwofaCreate" value="强制绑定 Google 2FA，不提供关闭配置" aria-label="2FA 要求" readonly>
           </div>
           <div class="form-field full">
-            <label>绑定角色</label>
+            <label>角色</label>
             <div class="choice-grid">
               ${roleChoiceCards(["平台运营"])}
             </div>
-            <small>启用角色共同决定页面、按钮、敏感资料和导出动作；最终数据范围另与账号范围取交集。</small>
+            <small>账号权限由所选角色决定。</small>
           </div>
           <div class="form-field full">
-            <label for="accountRemarkCreate">开通说明</label>
-            <textarea class="textarea" id="accountRemarkCreate" aria-label="开通说明">新增平台运营账号，用于处理指定租户的业务开通、通道跟进和报表查看。</textarea>
+            <label for="accountRemarkCreate">备注</label>
+            <textarea class="textarea" id="accountRemarkCreate" aria-label="备注">平台运营账号，用于处理业务开通、通道跟进和报表查看。</textarea>
           </div>
-        </div>
-        ${auditStrip("新增平台账号", "ops.kelly")}`;
+        </div>`;
     }
 
     function renderAccountEditForm(account) {
@@ -3040,30 +3102,31 @@
             <input class="input" id="accountNameEdit" value="${account.name}" aria-label="姓名">
           </div>
           <div class="form-field">
-            <label for="accountDeptEdit">部门 / 岗位</label>
-            <input class="input" id="accountDeptEdit" value="${account.dept}" aria-label="部门岗位">
+            <label for="accountStatusEdit">账号状态</label>
+            <label class="switch-control">
+              <input type="checkbox" id="accountStatusEdit" aria-label="启用账号" ${account.status === "正常" ? "checked" : ""} ${account.status === "锁定" ? "disabled" : ""}>
+              <span class="switch-track" aria-hidden="true"></span>
+              <span data-account-status-label>${account.status === "锁定" ? "锁定（请先解锁）" : account.status === "正常" ? "启用" : "停用"}</span>
+            </label>
           </div>
           <div class="form-field">
-            <label for="accountStatusView">账号状态</label>
-            <input class="input" id="accountStatusView" value="${account.status} / 请使用账号操作修改" aria-label="账号状态只读" readonly>
-          </div>
-          ${platformScopeField("accountEdit", account.scopeCode, account.tenantIds, "账号数据范围", true)}
-          <div class="form-field">
-            <label for="accountTwofaEdit">2FA 状态</label>
-            <input class="input" id="accountTwofaEdit" value="${account.twofa} / 平台强制启用" aria-label="2FA 状态" readonly>
-          </div>
-          <div class="form-field full">
-            <label>绑定角色</label>
-            <div class="choice-grid">
-              ${roleChoiceCards(account.roles)}
+            <label>2FA 状态</label>
+            <div class="inline-setting">
+              <div><span>当前状态</span><strong>${account.twofa}</strong></div>
             </div>
           </div>
           <div class="form-field full">
-            <label for="accountRemarkEdit">变更说明</label>
-            <textarea class="textarea" id="accountRemarkEdit" aria-label="变更说明">${account.name} 账号资料调整，确认角色和数据范围符合岗位职责；账号安全状态保持不变。</textarea>
+            <label>角色</label>
+            <div class="choice-grid">
+              ${roleChoiceCards(account.roles)}
+            </div>
+            <small>账号权限由所选角色决定。</small>
           </div>
-        </div>
-        ${auditStrip("编辑平台账号", account.login)}`;
+          <div class="form-field full">
+            <label for="accountRemarkEdit">备注</label>
+            <textarea class="textarea" id="accountRemarkEdit" aria-label="备注">${account.name} 账号资料备注。</textarea>
+          </div>
+        </div>`;
     }
 
     function renderAccountResetPasswordForm(account) {
@@ -3130,7 +3193,7 @@
             <label>同步处理</label>
             <div class="permission-editor">
               <label class="permission-row"><span>清理该账号全部在线会话</span><input type="checkbox" checked disabled></label>
-              <label class="permission-row"><span>保留账号角色与数据范围</span><input type="checkbox" checked></label>
+              <label class="permission-row"><span>保留账号角色权限</span><input type="checkbox" checked></label>
             </div>
           </div>
           <div class="form-field">
@@ -3189,7 +3252,7 @@
       }
       if (parts[0] === "account" && parts[1] === "edit") {
         const account = accountById(parts[2]);
-        return { title: `编辑平台账号：${account.name}`, body: renderAccountEditForm(account), className: "account-modal", confirmText: "保存账号", toast: `${account.name} 账号资料已保存。`, auditAction: `编辑账号 ${account.login}` };
+        return { title: `编辑平台账号：${account.name}`, body: renderAccountEditForm(account), className: "account-modal", confirmText: "保存", toast: `${account.name} 账号资料已保存。`, auditAction: `编辑账号 ${account.login}` };
       }
       if (parts[0] === "account" && parts[1] === "reset-password") {
         const account = accountById(parts[2]);
@@ -3220,25 +3283,19 @@
             <small>建议使用岗位或职责名称，便于成员迁移和审计检索。</small>
           </div>
           <div class="form-field">
-            <label for="roleCodeCreate">角色编码</label>
-            <input class="input mono" id="roleCodeCreate" value="PLATFORM_CS_LEAD" aria-label="角色编码">
-            <small>保存后作为权限策略编码，需保持唯一。</small>
-          </div>
-          ${platformScopeField("roleCreate", "platform.assigned_tenants", ["HS-TEN-001"], "角色数据范围")}
-          <div class="form-field">
             <label for="roleStatusCreate">角色状态</label>
-            <select class="select" id="roleStatusCreate" aria-label="角色状态">
-              <option selected>启用</option>
-              <option>停用</option>
-            </select>
+            <label class="switch-control">
+              <input type="checkbox" id="roleStatusCreate" aria-label="启用角色" checked>
+              <span class="switch-track" aria-hidden="true"></span>
+              <span data-role-status-label>启用</span>
+            </label>
             <small>启用后仍需绑定成员才能生效。</small>
           </div>
           <div class="form-field full">
             <label for="roleNoteCreate">角色说明</label>
             <textarea class="textarea" id="roleNoteCreate" aria-label="角色说明">负责平台客服日常查询、订单协查和基础资料查看，不允许资金和安全配置操作。</textarea>
           </div>
-        </div>
-        ${auditStrip("新增角色", "平台客服主管")}`;
+        </div>`;
     }
 
     function renderRoleEditForm(role) {
@@ -3249,27 +3306,18 @@
             <input class="input" id="roleNameEdit" value="${role.name}" aria-label="角色名称">
           </div>
           <div class="form-field">
-            <label for="roleCodeEdit">角色编码</label>
-            <input class="input mono" id="roleCodeEdit" value="${roleCode(role)}" aria-label="角色编码" readonly>
-            <small>已被授权策略引用，编码不允许直接修改。</small>
-          </div>
-          ${platformScopeField("roleEdit", role.scopeCode, role.tenantIds, "角色数据范围")}
-          <div class="form-field">
-            <label>角色状态</label>
-            <input class="input" value="${role.status}" readonly>
-            <small>状态变更使用独立启用 / 停用动作，不与基础资料编辑混用。</small>
+            <label for="roleStatusEdit">角色状态</label>
+            <label class="switch-control">
+              <input type="checkbox" id="roleStatusEdit" aria-label="启用角色" ${role.status === "启用" ? "checked" : ""}>
+              <span class="switch-track" aria-hidden="true"></span>
+              <span data-role-status-label>${role.status}</span>
+            </label>
           </div>
           <div class="form-field full">
             <label for="roleNoteEdit">角色说明</label>
             <textarea class="textarea" id="roleNoteEdit" aria-label="角色说明">${role.note}</textarea>
           </div>
-        </div>
-        <div class="form-note">
-          <div><span>成员数量</span><strong>${role.members} 名</strong></div>
-          <div><span>已授权页面</span><strong>${grantedPageCount(role.id)} 个</strong></div>
-          <div><span>变更影响</span><strong>基础信息变更，不自动改按钮权限</strong></div>
-        </div>
-        ${auditStrip("编辑角色", role.name)}`;
+        </div>`;
     }
 
     function renderRoleDeleteForm(role) {
@@ -3277,7 +3325,7 @@
       return `
         <div class="delete-impact">
           <strong>${canDelete ? "该角色当前无成员，可提交删除。" : "该角色仍有成员，不能直接删除。"}</strong>
-          <span>${canDelete ? "删除为逻辑删除，角色编码不再复用，历史授权、成员关系和审计永久保留。" : `请先从成员列表调整 ${role.members} 名成员的角色；删除动作不会自动迁移成员。`}</span>
+          <span>${canDelete ? "删除为逻辑删除，历史授权、成员关系和审计永久保留。" : `请先从成员列表调整 ${role.members} 名成员的角色；删除动作不会自动迁移成员。`}</span>
         </div>
         <div class="form-grid">
           <div class="form-field">
@@ -3294,25 +3342,6 @@
           </div>
         </div>
         ${auditStrip("逻辑删除角色", role.name, canDelete ? "可提交" : "角色仍有成员")}`;
-    }
-
-    function renderRoleStateForm(role) {
-      const disabling = role.status === "启用";
-      return `
-        <div class="risk-note">${disabling
-          ? `停用后保留 ${role.members} 名成员的绑定，但该角色立即不再贡献页面、按钮、数据范围或敏感字段权限。`
-          : `重新启用后按当前角色定义恢复权限贡献，不恢复停用前的历史权限快照。`}</div>
-        <div class="form-note">
-          <div><span>角色</span><strong>${role.name}</strong></div>
-          <div><span>当前状态</span><strong>${role.status}</strong></div>
-          <div><span>影响成员</span><strong>${role.members} 名</strong></div>
-          <div><span>当前授权</span><strong>${grantedPageCount(role.id)} 个页面 / ${grantedActionCount(role.id)} 项按钮</strong></div>
-        </div>
-        <div class="form-field">
-          <label for="roleStateReason">${disabling ? "停用" : "重新启用"}原因</label>
-          <textarea class="textarea" id="roleStateReason" aria-label="角色状态变更原因">${disabling ? "角色职责调整，确认立即收回该角色当前贡献的权限。" : "角色职责恢复，确认按当前角色定义重新授予权限。"}</textarea>
-        </div>
-        ${auditStrip(disabling ? "停用角色" : "重新启用角色", role.name)}`;
     }
 
     function renderRoleMembersForm(role) {
@@ -3334,7 +3363,6 @@
         <div class="auth-summary">
           <div class="auth-summary-item"><span>角色名称</span><strong>${role.name}</strong></div>
           <div class="auth-summary-item"><span>成员数量</span><strong>${role.members} 名</strong></div>
-          <div class="auth-summary-item"><span>数据范围</span><strong>${role.scope}</strong></div>
           <div class="auth-summary-item"><span>已授权页面</span><strong>${pageCount} 个</strong></div>
           <div class="auth-summary-item"><span>按钮权限</span><strong>${actionCount} 项</strong></div>
           <div class="auth-summary-item"><span>完整敏感资料</span><strong>${sensitive ? "允许" : "不允许"}</strong></div>
@@ -3351,7 +3379,7 @@
         <div class="auth-risk" data-sensitive-config>
           <label class="toggle-check">
             <input type="checkbox" data-sensitive-permission="platform.sensitive.view" ${sensitive ? "checked" : ""}>
-            <span><strong>完整敏感资料</strong> · 允许在当前页面和最终数据范围内发起完整资料查看；页面要求时仍需 Google 2FA。</span>
+            <span><strong>完整敏感资料</strong> · 允许在已授权页面发起完整资料查看；页面要求时仍需 Google 2FA。</span>
           </label>
           <span id="platformSensitivePreview">${sensitive ? "当前预览：银行卡 6222 **** **** 8821；通过页面 2FA 后才临时显示完整值。" : "当前预览：银行卡 6222 **** **** 8821；页面与导出均保持同样脱敏。"}</span>
           <span class="muted">密码、一次性密码、2FA、密钥、令牌和原始凭证永不展示或导出。</span>
@@ -3364,7 +3392,6 @@
                 <th>菜单路径</th>
                 <th>页面访问</th>
                 <th>按钮权限</th>
-                <th>数据范围</th>
                 <th>风险</th>
               </tr>
             </thead>
@@ -3396,7 +3423,6 @@
                           </label>`).join("")}
                       </div>
                     </td>
-                    <td><span class="tag ${role.scopeCode === "platform.all_tenants" ? "info" : "neutral"}">${role.scope}</span></td>
                     <td>${risk === "高" ? `<span class="tag warning">高风险</span>` : `<span class="tag neutral">${risk}</span>`}</td>
                   </tr>`;
               }).join("")}
@@ -3405,7 +3431,7 @@
         </div>
         <div class="auth-risk">
           <strong>授权保存规则</strong>
-          <span>页面访问控制角色能否进入页面；按钮权限控制页面内动作并包含导出；角色数据范围、敏感字段权限分别校验。保存后生成审计记录，高风险页面需记录授权原因。</span>
+          <span>页面访问控制角色能否进入页面；按钮权限控制页面内动作并包含导出；敏感字段权限独立校验。保存后生成审计记录，高风险页面需记录授权原因。</span>
         </div>
         ${auditStrip("角色授权", role.name)}`;
     }
@@ -3428,7 +3454,6 @@
           <div><span>角色</span><strong>${role.name}</strong></div>
           <div><span>页面</span><strong>${permission.page}</strong></div>
           <div><span>页面权限</span><strong class="mono">${permission.pagePermission}</strong></div>
-          <div><span>数据范围</span><strong>${role.scope}</strong></div>
         </div>
         <div class="form-grid">
           <div class="form-field">
@@ -3467,7 +3492,7 @@
       const sensitive = platformRoleHasSensitive(role.id);
       const exportActionCount = platformRoleExportActionCount(role.id);
       return `
-        <div class="risk-note">保存授权后，${role.members} 名受影响账号的权限版本递增；账号保持登录，下一次页面加载、查询、提交、导出生成和下载立即使用最新权限，旧范围缓存失效。</div>
+        <div class="risk-note">保存授权后，${role.members} 名受影响账号的权限版本递增；账号保持登录，下一次页面加载、查询、提交、导出生成和下载立即使用最新权限，旧权限缓存失效。</div>
         <div class="form-note">
           <div><span>授权页面</span><strong>${pageCount} 个</strong></div>
           <div><span>按钮权限</span><strong>${actionCount} 项</strong></div>
@@ -3477,7 +3502,7 @@
         </div>
         <div class="form-field">
           <label>保存说明</label>
-          <textarea class="textarea" aria-label="保存说明">${role.name} 权限调整，确认菜单、按钮和数据范围已复核。</textarea>
+          <textarea class="textarea" aria-label="保存说明">${role.name} 权限调整，确认页面、按钮和敏感资料权限已复核。</textarea>
         </div>
         ${auditStrip("保存授权", role.name)}`;
     }
@@ -3494,10 +3519,6 @@
       if (parts[0] === "role" && parts[1] === "delete") {
         const role = roleById(parts[2]);
         return { title: `删除角色：${role.name}`, body: renderRoleDeleteForm(role), className: "role-modal", confirmText: "确认逻辑删除", confirmClass: "warning", toast: `${role.name} 删除结果已记录。`, auditAction: `删除角色 ${role.name}` };
-      }
-      if (parts[0] === "role" && parts[1] === "state") {
-        const role = roleById(parts[2]);
-        return { title: `${role.status === "启用" ? "停用" : "重新启用"}角色：${role.name}`, body: renderRoleStateForm(role), className: "role-modal", confirmText: role.status === "启用" ? "确认停用并收权" : "确认重新启用", confirmClass: role.status === "启用" ? "warning" : "primary", toast: `${role.name} 状态已更新。`, auditAction: `角色状态 ${role.name}` };
       }
       if (parts[0] === "role" && parts[1] === "members") {
         const role = roleById(parts[2]);
@@ -4512,23 +4533,18 @@
       if (kind === "create") {
         const login = modalValue("accountLoginCreate");
         const name = modalValue("accountNameCreate");
-        const dept = modalValue("accountDeptCreate");
         const rolesSelected = checkedRoleNames();
-        const nextScope = readPlatformScope("accountCreate");
+        const remark = modalValue("accountRemarkCreate");
         if (!/^[A-Za-z0-9._-]{3,40}$/.test(login)) return failSystemAction("登录账号需为 3 至 40 位字母、数字、点、下划线或连字符。", "accountLoginCreate");
         if (accounts.some(item => item.login.toLowerCase() === login.toLowerCase())) return failSystemAction("登录账号已存在，请更换。", "accountLoginCreate");
         if (!name) return failSystemAction("请填写姓名。", "accountNameCreate");
-        if (!dept) return failSystemAction("请填写部门或岗位。", "accountDeptCreate");
         if (!rolesSelected.length) return failSystemAction("请至少绑定一个角色。");
         if (rolesSelected.some(roleName => roles.find(role => role.name === roleName)?.status !== "启用")) return failSystemAction("新账号只能绑定当前启用状态的角色。");
-        if (nextScope.scopeCode === "platform.assigned_tenants" && !nextScope.tenantIds.length) return failSystemAction("选择指定租户时，至少选择一个当前平台租户。");
-        const effectiveScope = platformEffectiveScope(rolesSelected, nextScope);
-        if (effectiveScope.scopeCode === "empty") return failSystemAction("账号范围与启用角色范围没有交集，请调整角色或账号数据范围。");
         const idBase = login.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "account";
         let id = idBase;
         let suffix = 2;
         while (accounts.some(item => item.id === id)) id = `${idBase}-${suffix++}`;
-        const account = { id, login, name, dept, roles: rolesSelected, status: "正常", twofa: "待绑定", credential: "首次改密", sessionVersion: 1, permissionVersion: 1, ip: "-", scope: platformScopeSummary(nextScope.scopeCode, nextScope.tenantIds), scopeCode: nextScope.scopeCode, tenantIds: nextScope.tenantIds, last: "未登录" };
+        const account = { id, login, name, dept: rolesSelected[0], roles: rolesSelected, status: "正常", twofa: "待绑定", credential: "首次改密", sessionVersion: 1, permissionVersion: 1, ip: "-", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], remark, last: "未登录" };
         accounts.unshift(account);
         adjustPlatformRoleMemberCounts([], rolesSelected);
         state.selectedAccount = id;
@@ -4539,30 +4555,27 @@
       if (!account) return failSystemAction("未找到目标账号，数据未变更。");
       if (kind === "edit") {
         const name = modalValue("accountNameEdit");
-        const dept = modalValue("accountDeptEdit");
         const rolesSelected = checkedRoleNames();
-        const nextScope = readPlatformScope("accountEdit");
+        const remark = modalValue("accountRemarkEdit");
+        const statusInput = document.getElementById("accountStatusEdit");
+        const nextStatus = account.status === "锁定" ? "锁定" : statusInput?.checked ? "正常" : "停用";
         if (!name) return failSystemAction("请填写姓名。", "accountNameEdit");
-        if (!dept) return failSystemAction("请填写部门或岗位。", "accountDeptEdit");
         if (!rolesSelected.length) return failSystemAction("请至少绑定一个角色。");
-        if (nextScope.scopeCode === "platform.assigned_tenants" && !nextScope.tenantIds.length) return failSystemAction("选择指定租户时，至少选择一个当前平台租户。");
         const invalidNewRole = rolesSelected.find(roleName => !account.roles.includes(roleName) && roles.find(role => role.name === roleName)?.status !== "启用");
         if (invalidNewRole) return failSystemAction(`${invalidNewRole} 当前停用，只能保留原绑定或移除，不能重新添加。`);
         if (account.roles.includes("平台超管") && !rolesSelected.includes("平台超管")) {
           const otherUsableSuperAdmins = accounts.filter(item => item.id !== account.id && item.status === "正常" && item.roles.includes("平台超管")).length;
           if (!otherUsableSuperAdmins) return failSystemAction("当前登录的最后一个可用平台超级管理员必须保留超管角色。");
         }
-        const effectiveScope = platformEffectiveScope(rolesSelected, nextScope);
-        const enabledSelectedRoles = rolesSelected.filter(roleName => roles.find(role => role.name === roleName)?.status === "启用");
-        if (enabledSelectedRoles.length && effectiveScope.scopeCode === "empty") return failSystemAction("账号范围与启用角色范围没有交集，请调整角色或账号数据范围。");
-        const permissionChanged = nextScope.scopeCode !== account.scopeCode || !samePlatformStringSet(nextScope.tenantIds, account.tenantIds) || !samePlatformRoleSet(rolesSelected, account.roles);
+        const permissionChanged = !samePlatformRoleSet(rolesSelected, account.roles);
+        const statusChanged = nextStatus !== account.status;
         adjustPlatformRoleMemberCounts(account.roles, rolesSelected);
-        Object.assign(account, { name, dept, roles: rolesSelected, scope: platformScopeSummary(nextScope.scopeCode, nextScope.tenantIds), scopeCode: nextScope.scopeCode, tenantIds: nextScope.tenantIds });
+        Object.assign(account, { name, dept: rolesSelected[0], roles: rolesSelected, status: nextStatus, scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], remark });
         if (permissionChanged) account.permissionVersion = Number(account.permissionVersion || 1) + 1;
-        recordSystemChange("账号", account.login, permissionChanged ? `编辑账号并更新权限版本 P${account.permissionVersion}` : "编辑账号资料");
-        return finishSystemAction(permissionChanged
-          ? `${account.login} 资料已保存；最终范围为${platformScopeSummary(effectiveScope.scopeCode, effectiveScope.tenantIds)}，权限版本已更新为 P${account.permissionVersion}，会话保持有效。`
-          : `${account.login} 账号资料已保存，权限与会话保持不变。`);
+        if (statusChanged && nextStatus !== "正常") account.sessionVersion = Number(account.sessionVersion || 1) + 1;
+        const changes = [permissionChanged ? `角色权限版本更新为 P${account.permissionVersion}` : "角色不变", statusChanged ? `状态调整为${nextStatus}` : "状态不变"];
+        recordSystemChange("账号", account.login, `编辑账号：${changes.join("；")}`);
+        return finishSystemAction(`${account.login} 账号已保存；${changes.join("，")}。`);
       }
       if (account.id === "jeff") return failSystemAction("当前登录的最后一个可用平台超级管理员受保护，不能执行该操作。");
       if (kind === "reset-password") {
@@ -4570,7 +4583,7 @@
         account.sessionVersion += 1;
         account.credential = "首次改密";
         recordSystemChange("账号", account.login, "重置密码并清除全部会话");
-        showAccountSecretResult(account, `密码已重置：${account.name}`, oneTimePasswordFor(account), "下次登录必须使用此密码并立即修改；账号状态、角色与数据范围保持不变。");
+        showAccountSecretResult(account, `密码已重置：${account.name}`, oneTimePasswordFor(account), "下次登录必须使用此密码并立即修改；账号状态和角色权限保持不变。");
         return true;
       }
       if (kind === "reset-2fa") {
@@ -4611,18 +4624,17 @@
       const role = parts[2] ? roleById(parts[2]) : null;
       if (kind === "create") {
         const name = modalValue("roleNameCreate");
-        const code = modalValue("roleCodeCreate").toUpperCase();
-        const nextScope = readPlatformScope("roleCreate");
         if (!name) return failSystemAction("请填写角色名称。", "roleNameCreate");
-        if (!/^[A-Z][A-Z0-9_]{2,39}$/.test(code)) return failSystemAction("角色编码需为 3 至 40 位大写字母、数字或下划线，并以字母开头。", "roleCodeCreate");
         if (roles.some(item => item.name === name)) return failSystemAction("角色名称已存在。", "roleNameCreate");
-        if (roles.some(item => roleCode(item) === code)) return failSystemAction("角色编码已存在。", "roleCodeCreate");
-        if (nextScope.scopeCode === "platform.assigned_tenants" && !nextScope.tenantIds.length) return failSystemAction("选择指定租户时，至少选择一个当前平台租户。");
+        let sequence = roles.length + 1;
+        let code = `PLATFORM_ROLE_${String(sequence).padStart(2, "0")}`;
+        while (roles.some(item => roleCode(item) === code)) code = `PLATFORM_ROLE_${String(++sequence).padStart(2, "0")}`;
         const idBase = code.toLowerCase().replaceAll("_", "-");
         let id = idBase;
         let suffix = 2;
         while (roles.some(item => item.id === id)) id = `${idBase}-${suffix++}`;
-        roles.push({ id, code, name, members: 0, status: modalValue("roleStatusCreate") || "启用", scope: platformScopeSummary(nextScope.scopeCode, nextScope.tenantIds), scopeCode: nextScope.scopeCode, tenantIds: nextScope.tenantIds, note: modalValue("roleNoteCreate") || "用户自建角色" });
+        const status = document.getElementById("roleStatusCreate")?.checked ? "启用" : "停用";
+        roles.push({ id, code, name, members: 0, status, scope: "未配置", scopeCode: "empty", tenantIds: [], note: modalValue("roleNoteCreate") || "用户自建角色" });
         roleGrants[id] = {};
         roleSensitiveGrants[id] = false;
         state.selectedRole = id;
@@ -4638,23 +4650,19 @@
       if (kind === "edit") {
         const oldName = role.name;
         const name = modalValue("roleNameEdit");
-        const nextScope = readPlatformScope("roleEdit");
+        const nextStatus = document.getElementById("roleStatusEdit")?.checked ? "启用" : "停用";
         if (!name) return failSystemAction("请填写角色名称。", "roleNameEdit");
         if (roles.some(item => item.id !== role.id && item.name === name)) return failSystemAction("角色名称已存在。", "roleNameEdit");
-        if (nextScope.scopeCode === "platform.assigned_tenants" && !nextScope.tenantIds.length) return failSystemAction("选择指定租户时，至少选择一个当前平台租户。");
-        const permissionChanged = nextScope.scopeCode !== role.scopeCode || !samePlatformStringSet(nextScope.tenantIds, role.tenantIds);
-        const effectivePermissionChanged = permissionChanged && role.status === "启用";
-        const affected = effectivePermissionChanged ? bumpRolePermissionVersions(oldName, role.members) : 0;
+        const statusChanged = nextStatus !== role.status;
+        const affected = statusChanged ? bumpRolePermissionVersions(oldName, role.members) : 0;
         role.name = name;
-        role.scope = platformScopeSummary(nextScope.scopeCode, nextScope.tenantIds);
-        role.scopeCode = nextScope.scopeCode;
-        role.tenantIds = nextScope.tenantIds;
+        role.status = nextStatus;
         role.note = modalValue("roleNoteEdit") || role.note;
         if (oldName !== name) accounts.forEach(account => { account.roles = account.roles.map(item => item === oldName ? name : item); });
-        recordSystemChange("角色", name, effectivePermissionChanged ? `编辑启用角色并传播权限：影响 ${affected} 个账号` : permissionChanged ? "编辑停用角色当前定义：账号权限版本不变" : "编辑角色展示资料：权限版本不变");
-        return finishSystemAction(effectivePermissionChanged
-          ? `${name} 已保存；影响 ${affected} 个账号，权限版本已递增，会话不退出，下一次请求使用最新权限。`
-          : permissionChanged ? `${name} 当前定义已保存；角色仍为停用，不影响账号有效权限，重新启用时再按当前定义传播。` : `${name} 的名称或备注已保存；权限内容未变，账号权限版本和会话保持不变。`);
+        recordSystemChange("角色", name, statusChanged ? `角色状态调整为${nextStatus}：影响 ${affected} 个账号` : "编辑角色资料：权限版本不变");
+        return finishSystemAction(statusChanged
+          ? `${name} 已保存并${nextStatus}；影响 ${affected} 个账号，下一次请求使用最新权限。`
+          : `${name} 的名称或说明已保存；角色状态、账号权限版本和会话保持不变。`);
       }
       if (kind === "authorize") {
         const grants = {};
@@ -4673,20 +4681,10 @@
         recordSystemChange("角色", role.name, `保存授权：${Object.keys(grants).length} 个页面 / ${Object.values(grants).flat().length} 项按钮 / ${exportCount} 项导出 / 完整敏感资料${sensitive ? "允许" : "不允许"}；${changed ? role.status === "启用" ? `影响 ${affected} 个账号` : "停用角色当前定义已更新" : "有效权限未变化"}`);
         if (!changed) return finishSystemAction(`${role.name} 授权定义未变化；成员权限版本和会话保持不变。`);
         return finishSystemAction(role.status === "启用"
-          ? `${role.name} 授权已生效；完整敏感资料${sensitive ? "允许" : "不允许"}，${exportCount} 项导出动作；影响 ${affected} 个账号，权限版本已递增。账号保持登录，下一次请求刷新页面、按钮、范围和脱敏结果。`
+          ? `${role.name} 授权已生效；完整敏感资料${sensitive ? "允许" : "不允许"}，${exportCount} 项导出动作；影响 ${affected} 个账号，权限版本已递增。账号保持登录，下一次请求刷新页面、按钮和脱敏结果。`
           : `${role.name} 当前授权定义已保存；角色仍为停用，不影响账号有效权限，重新启用时按当前定义恢复。`);
       }
       if (kind === "members") return finishSystemAction(`${role.name} 成员列表已查看；角色状态和成员绑定均未改变。`);
-      if (kind === "state") {
-        if (!modalValue("roleStateReason")) return failSystemAction("请填写角色状态变更原因。", "roleStateReason");
-        const disabling = role.status === "启用";
-        role.status = disabling ? "停用" : "启用";
-        const affected = bumpRolePermissionVersions(role.name, role.members);
-        recordSystemChange("角色", role.name, `${disabling ? "停用并收权" : "重新启用当前角色定义"}：影响 ${affected} 个账号`);
-        return finishSystemAction(disabling
-          ? `${role.name} 已停用；${role.members} 名成员绑定保留，但该角色不再贡献权限。影响 ${affected} 个账号，下一次请求使用其他启用角色权限。`
-          : `${role.name} 已重新启用；按当前角色定义恢复权限贡献，不恢复历史快照。影响 ${affected} 个账号，下一次请求生效。`);
-      }
       if (kind === "delete") {
         if (!modalValue("roleDeleteReason")) return failSystemAction("请填写删除原因。", "roleDeleteReason");
         if (role.members > 0) {
@@ -4698,8 +4696,8 @@
         delete roleGrants[role.id];
         delete roleSensitiveGrants[role.id];
         state.selectedRole = roles[0].id;
-        recordSystemChange("角色", role.name, "逻辑删除无成员角色；角色编码不复用");
-        return finishSystemAction(`${role.name} 已逻辑删除；角色编码不再复用，历史授权、成员关系和审计永久保留。`);
+        recordSystemChange("角色", role.name, "逻辑删除无成员角色");
+        return finishSystemAction(`${role.name} 已逻辑删除；历史授权、成员关系和审计永久保留。`);
       }
       return null;
     }
@@ -4931,6 +4929,14 @@
     document.getElementById("modalBody").addEventListener("change", event => {
       if (event.target.matches('[data-role-name], [data-platform-scope-code], [data-platform-scope-tenant]')) updatePlatformEffectiveScopeSummary();
       if (event.target.matches('[data-sensitive-permission="platform.sensitive.view"]')) updatePlatformSensitivePreview();
+      if (event.target.matches('#accountStatusEdit')) {
+        const label = document.querySelector('[data-account-status-label]');
+        if (label) label.textContent = event.target.checked ? "启用" : "停用";
+      }
+      if (event.target.matches('#roleStatusEdit, #roleStatusCreate')) {
+        const label = event.target.closest('.form-field')?.querySelector('[data-role-status-label]');
+        if (label) label.textContent = event.target.checked ? "启用" : "停用";
+      }
     });
     document.getElementById("modalBody").addEventListener("click", event => {
       const platformTarget = event.target.closest("[data-platform-target]");

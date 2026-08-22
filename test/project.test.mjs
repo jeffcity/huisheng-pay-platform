@@ -34,10 +34,12 @@ test("系统管理新增 IP 规则立即启用，2FA 绑定仅由登录流程触
   const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
   const appSource = await readFile(path.join(root, "src/App.jsx"), "utf8");
   assert.match(system, /新增 IP 规则/);
-  assert.match(system, /新增并启用/);
+  assert.match(system, /data-action="security-entry-add"[\s\S]*?<span>新增<\/span>/);
   assert.match(system, /保存成功后立即启用/);
   assert.match(system, /enabled: true, updated:/);
-  assert.doesNotMatch(system, /新增规则默认停用|保存后默认停用|新增登录 IP 规则（默认停用）/);
+  assert.match(system, /data-action="security-save"[\s\S]*?<span>保存<\/span>/);
+  assert.match(system, /启用后，只有已启用规则中的 IP 可以登录平台。保存前，当前登录 IP/);
+  assert.doesNotMatch(system, /<span>新增并启用<\/span>|<span>保存全局开关<\/span>|若平台全部管理员因白名单无法登录|<strong>当前登录 IP<\/strong>|新增规则默认停用|保存后默认停用|新增登录 IP 规则（默认停用）/);
   assert.match(system, /security-entry-toggle/);
   assert.match(system, /登录时强制绑定/);
   assert.doesNotMatch(system, /open-2fa-bind|绑定入口/);
@@ -56,6 +58,45 @@ test("系统管理新增 IP 规则立即启用，2FA 绑定仅由登录流程触
   assert.match(login, /body\[data-login-view="bind"\] \.access-rail/);
   assert.match(login, /document\.body\.dataset\.loginView = view/);
   assert.doesNotMatch(login, /<li><span>账号状态<\/span>|<li><span>绑定结果<\/span>|<li><span>恢复码<\/span>/);
+});
+
+test("平台账号编辑展示 2FA 状态且列表提供独立重置操作", async () => {
+  const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");
+  const editForm = system.slice(system.indexOf("function renderAccountEditForm"), system.indexOf("function renderAccountResetPasswordForm"));
+  const createForm = system.slice(system.indexOf("function renderAccountCreateForm"), system.indexOf("function renderAccountEditForm"));
+  const accountList = system.slice(system.indexOf("function renderUsers"), system.indexOf("function renderSystemReceipts"));
+  const roleChoices = system.slice(system.indexOf("function roleChoiceCards"), system.indexOf("function renderAccountCreateForm"));
+  const accountModalConfig = system.slice(system.indexOf("function accountModalConfig"), system.indexOf("function renderRoleCreateForm"));
+
+  assert.doesNotMatch(editForm, /accountEditScopeCode|账号数据范围|指定租户|部门 \/ 岗位|auditStrip\("编辑平台账号"/);
+  assert.doesNotMatch(createForm, /accountCreateScopeCode|账号数据范围|指定租户|部门 \/ 岗位|auditStrip\("新增平台账号"/);
+  assert.match(editForm, /id="accountStatusEdit"/);
+  assert.match(editForm, /class="switch-control"/);
+  assert.match(editForm, /当前状态/);
+  assert.doesNotMatch(editForm, /accountResetTwofaEdit|保存时重置 2FA|等待账号登录绑定/);
+  assert.match(editForm, /<label>角色<\/label>/);
+  assert.match(editForm, /<label for="accountRemarkEdit">备注<\/label>/);
+  assert.doesNotMatch(accountList, /<th>部门<\/th>|<th>数据范围<\/th>/);
+  assert.match(accountList, /data-message="account:reset-2fa:\$\{account\.id\}"[\s\S]*?<span>重置 2FA<\/span>/);
+  assert.match(accountModalConfig, /confirmText: "保存"/);
+  assert.doesNotMatch(accountModalConfig, /confirmText: "保存账号"/);
+  assert.doesNotMatch(roleChoices, /role\.scope/);
+});
+
+test("角色编辑使用状态切换器且不展示编码、数据范围和提交前摘要", async () => {
+  const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");
+  const editForm = system.slice(system.indexOf("function renderRoleEditForm"), system.indexOf("function renderRoleDeleteForm"));
+  const createForm = system.slice(system.indexOf("function renderRoleCreateForm"), system.indexOf("function renderRoleEditForm"));
+  const roleConfig = system.slice(system.indexOf("function renderRoleConfig"), system.indexOf("function renderMenuRow"));
+  const authorizeForm = system.slice(system.indexOf("function renderRoleAuthorizeForm"), system.indexOf("function updatePlatformSensitivePreview"));
+
+  assert.doesNotMatch(editForm, /角色编码|roleCodeEdit|角色数据范围|roleEditScopeCode|指定租户|成员数量|已授权页面|变更影响|auditStrip\("编辑角色"/);
+  assert.doesNotMatch(createForm, /角色编码|roleCodeCreate|角色数据范围|roleCreateScopeCode|指定租户|auditStrip\("新增角色"/);
+  assert.match(editForm, /id="roleStatusEdit"/);
+  assert.match(editForm, /class="switch-control"/);
+  assert.match(editForm, /data-role-status-label/);
+  assert.doesNotMatch(roleConfig, /<th>(?:数据范围|已授权页面|按钮权限)<\/th>|data-message="role:state:|const pageCount = grantedPageCount|const actionCount = grantedActionCount/);
+  assert.doesNotMatch(authorizeForm, /角色数据范围|<th>数据范围<\/th>|<span>数据范围<\/span>/);
 });
 
 test("租户创建要求初始登录 IP，并分离登录与 API 两套名单", async () => {
