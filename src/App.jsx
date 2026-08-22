@@ -16,10 +16,13 @@ const ItemGroup = Menu.ItemGroup;
 
 const MODULE_ICON = {
   home: <IconHome />, 'tenant-list': <IconUser />, business: <IconApps />,
+  'tenant-create': <IconUser />,
   wallets: <IconStorage />, funds: <IconCalendarClock />, 'channel-vendors': <IconBranch />,
   'tenant-daily-report': <IconCalendar />, 'channel-daily-report': <IconCalendar />,
   ledger: <IconBook />, orders: <IconList />, audit: <IconSafe />,
-  tickets: <IconCommon />, 'system-accounts': <IconSettings />,
+  tickets: <IconCommon />, 'system-accounts': <IconSettings />, 'system-roles': <IconSettings />,
+  'system-security': <IconSafe />, 'system-menus': <IconList />,
+  'login-form': <IconSafe />, 'login-bind': <IconSafe />, 'login-exception': <IconSafe />,
 };
 
 export default function App() {
@@ -93,7 +96,7 @@ export default function App() {
         </div>
         <Menu
           style={{ flex: 1, overflowY: 'auto' }}
-          selectedKeys={[activeModule]}
+          selectedKeys={[activeTarget.navId || activeModule]}
           defaultOpenKeys={['report']}
           onClickMenuItem={(key) => openModule(key)}
         >

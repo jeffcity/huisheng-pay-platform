@@ -78,6 +78,26 @@
       grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
     }
 
+    body[data-login-view="bind"] .app-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    body[data-login-view="bind"] .access-rail,
+    body[data-login-view="bind"] .foot-strip,
+    body[data-login-view="bind"] .panel-copy,
+    body[data-login-view="bind"] #panelTag {
+      display: none !important;
+    }
+
+    body[data-login-view="bind"] .login-main {
+      min-height: 100dvh;
+      align-items: center;
+    }
+
+    body[data-login-view="bind"] .panel-header {
+      padding-bottom: 20px;
+    }
+
     .access-rail {
       position: relative;
       overflow: hidden;
@@ -632,18 +652,18 @@
 
     .bind-layout {
       display: grid;
-      grid-template-columns: 148px minmax(0, 1fr);
-      gap: 18px;
-      align-items: start;
-      margin: 18px 0;
+      grid-template-columns: 176px minmax(0, 1fr);
+      gap: 20px;
+      align-items: center;
+      margin: 8px 0 18px;
     }
 
     .mock-qr {
-      width: 148px;
+      width: 176px;
       aspect-ratio: 1;
       border: 1px solid var(--color-border-strong);
       border-radius: var(--radius-md);
-      padding: 10px;
+      padding: 12px;
       background: #ffffff;
     }
 
@@ -651,14 +671,13 @@
       width: 100%;
       height: 100%;
       display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      grid-template-rows: repeat(9, 1fr);
-      gap: 3px;
+      grid-template-columns: repeat(43, 1fr);
+      grid-template-rows: repeat(43, 1fr);
+      gap: 0;
     }
 
     .qr-cell {
-      border-radius: 2px;
-      background: #dce3ef;
+      background: #ffffff;
     }
 
     .qr-cell.fill {
@@ -667,7 +686,25 @@
 
     .bind-copy {
       display: grid;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .bind-instruction {
+      margin: 0;
+      color: var(--color-text-primary);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .secret-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .secret-label {
+      color: var(--color-text-tertiary);
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .secret-line {
@@ -683,6 +720,23 @@
       font-family: var(--font-mono);
       font-size: 12px;
       word-break: break-all;
+    }
+
+    .copy-secret {
+      min-height: 32px;
+      flex: 0 0 auto;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      color: var(--color-primary);
+      background: #ffffff;
+      font-weight: 700;
+      transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .copy-secret:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
     }
 
     .summary-list {
@@ -1164,7 +1218,6 @@
           <button class="scenario-button" type="button" data-scenario="noperm">无权限</button>
           <button class="scenario-button" type="button" data-scenario="tenantonly">首个租户页</button>
           <button class="scenario-button" type="button" data-scenario="fundsonly">仅资金待办</button>
-          <button class="scenario-button" type="button" data-scenario="feesonly">仅套餐费率</button>
         </div>
       </div>
     </aside>
@@ -1243,39 +1296,30 @@
           </section>
 
           <section class="view-panel" data-view="bind" hidden>
-            <div class="alert warning">
-              <i data-lucide="shield-alert" class="icon"></i>
-              <div>
-                <p class="alert-title">需要绑定 Google 2FA</p>
-                <p class="alert-copy">账号密码已通过。完成绑定后才能进入平台端。</p>
-              </div>
-            </div>
-
             <div class="bind-layout">
-              <div class="mock-qr" aria-label="Google 2FA 绑定二维码样例">
+              <div class="mock-qr" role="img" aria-label="Google 2FA 绑定二维码">
                 <div class="mock-qr-grid" id="mockQr"></div>
               </div>
               <div class="bind-copy">
-                <div class="secret-line">
-                  <span>JBSW **** **** 7K9P</span>
+                <p class="bind-instruction">使用 Google Authenticator 扫描二维码。</p>
+                <div class="secret-block">
+                  <span class="secret-label">无法扫码？复制密钥</span>
+                  <div class="secret-line">
+                    <code id="bindSecret">JBSWY3DPEHPK3PXP</code>
+                    <button class="copy-secret" type="button" id="copyBindSecret">复制</button>
+                  </div>
                 </div>
-                <ul class="summary-list">
-                  <li><span>账号状态</span><strong>需绑定 2FA</strong></li>
-                  <li><span>绑定结果</span><strong>成功后继续登录</strong></li>
-                  <li><span>恢复码</span><strong>本轮不展示</strong></li>
-                </ul>
               </div>
             </div>
 
             <form class="form-grid" id="bindForm" novalidate>
               <div class="field" data-field="bindOtp">
                 <div class="field-label">
-                  <label for="bindOtp">绑定验证码</label>
-                  <span class="field-hint">Google Authenticator</span>
+                  <label for="bindOtp">验证码</label>
                 </div>
                 <div class="input-wrap">
                   <i data-lucide="key-round" class="input-icon"></i>
-                  <input class="input mono" id="bindOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="请输入 6 位验证码">
+                  <input class="input mono" id="bindOtp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="请输入 6 位验证码">
                 </div>
                 <span class="field-error" role="alert">请输入 6 位验证码。</span>
               </div>
@@ -1283,9 +1327,8 @@
               <div class="actions">
                 <button class="button primary" type="submit" id="bindButton">
                   <i data-lucide="shield-check" class="icon"></i>
-                  <span>确认绑定并登录</span>
+                  <span>验证并绑定</span>
                 </button>
-                <button class="button secondary" type="button" id="backLogin">返回登录</button>
               </div>
             </form>
           </section>
@@ -1353,7 +1396,7 @@
         password: "DemoPass2026",
         otp: "",
         tag: "需绑定",
-        copy: "账号密码通过后进入 2FA 绑定流程。"
+        copy: "扫描二维码或复制密钥，然后输入 6 位验证码。"
       },
       blocked: {
         label: "安全拦截",
@@ -1386,14 +1429,6 @@
         otp: "468135",
         tag: "资金待办",
         copy: "只授予资金待办页面权限，不由动作权限产生入口。"
-      },
-      feesonly: {
-        label: "仅套餐费率",
-        account: "fees.only.demo",
-        password: "DemoPass2026",
-        otp: "579246",
-        tag: "套餐费率",
-        copy: "验证导航目录末段页面可以成为登录目标。"
       }
     };
 
@@ -1412,16 +1447,15 @@
       { id: "users", label: "用户与角色", type: "page", pagePermission: "platform.user.manage", href: "../10-系统管理/平台端系统管理-demo.html#users", visible: true, enabled: true },
       { id: "security", label: "安全配置", type: "page", pagePermission: "platform.security.whitelist.view", href: "../10-系统管理/平台端系统管理-demo.html#security", visible: true, enabled: true },
       { id: "menus", label: "菜单管理", type: "page", pagePermission: "platform.menu.manage", href: "../10-系统管理/平台端系统管理-demo.html#menus", visible: true, enabled: true },
-      { id: "fees", label: "套餐费率", type: "page", pagePermission: "platform.fee_package.view", href: "../10-系统管理/平台端系统管理-demo.html#fees", visible: true, enabled: true },
       { id: "directory-sentinel", label: "目录哨兵", type: "directory", pagePermission: "platform.invalid.directory", href: "", visible: true, enabled: true },
       { id: "hidden-sentinel", label: "隐藏哨兵", type: "page", pagePermission: "platform.invalid.hidden", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#home", visible: false, enabled: true },
       { id: "disabled-sentinel", label: "停用哨兵", type: "page", pagePermission: "platform.invalid.disabled", href: "../00-平台端功能导航索引/平台端功能导航索引-demo.html#home", visible: true, enabled: false },
       { id: "empty-route-sentinel", label: "空地址哨兵", type: "page", pagePermission: "platform.invalid.empty", href: "", visible: true, enabled: true }
     ];
 
-    const platformPagePermissionOrder = platformLoginNavigation.slice(0, 15).map((item) => item.pagePermission);
+    const platformPagePermissionOrder = platformLoginNavigation.slice(0, 14).map((item) => item.pagePermission);
     const knownPlatformPagePermissions = new Set(platformPagePermissionOrder);
-    const allowedPlatformRouteHrefs = new Set(platformLoginNavigation.slice(0, 15).map((item) => item.href));
+    const allowedPlatformRouteHrefs = new Set(platformLoginNavigation.slice(0, 14).map((item) => item.href));
     const platformReviewPermissionFactOverrides = new Map();
     const reviewPermissionFactFields = new Set(["status", "factStatus", "expiresAt", "permissionVersion", "menuVersion", "roles", "dataScope", "sensitiveAccess"]);
     const platformLoginAccounts = new Map([
@@ -1430,7 +1464,6 @@
       ["first.login.demo", { account: "first.login.demo", permissionVersion: 3, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.dashboard.view"], actionPermissions: [] }] }],
       ["risk.chen", { account: "risk.chen", permissionVersion: 9, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.tenant.view", "platform.audit.view"], actionPermissions: ["platform.audit.export"] }] }],
       ["funds.only.demo", { account: "funds.only.demo", permissionVersion: 4, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.fund_task.view"], actionPermissions: ["platform.fund_review.execute"] }] }],
-      ["fees.only.demo", { account: "fees.only.demo", permissionVersion: 4, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.fee_package.view"], actionPermissions: [] }] }],
       ["readonly.demo", { account: "readonly.demo", permissionVersion: 5, menuVersion: 8, roles: [{ enabled: false, pagePermissions: ["platform.dashboard.view"], actionPermissions: [] }] }],
       ["action.only.demo", { account: "action.only.demo", permissionVersion: 6, menuVersion: 8, roles: [{ enabled: true, pagePermissions: [], actionPermissions: ["platform.fund_review.execute"] }] }],
       ["invalid.node.demo", { account: "invalid.node.demo", permissionVersion: 6, menuVersion: 8, roles: [{ enabled: true, pagePermissions: ["platform.invalid.directory", "platform.invalid.hidden", "platform.invalid.disabled", "platform.invalid.empty"], actionPermissions: [] }] }],
@@ -1492,15 +1525,49 @@
     }
 
     const qrPattern = [
-      1,1,1,0,1,0,1,1,1,
-      1,0,1,0,0,1,1,0,1,
-      1,1,1,1,0,0,1,1,1,
-      0,0,1,0,1,1,0,0,1,
-      1,0,0,1,1,0,1,0,0,
-      0,1,1,0,0,1,0,1,1,
-      1,1,1,0,1,0,1,0,1,
-      1,0,1,1,0,1,0,0,1,
-      1,1,1,0,1,1,1,1,1
+      "0000000000000000000000000000000000000000000",
+      "0111111101000010000001010010100011111110000",
+      "0100000100011101100000001001110100010100010",
+      "0101110100101011011010100010110010101111110",
+      "0101110101010101010100001000110011100010110",
+      "0101110101010100001011110101101101111110110",
+      "0100000101111101100101011100001001000110010",
+      "0111111101111010100011101111111101010100000",
+      "0000000001101100001011001111111001000101110",
+      "0111010110111000011101010100001011111101110",
+      "0110111001111000111100011111001001001101110",
+      "0111000110001100100101011001110001011101010",
+      "0111111000101111101001010100111010100100000",
+      "0000001110101110000011011010000010101010110",
+      "0111110001101000110010010001100001011111110",
+      "0010110100011101011010000011100110011110110",
+      "0110011000100110111000101001111001011101100",
+      "0010110101101000100111001110100000110000100",
+      "0111001011010111011101010001111001110100100",
+      "0001001110101111010100101010110000011101000",
+      "0111000011100001010010111010101011100011000",
+      "0011110110001011110100111100100111011001110",
+      "0100010011111101000011101001001101110101000",
+      "0111100100001001001100001011100110000100010",
+      "0011110000101110001010000101111011100100000",
+      "0111001111111000010100101010001101000000000",
+      "0101010010001000001101101011011010111111110",
+      "0010100101101111011111101010110111010010010",
+      "0111110001010101111011101101100101111100010",
+      "0000010100110001010110010000100000101000000",
+      "0110001001100010001011011100001110110110000",
+      "0011011101000111100000011010100001111110110",
+      "0010000011001010001011111011100111100110000",
+      "0100111111010010011100001000101100100101110",
+      "0000000000100101110010010111010001000000000",
+      "0111111101010101010101010101010101011111110",
+      "0100000100011001011001111000010000010000010",
+      "0101110101010100101110110000000010010111010",
+      "0101110100101110100011110111110101010111010",
+      "0101110101100010001110101110111000010111010",
+      "0100000101110010011000000100001101010000010",
+      "0111111101101000110001011110001101011111110",
+      "0000000000000000000000000000000000000000000"
     ];
 
     const els = {
@@ -1514,6 +1581,8 @@
       bindForm: document.getElementById("bindForm"),
       bindOtp: document.getElementById("bindOtp"),
       bindButton: document.getElementById("bindButton"),
+      bindSecret: document.getElementById("bindSecret"),
+      copyBindSecret: document.getElementById("copyBindSecret"),
       panelTitle: document.getElementById("panelTitle"),
       panelCopy: document.getElementById("panelCopy"),
       panelTag: document.getElementById("panelTag"),
@@ -1550,6 +1619,7 @@
     }
 
     function setView(view) {
+      document.body.dataset.loginView = view;
       document.querySelectorAll("[data-view]").forEach((panel) => {
         panel.hidden = panel.dataset.view !== view;
       });
@@ -1559,6 +1629,7 @@
       }
       if (view === "bind") {
         els.panelTitle.textContent = "绑定 Google 2FA";
+        els.panelCopy.textContent = "扫描二维码或复制密钥，然后输入 6 位验证码。";
       }
       if (view === "exception") {
         els.panelTitle.textContent = "登录结果";
@@ -1674,6 +1745,14 @@
       els.loginButton.innerHTML = loading
         ? '<i data-lucide="loader-circle" class="icon"></i><span>校验中</span>'
         : '<i data-lucide="log-in" class="icon"></i><span>登录</span>';
+      renderIcons();
+    }
+
+    function setBindLoading(loading) {
+      els.bindButton.disabled = loading;
+      els.bindButton.innerHTML = loading
+        ? '<i data-lucide="loader-circle" class="icon"></i><span>验证中</span>'
+        : '<i data-lucide="shield-check" class="icon"></i><span>验证并绑定</span>';
       renderIcons();
     }
 
@@ -1821,22 +1900,53 @@
         showToast("请输入绑定验证码", "验证码用于确认 Google 2FA 绑定。");
         return;
       }
-      if (els.bindOtp.value.length !== 6) {
+      const code = els.bindOtp.value.trim();
+      if (!/^\d{6}$/.test(code)) {
         document.querySelector('[data-field="bindOtp"]').classList.add("is-invalid");
         window.HSFormFeedback?.report("请输入 6 位验证码。", els.bindOtp);
         showToast("验证码格式不完整", "请输入 6 位验证码。");
         return;
       }
-      completePlatformLogin(authenticatedLoginAccount || els.account.value.trim().toLowerCase(), { afterBind: true });
+      setBindLoading(true);
+      window.setTimeout(() => {
+        setBindLoading(false);
+        if (code === "000000") {
+          els.bindOtp.value = "";
+          document.querySelector('[data-field="bindOtp"]').classList.add("is-invalid");
+          window.HSFormFeedback?.report("验证码不正确，请重新输入。", els.bindOtp);
+          showToast("验证未通过", "请重新输入 Google Authenticator 中的 6 位验证码。");
+          return;
+        }
+        completePlatformLogin(authenticatedLoginAccount || els.account.value.trim().toLowerCase(), { afterBind: true });
+      }, 420);
     }
 
     function renderMockQr() {
       els.mockQr.innerHTML = "";
-      qrPattern.forEach((value) => {
+      qrPattern.flatMap((row) => [...row]).forEach((value) => {
         const cell = document.createElement("span");
-        cell.className = value ? "qr-cell fill" : "qr-cell";
+        cell.className = value === "1" ? "qr-cell fill" : "qr-cell";
         els.mockQr.appendChild(cell);
       });
+    }
+
+    async function copyBindSecret() {
+      const secret = els.bindSecret.textContent.trim();
+      try {
+        await navigator.clipboard.writeText(secret);
+      } catch {
+        const input = document.createElement("textarea");
+        input.value = secret;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+      }
+      els.copyBindSecret.textContent = "已复制";
+      window.setTimeout(() => { els.copyBindSecret.textContent = "复制"; }, 1600);
     }
 
     document.querySelectorAll(".scenario-button").forEach((button) => {
@@ -1845,6 +1955,7 @@
 
     els.loginForm.addEventListener("submit", submitLogin);
     els.bindForm.addEventListener("submit", submitBind);
+    els.copyBindSecret.addEventListener("click", copyBindSecret);
     els.loginRouteLink.addEventListener("click", openPlatformLoginTarget);
 
     document.getElementById("togglePassword").addEventListener("click", () => {
@@ -1868,11 +1979,6 @@
       showToast("已清空", "可以重新输入登录信息。");
     });
 
-    document.getElementById("backLogin").addEventListener("click", () => {
-      platformLoginIssuer?.clearAuthenticationAttempt();
-      clearPlatformLoginRoute();
-      setView("login");
-    });
     document.getElementById("tryAgain").addEventListener("click", () => {
       platformLoginIssuer?.clearAuthenticationAttempt();
       clearPlatformLoginRoute();
@@ -1883,7 +1989,13 @@
 
     window.__HSPlatformLoginPrototype = Object.freeze({
       resolveLoginRoute: resolvePlatformLoginRoute,
-      getNavigationOrder: () => structuredClone(platformLoginNavigation.slice(0, 15)),
+      openView: (view) => {
+        if (!["login", "bind", "exception"].includes(view)) return false;
+        setView(view);
+        if (view === "bind") setPanelTag("warning", "需绑定");
+        return true;
+      },
+      getNavigationOrder: () => structuredClone(platformLoginNavigation.slice(0, 14)),
       getNavigationCandidates: () => structuredClone(platformLoginNavigation),
       getPermissionFact: getPlatformLoginPermissionFact,
       setReviewPermissionFact: setReviewPlatformPermissionFact,

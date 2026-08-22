@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>汇盛支付平台端控制台 - 系统管理</title>
-  <script src="../platform-auth-route-guard.js" data-platform-route-targets='{"users":"platform.user.manage","security":"platform.security.whitelist.view","menus":"platform.menu.manage","fees":"platform.fee_package.view"}'></script>
+  <script src="../platform-auth-route-guard.js" data-platform-route-targets='{"users":"platform.user.manage","security":"platform.security.whitelist.view","menus":"platform.menu.manage"}'></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -2039,12 +2039,12 @@
     if (window.HSPlatformAuthRouteGuard?.allowBusinessBoot() === true) {
     const platformSystemAuthorization = window.HSPlatformAuthRouteGuard.getAuthorizationContext();
     const platformSystemActionPermissions = new Set(platformSystemAuthorization?.actionPermissions || []);
-    const initialHash = window.location.hash.slice(1);
+    const initialHash = window.__UNIFIED_DEMO_HASH || window.location.hash.slice(1);
     const userTabHash = { accounts: "users", roles: "roles" };
     const hashUserTab = { users: "accounts", roles: "roles" };
 
     const state = {
-      module: hashUserTab[initialHash] ? "users" : ["security", "menus", "fees"].includes(initialHash) ? initialHash : "users",
+      module: hashUserTab[initialHash] ? "users" : ["security", "menus"].includes(initialHash) ? initialHash : "users",
       userTab: hashUserTab[initialHash] || "accounts",
       selectedAccount: "jeff",
       selectedRole: "ops",
@@ -2063,7 +2063,11 @@
       security: {
         enabled: false,
         currentIp: "103.18.42.21",
-        entries: ["103.18.42.21", "103.18.42.44"],
+        entries: [
+          { id: "PIP-001", value: "103.18.42.21", name: "当前办公出口", enabled: true, updated: "2026-07-18 11:10 Jeff" },
+          { id: "PIP-002", value: "103.18.42.44", name: "运营办公出口", enabled: true, updated: "2026-07-18 11:10 Jeff" },
+          { id: "PIP-003", value: "103.18.42.61", name: "财务备用出口", enabled: false, updated: "2026-07-18 11:12 Jeff" }
+        ],
         updated: "2026-07-18 11:10 Jeff"
       },
       pendingSecurity: null,
@@ -2116,8 +2120,7 @@
     const navItems = [
       { id: "users", label: "用户与角色", icon: "users-round" },
       { id: "security", label: "安全配置", icon: "shield" },
-      { id: "menus", label: "菜单管理", icon: "panel-left" },
-      { id: "fees", label: "套餐费率", icon: "badge-dollar-sign" }
+      { id: "menus", label: "菜单管理", icon: "panel-left" }
     ];
 
     const platformNavGroups = [
@@ -2125,15 +2128,15 @@
       { group: "租户管理", items: [{ id: "tenants", label: "租户管理", icon: "building-2", note: "租户生命周期、详情和钱包资金归租户管理页面。" }] },
       { group: "业务开通", items: [{ id: "business", label: "业务开通", icon: "toggle-left", note: "租户业务能力授权归业务开通页面。" }] },
       { group: "通道管理", items: [{ id: "channels", label: "通道管理", icon: "route", note: "通道商、实际通道、产品、预付资金和健康治理。" }] },
-      { group: "报表体系", items: [
-        { id: "report", label: "租户整体报表", icon: "chart-column", note: "租户整体报表由报表体系页面承接。" },
-        { id: "ledger", label: "租户整体流水", icon: "list-tree", note: "租户整体流水由报表体系页面承接。" }
+      { group: "报表模块", items: [
+        { id: "report", label: "租户整体报表", icon: "chart-column", note: "租户整体报表由报表模块页面承接。" },
+        { id: "ledger", label: "租户整体流水", icon: "list-tree", note: "租户整体流水由报表模块页面承接。" }
       ] },
-      { group: "审计体系", items: [
-        { id: "orders", label: "全局订单查询", icon: "search-check", note: "全局订单查询归审计体系，只读排查。" },
-        { id: "audit", label: "审计日志", icon: "shield-check", note: "审计日志归审计体系，只读不可改。" }
+      { group: "审计模块", items: [
+        { id: "orders", label: "全局订单查询", icon: "search-check", note: "全局订单查询归审计模块，只读排查。" },
+        { id: "audit", label: "审计日志", icon: "shield-check", note: "审计日志归审计模块，只读不可改。" }
       ] },
-      { group: "系统管理 / 设置", items: [{ id: "settings", label: "系统管理", icon: "settings-2", note: "当前页面。系统管理承接角色权限、菜单、登录配置和套餐费率配置。" }] }
+      { group: "系统管理 / 设置", items: [{ id: "settings", label: "系统管理", icon: "settings-2", note: "当前页面。系统管理承接平台账号、角色权限、安全配置和菜单管理。" }] }
     ];
 
     const platformMasterRoutes = {
@@ -2152,7 +2155,7 @@
       orders: 'platform.order.view', audit: 'platform.audit.view', settings: 'platform.user.manage'
     };
     const platformSystemPagePermissions = {
-      users: 'platform.user.manage', security: 'platform.security.whitelist.view', menus: 'platform.menu.manage', fees: 'platform.fee_package.view'
+      users: 'platform.user.manage', security: 'platform.security.whitelist.view', menus: 'platform.menu.manage'
     };
 
     function navigatePlatformMaster(pageId, href) {
@@ -2174,11 +2177,6 @@
         title: "菜单管理",
         desc: "维护平台端菜单目录、层级、路由、排序和启停状态。",
         metrics: []
-      },
-      fees: {
-        title: "套餐费率配置",
-        desc: "维护平台向租户收取的 CNY 代收、代付服务费套餐、代收独立退款费率、版本和引用关系；通道成本不在这里配置，首版不设结算周期。",
-        metrics: []
       }
     };
 
@@ -2198,7 +2196,7 @@
     const roles = [
       { id: "super", name: "平台超管", members: 1, status: "启用", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], note: "创建平台时自动生成的唯一初始角色；其他角色由用户自行创建" },
       { id: "ops", name: "平台运营", members: 12, status: "启用", scope: "指定租户：汇盛东南亚、星河支付", scopeCode: "platform.assigned_tenants", tenantIds: ["HS-TEN-001", "HS-TEN-002"], note: "可看租户、业务、通道和报表，不能操作资金和安全" },
-      { id: "finance", name: "平台财务", members: 5, status: "启用", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], note: "可处理套餐费率、服务费扣款口径和资金导出" },
+      { id: "finance", name: "平台财务", members: 5, status: "启用", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], note: "可处理资金复核和资金导出" },
       { id: "audit", name: "风控审计", members: 6, status: "启用", scope: "全部租户", scopeCode: "platform.all_tenants", tenantIds: [], note: "可查看审计、导出、安全和高风险操作" },
       { id: "legacy", name: "历史测试角色", members: 2, status: "停用", scope: "指定租户：远航科技", scopeCode: "platform.assigned_tenants", tenantIds: ["HS-TEN-003"], note: "成员绑定保留，当前不贡献任何权限" }
     ];
@@ -2206,19 +2204,18 @@
     const permissionCatalog = [
       { id: "platformHome", group: "首页", page: "首页", path: "平台端 / 首页", pagePermission: "platform.dashboard.view", actions: ["导出"], actionPermissions: { "导出": "platform.dashboard.export" } },
       { id: "platformTenant", group: "租户管理", page: "租户管理", path: "平台端 / 租户管理", pagePermission: "platform.tenant.view", actions: ["新增", "编辑", "启停与关闭", "重置初始超管密码", "续期", "导出"], actionPermissions: { "新增": "platform.tenant.manage", "编辑": "platform.tenant.manage", "启停与关闭": "platform.tenant.manage", "重置初始超管密码": "platform.tenant.manage", "续期": "platform.tenant.manage", "导出": "platform.tenant.export" } },
-      { id: "platformBusiness", group: "业务开通", page: "业务开通", path: "平台端 / 业务开通", pagePermission: "platform.business_grant.view", actions: ["新增", "调整", "停用与重新开通", "改绑套餐", "导出"], actionPermissions: { "新增": "platform.business_grant.manage", "调整": "platform.business_grant.manage", "停用与重新开通": "platform.business_grant.manage", "改绑套餐": "platform.fee_package.manage", "导出": "platform.business_grant.export" } },
-      { id: "platformWallet", group: "资金运营", page: "租户平台钱包", path: "资金运营 / 租户平台钱包", pagePermission: "platform.wallet.view", actions: ["导出"], actionPermissions: { "导出": "platform.wallet.export" } },
-      { id: "platformFunds", group: "资金运营", page: "资金待办", path: "资金运营 / 资金待办", pagePermission: "platform.fund_task.view", actions: ["主动查单", "登记通道结果", "审核租户资金申请", "执行已审核租户提款", "提交收款账户变更", "审核收款账户变更", "创建资金更正", "复核资金更正", "执行资金更正", "追加沟通", "导出"], actionPermissions: { "主动查单": "platform.fund_task.query_channel", "登记通道结果": "platform.channel_result.register", "审核租户资金申请": "platform.fund_review.execute", "执行已审核租户提款": "platform.fund_withdrawal.execute", "提交收款账户变更": "platform.receiving_account.manage", "审核收款账户变更": "platform.receiving_account.review", "创建资金更正": "platform.correction.apply", "复核资金更正": "platform.correction.review", "执行资金更正": "platform.correction.execute", "追加沟通": "platform.fund_task.message", "导出": "platform.fund_task.export" } },
+      { id: "platformBusiness", group: "业务开通", page: "业务开通", path: "平台端 / 业务开通", pagePermission: "platform.business_grant.view", actions: ["新增", "调整", "停用与重新开通", "导出"], actionPermissions: { "新增": "platform.business_grant.manage", "调整": "platform.business_grant.manage", "停用与重新开通": "platform.business_grant.manage", "导出": "platform.business_grant.export" } },
+      { id: "platformWallet", group: "财务模块", page: "租户平台钱包", path: "财务模块 / 租户平台钱包", pagePermission: "platform.wallet.view", actions: ["导出"], actionPermissions: { "导出": "platform.wallet.export" } },
+      { id: "platformFunds", group: "财务模块", page: "资金待办", path: "财务模块 / 资金待办", pagePermission: "platform.fund_task.view", actions: ["主动查单", "登记通道结果", "审核租户资金申请", "执行已审核租户提款", "提交收款账户变更", "审核收款账户变更", "创建资金更正", "复核资金更正", "执行资金更正", "追加沟通", "导出"], actionPermissions: { "主动查单": "platform.fund_task.query_channel", "登记通道结果": "platform.channel_result.register", "审核租户资金申请": "platform.fund_review.execute", "执行已审核租户提款": "platform.fund_withdrawal.execute", "提交收款账户变更": "platform.receiving_account.manage", "审核收款账户变更": "platform.receiving_account.review", "创建资金更正": "platform.correction.apply", "复核资金更正": "platform.correction.review", "执行资金更正": "platform.correction.execute", "追加沟通": "platform.fund_task.message", "导出": "platform.fund_task.export" } },
       { id: "platformChannel", group: "通道管理", page: "通道管理", path: "平台端 / 通道管理", pagePermission: "platform.channel.view", actions: ["通道商管理", "通道管理", "产品管理", "成本版本", "查看通道商预付", "调整余额与总预付", "复核资金调整", "提交清算", "复核清算", "执行清算", "异常沟通", "联调", "导出"], actionPermissions: { "通道商管理": "platform.channel.vendor.manage", "通道管理": "platform.channel.manage", "产品管理": "platform.channel.product.manage", "成本版本": "platform.channel.cost.manage", "查看通道商预付": "platform.channel.funds.view", "调整余额与总预付": "platform.channel.funds.adjust.submit", "复核资金调整": "platform.channel.funds.adjust.review", "提交清算": "platform.channel.funds.settlement.submit", "复核清算": "platform.channel.funds.settlement.review", "执行清算": "platform.channel.funds.settlement.execute", "异常沟通": "platform.channel.incident.manage", "联调": "platform.channel.sandbox.generate", "导出": "platform.channel.export" } },
-      { id: "platformReport", group: "报表体系", page: "租户整体报表", path: "报表体系 / 租户整体报表", pagePermission: "platform.report.view", actions: ["导出"], actionPermissions: { "导出": "platform.report.export" } },
-      { id: "platformLedger", group: "报表体系", page: "租户整体流水", path: "报表体系 / 租户整体流水", pagePermission: "platform.ledger.view", actions: ["导出", "查看审计"], actionPermissions: { "导出": "platform.ledger.export", "查看审计": "platform.audit.view" } },
-      { id: "platformOrders", group: "审计体系", page: "全局订单查询", path: "审计体系 / 全局订单查询", pagePermission: "platform.order.view", actions: ["导出"], actionPermissions: { "导出": "platform.order.export" } },
-      { id: "platformAudit", group: "审计体系", page: "审计日志", path: "审计体系 / 审计日志", pagePermission: "platform.audit.view", actions: ["导出", "查看审计"], actionPermissions: { "导出": "platform.audit.export", "查看审计": "platform.audit.view" } },
+      { id: "platformReport", group: "报表模块", page: "租户整体报表", path: "报表模块 / 租户整体报表", pagePermission: "platform.report.view", actions: ["导出"], actionPermissions: { "导出": "platform.report.export" } },
+      { id: "platformLedger", group: "报表模块", page: "租户整体流水", path: "报表模块 / 租户整体流水", pagePermission: "platform.ledger.view", actions: ["导出", "查看审计"], actionPermissions: { "导出": "platform.ledger.export", "查看审计": "platform.audit.view" } },
+      { id: "platformOrders", group: "审计模块", page: "全局订单查询", path: "审计模块 / 全局订单查询", pagePermission: "platform.order.view", actions: ["导出"], actionPermissions: { "导出": "platform.order.export" } },
+      { id: "platformAudit", group: "审计模块", page: "审计日志", path: "审计模块 / 审计日志", pagePermission: "platform.audit.view", actions: ["导出", "查看审计"], actionPermissions: { "导出": "platform.audit.export", "查看审计": "platform.audit.view" } },
       { id: "platformTickets", group: "协同运营", page: "租户协同工单", path: "协同运营 / 租户协同工单", pagePermission: "platform.ticket.view", actions: ["受理", "回复", "要求补充", "标记解决", "导出"], actionPermissions: { "受理": "platform.ticket.handle", "回复": "platform.ticket.handle", "要求补充": "platform.ticket.handle", "标记解决": "platform.ticket.handle", "导出": "platform.ticket.export" } },
       { id: "platformUserRole", group: "系统管理", page: "用户与角色", path: "系统管理 / 用户与角色", pagePermission: "platform.user.manage", actions: ["新增", "编辑", "授权", "查看审计"], actionPermissions: { "新增": "platform.user.manage", "编辑": "platform.user.manage", "授权": "platform.role.manage", "查看审计": "platform.audit.view" } },
       { id: "platformSecurity", group: "系统管理", page: "安全配置", path: "系统管理 / 安全配置", pagePermission: "platform.security.whitelist.view", actions: ["编辑", "查看审计"], actionPermissions: { "编辑": "platform.security.whitelist.manage", "查看审计": "platform.audit.view" } },
-      { id: "platformMenus", group: "系统管理", page: "菜单管理", path: "系统管理 / 菜单管理", pagePermission: "platform.menu.manage", actions: ["新增", "编辑", "停用", "排序"], actionPermissions: { "新增": "platform.menu.manage", "编辑": "platform.menu.manage", "停用": "platform.menu.manage", "排序": "platform.menu.manage" } },
-      { id: "platformFees", group: "系统管理", page: "套餐费率", path: "系统管理 / 套餐费率", pagePermission: "platform.fee_package.view", actions: ["新增", "编辑", "启停", "导出"], actionPermissions: { "新增": "platform.fee_package.manage", "编辑": "platform.fee_package.manage", "启停": "platform.fee_package.manage", "导出": "platform.fee_package.export" } }
+      { id: "platformMenus", group: "系统管理", page: "菜单管理", path: "系统管理 / 菜单管理", pagePermission: "platform.menu.manage", actions: ["新增", "编辑", "停用", "排序"], actionPermissions: { "新增": "platform.menu.manage", "编辑": "platform.menu.manage", "停用": "platform.menu.manage", "排序": "platform.menu.manage" } }
     ];
 
     const roleGrants = {
@@ -2239,8 +2236,7 @@
         platformWallet: ["导出"],
         platformFunds: ["审核租户资金申请", "执行已审核租户提款", "提交收款账户变更", "审核收款账户变更", "创建资金更正", "复核资金更正", "执行资金更正", "导出"],
         platformReport: ["导出"],
-        platformLedger: ["导出"],
-        platformFees: ["新增", "编辑", "启停", "导出"]
+        platformLedger: ["导出"]
       },
       audit: {
         platformTenant: ["导出"],
@@ -2255,8 +2251,7 @@
         platformTickets: ["导出"],
         platformUserRole: ["查看审计"],
         platformSecurity: ["查看审计"],
-        platformMenus: [],
-        platformFees: ["导出"]
+        platformMenus: []
       },
       legacy: {
         platformTenant: []
@@ -2326,12 +2321,12 @@
       { id: "business", parentId: "root", parent: "根菜单", level: 0, name: "业务开通", type: "页面", path: "/platform/business", component: "platform/business/index", permission: "platform:business:list", order: "020", icon: "toggle-left", visible: "显示", cache: "不缓存", status: "启用", updated: "Ops 2026-07-03 17:10", note: "租户业务能力开通入口" },
       { id: "channels", parentId: "root", parent: "根菜单", level: 0, name: "通道管理", type: "目录", path: "/platform/channels", component: "platform/channel/layout", permission: "platform:channel", order: "030", icon: "route", visible: "显示", cache: "不缓存", status: "启用", updated: "Ops 2026-07-24 15:30", note: "通道商、通道、产品与健康治理" },
       { id: "channelList", parentId: "channels", parent: "通道管理", level: 1, name: "通道列表", type: "页面", path: "/platform/channels/list", component: "platform/channel/list", permission: "platform:channel:list", order: "030-01", icon: "unplug", visible: "显示", cache: "缓存", status: "启用", updated: "Ops 2026-07-02 11:23", note: "通道参数、状态和联调入口" },
-      { id: "reports", parentId: "root", parent: "根菜单", level: 0, name: "报表体系", type: "目录", path: "/platform/reports", component: "platform/report/layout", permission: "platform:report", order: "070", icon: "chart-column", visible: "显示", cache: "不缓存", status: "启用", updated: "Ming 2026-07-01 16:10", note: "平台报表目录" },
-      { id: "report", parentId: "reports", parent: "报表体系", level: 1, name: "租户整体报表", type: "页面", path: "/platform/reports/tenant-summary", component: "platform/report/tenant-summary", permission: "platform:report:tenant-summary", order: "070-01", icon: "chart-column", visible: "显示", cache: "缓存", status: "启用", updated: "Ming 2026-07-01 16:10", note: "平台端报表入口" },
-      { id: "ledger", parentId: "reports", parent: "报表体系", level: 1, name: "租户整体流水", type: "页面", path: "/platform/reports/tenant-ledger", component: "platform/report/tenant-ledger", permission: "platform:report:tenant-ledger", order: "080", icon: "list-tree", visible: "显示", cache: "缓存", status: "启用", updated: "Ming 2026-07-01 16:15", note: "平台端流水入口" },
-      { id: "auditRoot", parentId: "root", parent: "根菜单", level: 0, name: "审计体系", type: "目录", path: "/platform/audit", component: "platform/audit/layout", permission: "platform:audit", order: "090", icon: "shield-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:12", note: "审计只读目录" },
-      { id: "orders", parentId: "auditRoot", parent: "审计体系", level: 1, name: "全局订单查询", type: "页面", path: "/platform/audit/orders", component: "platform/audit/orders", permission: "platform:audit:orders:view", order: "090-01", icon: "search-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:12", note: "跨租户订单只读查询" },
-      { id: "audit", parentId: "auditRoot", parent: "审计体系", level: 1, name: "审计日志", type: "页面", path: "/platform/audit/logs", component: "platform/audit/logs", permission: "platform:audit:logs:view", order: "090-02", icon: "shield-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:18", note: "只读审计入口" },
+      { id: "reports", parentId: "root", parent: "根菜单", level: 0, name: "报表模块", type: "目录", path: "/platform/reports", component: "platform/report/layout", permission: "platform:report", order: "070", icon: "chart-column", visible: "显示", cache: "不缓存", status: "启用", updated: "Ming 2026-07-01 16:10", note: "平台报表目录" },
+      { id: "report", parentId: "reports", parent: "报表模块", level: 1, name: "租户整体报表", type: "页面", path: "/platform/reports/tenant-summary", component: "platform/report/tenant-summary", permission: "platform:report:tenant-summary", order: "070-01", icon: "chart-column", visible: "显示", cache: "缓存", status: "启用", updated: "Ming 2026-07-01 16:10", note: "平台端报表入口" },
+      { id: "ledger", parentId: "reports", parent: "报表模块", level: 1, name: "租户整体流水", type: "页面", path: "/platform/reports/tenant-ledger", component: "platform/report/tenant-ledger", permission: "platform:report:tenant-ledger", order: "080", icon: "list-tree", visible: "显示", cache: "缓存", status: "启用", updated: "Ming 2026-07-01 16:15", note: "平台端流水入口" },
+      { id: "auditRoot", parentId: "root", parent: "根菜单", level: 0, name: "审计模块", type: "目录", path: "/platform/audit", component: "platform/audit/layout", permission: "platform:audit", order: "090", icon: "shield-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:12", note: "审计只读目录" },
+      { id: "orders", parentId: "auditRoot", parent: "审计模块", level: 1, name: "全局订单查询", type: "页面", path: "/platform/audit/orders", component: "platform/audit/orders", permission: "platform:audit:orders:view", order: "090-01", icon: "search-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:12", note: "跨租户订单只读查询" },
+      { id: "audit", parentId: "auditRoot", parent: "审计模块", level: 1, name: "审计日志", type: "页面", path: "/platform/audit/logs", component: "platform/audit/logs", permission: "platform:audit:logs:view", order: "090-02", icon: "shield-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:18", note: "只读审计入口" },
       { id: "settings", parentId: "root", parent: "根菜单", level: 0, name: "系统管理", type: "目录", path: "/platform/settings", component: "platform/settings/layout", permission: "platform:settings", order: "100", icon: "settings-2", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "当前页面入口" },
       { id: "settingsUsers", parentId: "settings", parent: "系统管理", level: 1, name: "用户与角色", type: "页面", path: "/platform/settings/users", component: "platform/settings/users", permission: "platform:settings:users", order: "100-01", icon: "users-round", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "平台账号与角色入口" },
       { id: "settingsMenus", parentId: "settings", parent: "系统管理", level: 1, name: "菜单管理", type: "页面", path: "/platform/settings/menus", component: "platform/settings/menus", permission: "platform:settings:menus", order: "100-04", icon: "panel-left", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "平台端菜单维护入口" }
@@ -2416,8 +2411,7 @@
       const map = {
         users: [["plus", "新增账号", "modal", "account:create"], ["shield-alert", "阻断示例", "toast", "角色仍有成员，需迁移后再停用。"]],
         security: [["save", "保存白名单", "security-save", ""]],
-        menus: [["plus", "新增菜单", "modal", "menu:create"], ["save", "保存排序", "modal", "menu:sort"]],
-        fees: [["plus", "新增套餐", "fee-create", ""], ["download", "导出费率", "fee-export", ""], ["ban", "校验示例", "toast", "阶梯区间重叠、断档、重复套餐名或无效费率会阻断保存。"]]
+        menus: [["plus", "新增菜单", "modal", "menu:create"], ["save", "保存排序", "modal", "menu:sort"]]
       };
       actions.innerHTML = map[state.module].map(([icon, label, action, payload], index) => `
         <button class="btn ${index === 0 ? "primary" : ""}" type="button" data-head-action="${action}" data-payload="${payload}">
@@ -2451,7 +2445,6 @@
       if (state.module === "users") panel.innerHTML = renderUsers();
       if (state.module === "security") panel.innerHTML = renderSecurity();
       if (state.module === "menus") panel.innerHTML = renderMenus();
-      if (state.module === "fees") panel.innerHTML = renderFees();
       bindModuleEvents();
     }
 
@@ -2489,7 +2482,9 @@
                     ${account.id === "jeff" ? `<span class="tag info">当前超级管理员受保护</span>` : `<div class="row-actions">
                       <button class="btn ghost" type="button" data-action="modal" data-message="account:edit:${account.id}"><i data-lucide="pencil"></i><span>编辑</span></button>
                       <button class="btn ghost" type="button" data-action="modal" data-message="account:reset-password:${account.id}"><i data-lucide="refresh-cw-key"></i><span>重置密码</span></button>
-                      <button class="btn ghost" type="button" data-action="modal" data-message="account:reset-2fa:${account.id}"><i data-lucide="key-round"></i><span>重置 2FA</span></button>
+                      ${account.twofa === "已绑定"
+                        ? `<button class="btn ghost" type="button" data-action="modal" data-message="account:reset-2fa:${account.id}"><i data-lucide="key-round"></i><span>重置 2FA</span></button>`
+                        : `<span class="tag warning">登录时强制绑定</span>`}
                       <button class="btn ghost" type="button" data-action="modal" data-message="account:security:${account.id}"><i data-lucide="shield-alert"></i><span>账号操作</span></button>
                       <button class="btn ghost" type="button" data-action="modal" data-message="account:logout:${account.id}"><i data-lucide="log-out"></i><span>下线</span></button>
                     </div>`}
@@ -2636,9 +2631,14 @@
     }
 
     function renderSecurity() {
+      const enabledEntries = state.security.entries.filter(entry => entry.enabled);
       return `
         <div class="panel-head">
-          <div><p class="panel-title">登录 IP 白名单</p><div class="panel-sub">默认关闭；启用后只允许白名单 IP 登录平台端</div></div>
+          <div><p class="panel-title">平台登录 IP 白名单</p><div class="panel-sub">规则逐条维护；新增保存成功后立即启用，停用需在规则行操作</div></div>
+          <div class="row-actions">
+            <span class="tag ${state.security.enabled ? "success" : "neutral"}">全局${state.security.enabled ? "启用" : "关闭"}</span>
+            <span class="tag info">启用规则 ${enabledEntries.length}</span>
+          </div>
         </div>
         <div class="security-grid">
           <div class="mini-panel" style="grid-column: 1 / -1;">
@@ -2655,14 +2655,34 @@
                 <span><strong>当前登录 IP</strong><small>保存前必须保留当前 IP 的访问能力，避免配置后立即失去后台访问</small></span>
                 <input class="search setting-control mono" value="${state.security.currentIp}" aria-label="当前登录 IP" readonly>
               </label>
-              <label class="setting-row">
-                <span><strong>白名单条目</strong><small>保存会导致当前 IP 被排除的变更将被系统阻断</small></span>
-                <input class="search setting-control mono" id="securityEntries" value="${state.security.entries.join(", ")}" aria-label="白名单条目" placeholder="IPv4 或 CIDR，多个使用逗号分隔">
-              </label>
             </div>
             <div class="state-band">
               <span>若平台全部管理员因白名单无法登录，由运维工程师依据内部工单直接修正数据库并永久留痕；本页不提供应急关闭、隐藏绕过接口或永久绕过账号。首版不做会话、空闲时间、在线设备或异常设备限制。</span>
-              <button class="btn" type="button" data-action="security-save"><i data-lucide="save"></i><span>保存白名单</span></button>
+              <button class="btn primary" type="button" data-action="security-save"><i data-lucide="save"></i><span>保存全局开关</span></button>
+            </div>
+          </div>
+          <div class="mini-panel" style="grid-column: 1 / -1;">
+            <div class="panel-head" style="padding:0 0 14px;border:0">
+              <div><p class="panel-title">新增 IP 规则</p><div class="panel-sub">支持完整 IPv4 或 CIDR；保存成功后立即启用，不经过停用状态</div></div>
+            </div>
+            <div class="filter-line">
+              <input class="search mono" id="securityEntryValue" placeholder="例如 103.18.42.80 或 103.18.43.0/24" aria-label="新增 IP 或 CIDR">
+              <input class="search" id="securityEntryName" placeholder="用途说明，例如风控办公出口" aria-label="IP 规则用途说明">
+              <button class="btn primary" type="button" data-action="security-entry-add"><i data-lucide="plus"></i><span>新增并启用</span></button>
+            </div>
+            <div class="table-wrap" style="margin-top:14px">
+              <table aria-label="平台登录 IP 白名单规则">
+                <thead><tr><th>规则编号</th><th>IP / CIDR</th><th>用途说明</th><th>状态</th><th>最近更新</th><th>操作</th></tr></thead>
+                <tbody>${state.security.entries.map(entry => `
+                  <tr>
+                    <td class="mono">${entry.id}</td>
+                    <td class="mono"><strong>${entry.value}</strong>${securityEntryIncludesIp(entry.value, state.security.currentIp) ? `<br><small class="muted">命中当前登录 IP</small>` : ""}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.enabled ? `<span class="tag success">启用</span>` : `<span class="tag neutral">停用</span>`}</td>
+                    <td>${entry.updated}</td>
+                    <td><button class="btn ${entry.enabled ? "warning" : "primary"}" type="button" data-action="security-entry-toggle" data-message="${entry.id}"><i data-lucide="${entry.enabled ? "pause-circle" : "play-circle"}"></i><span>${entry.enabled ? "停用" : "启用"}</span></button></td>
+                  </tr>`).join("")}</tbody>
+              </table>
             </div>
           </div>
         </div>`;
@@ -2768,7 +2788,7 @@
       if (message.startsWith('account:')) return 'platform.user.manage';
       if (message.startsWith('role:')) return 'platform.role.manage';
       if (message.startsWith('menu:') || action === 'menu-toggle') return 'platform.menu.manage';
-      if (action === 'security-save') return 'platform.security.whitelist.manage';
+      if (['security-save', 'security-entry-add', 'security-entry-toggle'].includes(action)) return 'platform.security.whitelist.manage';
       if (state.module === 'users' && (action === 'modal' || control.hasAttribute('data-head-action'))) return state.userTab === 'roles' ? 'platform.role.manage' : 'platform.user.manage';
       if (state.module === 'menus' && (action === 'modal' || control.hasAttribute('data-head-action'))) return 'platform.menu.manage';
       if (state.module === 'fees' && control.hasAttribute('data-head-action')) return action === 'fee-export' ? 'platform.fee_package.export' : 'platform.fee_package.manage';
@@ -3323,7 +3343,7 @@
         <div class="toolbar">
           <div class="filter-line">
             <input class="search" value="" placeholder="搜索页面名称 / 路由 / 权限标识" aria-label="搜索页面权限">
-            <select class="select" aria-label="菜单范围"><option>全部菜单</option><option>租户管理</option><option>业务开通</option><option>通道管理</option><option>报表体系</option><option>审计体系</option><option>系统管理</option></select>
+            <select class="select" aria-label="菜单范围"><option>全部菜单</option><option>租户管理</option><option>业务开通</option><option>通道管理</option><option>报表模块</option><option>审计模块</option><option>系统管理</option></select>
             <select class="select" aria-label="授权状态"><option>全部状态</option><option>仅已授权</option><option>仅未授权</option></select>
           </div>
           <span class="muted">除创建时生成的超级管理员外，不提供默认角色模板。</span>
@@ -3352,7 +3372,7 @@
               ${permissionCatalog.map(item => {
                 const visible = isPageGranted(grants, item.id);
                 const granted = grantActionsFor(grants, item);
-                const risk = item.risk || (["资金运营", "系统管理"].includes(item.group) ? "高" : "低");
+                const risk = item.risk || (["财务模块", "系统管理"].includes(item.group) ? "高" : "低");
                 return `
                   <tr class="${visible ? "selected" : ""}">
                     <td class="auth-page-cell">
@@ -3765,29 +3785,67 @@
 
     function validateSecuritySave() {
       const enabled = document.getElementById("securityToggle")?.value === "启用";
-      const raw = document.getElementById("securityEntries")?.value || "";
-      const entries = [...new Set(raw.split(/[,\n]/).map(entry => entry.trim()).filter(Boolean))];
-      const invalid = entries.find(entry => !validSecurityEntry(entry));
-      if (invalid) {
-        showToast(`白名单条目 ${invalid} 格式错误，请输入 IPv4 或 CIDR`);
-        document.getElementById("securityEntries")?.focus();
+      const enabledEntries = state.security.entries.filter(entry => entry.enabled);
+      if (enabled && enabledEntries.length === 0) {
+        showToast("没有已启用规则，不能开启全局白名单");
         return;
       }
-      if (enabled && entries.length === 0) {
-        showToast("白名单为空，不能启用");
-        document.getElementById("securityEntries")?.focus();
-        return;
-      }
-      if (enabled && !entries.some(entry => securityEntryIncludesIp(entry, state.security.currentIp))) {
+      if (enabled && !enabledEntries.some(entry => securityEntryIncludesIp(entry.value, state.security.currentIp))) {
         showToast(`当前登录 IP ${state.security.currentIp} 未命中，已阻断保存`);
-        document.getElementById("securityEntries")?.focus();
         return;
       }
-      if (enabled === state.security.enabled && entries.join(",") === state.security.entries.join(",")) {
-        showToast("白名单配置没有变化，无需重复保存");
+      if (enabled === state.security.enabled) {
+        showToast("全局开关没有变化，无需重复保存");
         return;
       }
-      openSecurityConfirm({ enabled, entries });
+      openSecurityConfirm({ enabled });
+    }
+
+    function addSecurityEntry() {
+      const valueInput = document.getElementById("securityEntryValue");
+      const nameInput = document.getElementById("securityEntryName");
+      const value = valueInput?.value.trim() || "";
+      const name = nameInput?.value.trim() || "";
+      if (!validSecurityEntry(value)) {
+        showToast("请输入有效的完整 IPv4 或 CIDR");
+        valueInput?.focus();
+        return;
+      }
+      if (!name) {
+        showToast("请填写规则用途说明");
+        nameInput?.focus();
+        return;
+      }
+      if (state.security.entries.some(entry => entry.value === value)) {
+        showToast("该 IP 规则已存在，不能重复新增");
+        valueInput?.focus();
+        return;
+      }
+      const next = String(Math.max(0, ...state.security.entries.map(entry => Number(entry.id.replace(/\D/g, "")) || 0)) + 1).padStart(3, "0");
+      state.security.entries.push({ id: `PIP-${next}`, value, name, enabled: true, updated: `${platformNow()} Jeff` });
+      recordSystemChange("安全", value, "新增登录 IP 规则（立即启用）");
+      render();
+      showToast(`${value} 已新增并启用；全局白名单开启后参与登录校验`);
+    }
+
+    function toggleSecurityEntry(entryId) {
+      const entry = state.security.entries.find(item => item.id === entryId);
+      if (!entry) {
+        showToast("规则不存在，请刷新后重试");
+        return;
+      }
+      if (entry.enabled && state.security.enabled && securityEntryIncludesIp(entry.value, state.security.currentIp)) {
+        const otherCurrentMatches = state.security.entries.some(item => item.id !== entry.id && item.enabled && securityEntryIncludesIp(item.value, state.security.currentIp));
+        if (!otherCurrentMatches) {
+          showToast("该规则是当前登录 IP 的最后一个启用入口，已阻断停用");
+          return;
+        }
+      }
+      entry.enabled = !entry.enabled;
+      entry.updated = `${platformNow()} Jeff`;
+      recordSystemChange("安全", entry.value, entry.enabled ? "启用登录 IP 规则" : "停用登录 IP 规则");
+      render();
+      showToast(`${entry.value} 已${entry.enabled ? "启用" : "停用"}并写入审计`);
     }
 
     function openSecurityConfirm(change) {
@@ -3800,8 +3858,7 @@
         <div class="risk-note">本次变更二次确认后直接生效，不生成审核单。系统已确认当前登录 IP 仍可访问。</div>
         <div class="kv-list">
           <div class="kv"><span>开关变化</span><strong>${state.security.enabled ? "启用" : "关闭"} → ${change.enabled ? "启用" : "关闭"}</strong></div>
-          <div class="kv"><span>变更前</span><strong class="mono">${state.security.entries.join(", ") || "空"}</strong></div>
-          <div class="kv"><span>变更后</span><strong class="mono">${change.entries.join(", ") || "空"}</strong></div>
+          <div class="kv"><span>已启用规则</span><strong class="mono">${state.security.entries.filter(entry => entry.enabled).map(entry => entry.value).join(", ") || "空"}</strong></div>
           <div class="kv"><span>当前登录 IP</span><strong class="mono">${state.security.currentIp}</strong></div>
         </div>
         <label class="field"><span>变更原因</span><input class="search" id="securityChangeReason" placeholder="必填，将写入永久审计日志"></label>
@@ -4310,6 +4367,14 @@
       }
       if (action === "security-save") {
         validateSecuritySave();
+        return;
+      }
+      if (action === "security-entry-add") {
+        addSecurityEntry();
+        return;
+      }
+      if (action === "security-entry-toggle") {
+        toggleSecurityEntry(payload);
         return;
       }
       if (action === "menu-toggle") {
@@ -4845,7 +4910,6 @@
         confirm.textContent = "正在保存…";
         window.setTimeout(() => {
           state.security.enabled = state.pendingSecurity.enabled;
-          state.security.entries = [...state.pendingSecurity.entries];
           state.security.updated = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date()).replaceAll("/", "-");
           state.pendingSecurity = null;
           state.modalAction = "";

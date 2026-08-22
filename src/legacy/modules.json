@@ -63,15 +63,25 @@
   "label": "租户详情·安全",
   "code": "01-05",
   "group": "01 租户管理",
-  "description": "账号状态、域名申请与安全处理",
+  "description": "账号状态、后台登录 IP、业务 API 来源 IP 与安全处理",
   "sourceName": "平台端租户管理-demo.html",
   "sourceKey": "tenants",
   "initialHash": "detail-security",
   "navId": "tenant-list"
  },
+ "tenant-detail-domains": {
+  "label": "租户详情·域名管理",
+  "code": "01-06",
+  "group": "01 租户管理",
+  "description": "租户后台与商户端共享域名的录入、检测、启停和解绑",
+  "sourceName": "平台端租户管理-demo.html",
+  "sourceKey": "tenants",
+  "initialHash": "detail-domains",
+  "navId": "tenant-list"
+ },
  "tenant-detail-wallet": {
   "label": "租户详情·钱包",
-  "code": "01-06",
+  "code": "01-07",
   "group": "01 租户管理",
   "description": "三类 CNY 钱包摘要与独立页面入口",
   "sourceName": "平台端租户管理-demo.html",
@@ -81,7 +91,7 @@
  },
  "tenant-detail-audit": {
   "label": "租户详情·审计",
-  "code": "01-07",
+  "code": "01-08",
   "group": "01 租户管理",
   "description": "租户相关操作与状态变更记录",
   "sourceName": "平台端租户管理-demo.html",
@@ -257,16 +267,6 @@
   "sourceName": "平台端系统管理-demo.html",
   "sourceKey": "system",
   "initialHash": "menus",
-  "navId": "system-accounts"
- },
- "system-fees": {
-  "label": "套餐费率",
-  "code": "10-05",
-  "group": "10 系统管理",
-  "description": "CNY 套餐、费率版本与租户引用",
-  "sourceName": "平台端系统管理-demo.html",
-  "sourceKey": "system",
-  "initialHash": "fees",
   "navId": "system-accounts"
  },
  "login-form": {

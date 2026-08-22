@@ -1607,7 +1607,7 @@
         </div>
         <div class="nav-group">
           <div class="nav-group-title">系统管理 / 设置</div>
-          <button class="nav-button" data-master-page="settings" data-master-note="系统管理承接角色权限、菜单、安全策略和套餐费率配置。">
+          <button class="nav-button" data-master-page="settings" data-master-note="系统管理承接平台账号、角色权限、安全配置和菜单管理。">
             <i data-lucide="settings-2"></i><span>系统管理</span>
           </button>
         </div>
@@ -1732,6 +1732,7 @@
       <button class="detail-tab active" data-tab="overview">概览</button>
       <button class="detail-tab" data-tab="business">业务</button>
       <button class="detail-tab" data-tab="security">安全</button>
+      <button class="detail-tab" data-tab="domains">域名管理</button>
       <button class="detail-tab" data-tab="wallet">租户钱包</button>
       <button class="detail-tab" data-tab="audit">审计日志</button>
     </div>
@@ -1739,6 +1740,7 @@
       <section class="detail-section active" id="tab-overview"></section>
       <section class="detail-section" id="tab-business"></section>
       <section class="detail-section" id="tab-security"></section>
+      <section class="detail-section" id="tab-domains"></section>
       <section class="detail-section" id="tab-wallet"></section>
       <section class="detail-section" id="tab-audit"></section>
     </div>
@@ -1774,12 +1776,29 @@
           <input id="expireInput" type="date" value="2027-01-31">
         </div>
         <div class="field">
-          <label for="domainInput">初始系统访问地址</label>
-          <input id="domainInput" value="保存后按租户编号生成" readonly>
+          <label for="domainPrefixInput">初始域名前缀</label>
+          <input id="domainPrefixInput" value="tenant-062" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="domainInput">完整系统域名</label>
+          <input id="domainInput" value="tenant-062.hs-pay.com" class="mono" readonly>
+        </div>
+        <div class="field">
+          <label>域名类型</label>
+          <input value="系统域名" readonly>
+        </div>
+        <div class="field">
+          <label>初始状态</label>
+          <input value="未启用 · 平台配置完成后可用" readonly>
         </div>
         <div class="field">
           <label for="adminInput">管理账号</label>
           <input id="adminInput" value="创建后在详情维护" readonly>
+        </div>
+        <div class="field" id="initialLoginIpField">
+          <label for="initialLoginIpInput">初始管理员登录 IP</label>
+          <input id="initialLoginIpInput" class="mono" value="103.18.50.80" placeholder="必填，完整 IPv4" autocomplete="off">
+          <small>与租户及管理员原子创建并立即启用，确保管理员可首次登录。</small>
         </div>
         <div class="field wide">
           <label for="tenantRemarkInput">备注</label>
@@ -2042,12 +2061,12 @@
         role: '平台运营',
         tenant: '海岚通道业务',
         object: 'HS-TEN-044 / 访问域名',
-        action: '域名检查',
+        action: '启用域名',
         result: '成功',
         tone: 'green',
         ip: '10.12.8.11',
         device: 'Chrome macOS',
-        reason: '保存 DAR 域名申请检查结果'
+        reason: '平台确认开放该域名的登录准入'
       },
       {
         id: 'AL-20260701-77145',
@@ -2120,21 +2139,101 @@
       };
     }
 
-    const accessTypeLabels = { domain: '访问域名' };
-
-    const accessCheckCatalog = {
-      domain: ['格式与全平台唯一性', 'DNS 所有权', '解析到平台', 'SSL 准备']
-    };
-
     function ensureTenantAccessState(tenant) {
-      tenant.accessRequests = Array.isArray(tenant.accessRequests) ? tenant.accessRequests : [];
+      tenant.domains = Array.isArray(tenant.domains) ? tenant.domains : [
+        {
+          id: 'DOM-' + tenant.id.slice(-3) + '-001',
+          value: tenant.domain,
+          kind: '系统域名',
+          subjectType: 'tenant',
+          subjectId: tenant.id,
+          subjectName: tenant.name,
+          status: tenant.status === '正常' ? '可用' : '未启用',
+          lastCheck: tenant.status === '正常' ? '4/4 通过' : '待检测',
+          updatedAt: '2026-08-14 10:20:00'
+        }
+      ];
+      tenant.merchantDomains = Array.isArray(tenant.merchantDomains) ? tenant.merchantDomains : [
+        {
+          id: 'MDOM-' + tenant.id.slice(-3) + '-001',
+          value: 'tenant-' + tenant.id.slice(-3).toLowerCase() + '.merchant.hs-pay.com',
+          kind: '商户端系统域名',
+          subjectType: 'merchant_portal',
+          subjectId: tenant.id,
+          subjectName: tenant.name,
+          status: tenant.status === '正常' ? '可用' : '未启用',
+          lastCheck: tenant.status === '正常' ? '4/4 通过' : '待检测',
+          updatedAt: '2026-08-14 10:24:00'
+        },
+        {
+          id: 'MDOM-' + tenant.id.slice(-3) + '-002',
+          value: 'merchant-' + tenant.id.slice(-3).toLowerCase() + '.example-pay.com',
+          kind: '商户端自定义域名',
+          subjectType: 'merchant_portal',
+          subjectId: tenant.id,
+          subjectName: tenant.name,
+          status: '未启用',
+          lastCheck: '待检测',
+          updatedAt: '2026-08-14 10:26:00'
+        }
+      ];
+      tenant.loginIpRules = Array.isArray(tenant.loginIpRules) ? tenant.loginIpRules : [
+        {
+          id: 'LIP-' + tenant.id.slice(-3) + '-001',
+          value: tenant.id === 'HS-TEN-001' ? '103.18.42.80' : '103.18.' + (50 + Number(tenant.id.slice(-3)) % 30) + '.10',
+          name: '管理员办公出口',
+          status: '启用',
+          updatedAt: '2026-08-14 10:30:00'
+        }
+      ];
+      tenant.apiIpRules = Array.isArray(tenant.apiIpRules) ? tenant.apiIpRules : (tenant.status === '正常' ? [
+        {
+          id: 'AIP-' + tenant.id.slice(-3) + '-001',
+          value: '10.' + (20 + Number(tenant.id.slice(-3)) % 20) + '.0.0/24',
+          name: '业务 API 生产出口',
+          status: '启用',
+          updatedAt: '2026-08-14 10:34:00'
+        }
+      ] : []);
       return tenant;
     }
 
     tenants.forEach(ensureTenantAccessState);
-    tenants[0].accessRequests = [
-      { id: 'DAR-20260718-0001', type: 'domain', value: 'new.hs-sea-pay.com', status: '待平台处理', requestedBy: 'tenant.admin', requestedAt: '2026-07-18 09:12:10', reason: '切换正式品牌域名', checks: [false, false, false, false], result: '-' }
-    ];
+    tenants[0].domains.push(
+      {
+        id: 'DOM-001-002',
+        value: 'portal.hs-sea-pay.com',
+        kind: '租户自定义域名',
+        subjectType: 'tenant',
+        subjectId: 'HS-TEN-001',
+        subjectName: '汇盛东南亚',
+        status: '可用',
+        lastCheck: '4/4 通过',
+        updatedAt: '2026-08-14 10:32:00'
+      },
+      {
+        id: 'DOM-001-003',
+        value: 'ops.hs-sea-pay.com',
+        kind: '租户自定义域名',
+        subjectType: 'tenant',
+        subjectId: 'HS-TEN-001',
+        subjectName: '汇盛东南亚',
+        status: '已停用',
+        lastCheck: '4/4 通过',
+        updatedAt: '2026-08-13 18:12:00'
+      },
+      {
+        id: 'DOM-001-004',
+        value: 'legacy.hs-sea-pay.com',
+        kind: '租户自定义域名',
+        subjectType: 'tenant',
+        subjectId: 'HS-TEN-001',
+        subjectName: '汇盛东南亚',
+        status: '已停用',
+        lastCheck: '已停用',
+        updatedAt: '2026-08-14 09:16:00'
+      }
+    );
 
     const appState = {
       selectedTenant: tenants[0],
@@ -2145,6 +2244,10 @@
       confirmTenantId: '',
       confirmBusinessName: '',
       confirmRequestId: '',
+      confirmDomainId: '',
+      confirmDomainAction: '',
+      confirmIpType: '',
+      confirmIpId: '',
       tenantSequence: 62,
       auditSequence: 12050,
       latestReceipt: null
@@ -2430,14 +2533,14 @@
       }).length;
       const permissions = getPermissions();
       const roleLimited = tenants.filter(tenant => !tenantInCurrentScope(tenant)).length;
-      const accessPending = appState.filtered.reduce((sum, tenant) => sum + (tenant.accessRequests || []).filter(request => ['待平台处理', '检查中'].includes(request.status)).length, 0);
+      const accessPending = appState.filtered.reduce((sum, tenant) => sum + allTenantDomains(tenant).filter(domain => domain.status === '未启用').length, 0);
       document.getElementById('opsStrip').innerHTML =
         '<strong>筛选结果 ' + visible + ' 个租户</strong>' +
         '<span class="ops-chip">正常 ' + normal + '</span>' +
         '<span class="ops-chip">审核中 ' + pending + '</span>' +
         '<span class="ops-chip">停用 ' + stopped + '</span>' +
         '<span class="ops-chip queue">待处理队列 审核 ' + pending + '</span>' +
-        '<span class="ops-chip queue">访问配置 ' + accessPending + '</span>' +
+        '<span class="ops-chip queue">域名待处理 ' + accessPending + '</span>' +
         '<span class="ops-chip queue">到期 ' + expiring + '</span>' +
         '<span class="ops-chip queue">权限受限 ' + roleLimited + '</span>' +
         '<span class="ops-chip">当前角色 ' + appState.currentRole + '</span>' +
@@ -2464,7 +2567,7 @@
       }
 
       rows.innerHTML = result.map((tenant, index) => {
-        const accessPending = (tenant.accessRequests || []).filter(request => ['待平台处理', '检查中'].includes(request.status)).length;
+        const accessPending = allTenantDomains(tenant).filter(domain => domain.status === '未启用').length;
         const statusAction = !permissions.canSecurity
           ? ''
           : tenant.status === '正常'
@@ -2473,7 +2576,7 @@
               ? '<button class="action-link" data-confirm="启用租户" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="启用 ' + tenant.name + ' 只恢复租户层级的后续登录与新业务资格；下级对象状态保持不变。">启用</button>'
               : '';
         return '<tr data-index="' + index + '">' +
-          '<td><div class="tenant-cell"><strong>' + tenant.name + '</strong><span class="mono">' + tenant.id + ' / ' + tenant.contact + '</span>' + (accessPending ? '<span>' + tag('配置待处理 ' + accessPending, 'orange') + '</span>' : '') + '</div></td>' +
+          '<td><div class="tenant-cell"><strong>' + tenant.name + '</strong><span class="mono">' + tenant.id + ' / ' + tenant.contact + '</span>' + (accessPending ? '<span>' + tag('域名待处理 ' + accessPending, 'orange') + '</span>' : '') + '</div></td>' +
           '<td>' + tag(tenant.status, tenant.statusTone) + '</td>' +
           '<td>' + businessAbilityCell(tenant) + '</td>' +
           '<td>' + walletSummaryCell(tenant) + '</td>' +
@@ -2528,67 +2631,208 @@
       }).join('');
     }
 
-    function accessStatusTone(status) {
-      if (status === '已启用') return 'green';
-      if (status === '已驳回') return 'red';
+    function domainStatusTone(status) {
+      if (status === '可用') return 'green';
+      if (status === '已停用') return 'red';
       return 'orange';
     }
 
-    function renderAccessRequestRows(tenant, permissions) {
-      const requests = tenant.accessRequests || [];
-      if (!requests.length) {
-        return '<tr><td colspan="7" class="table-empty"><strong>暂无访问域名申请</strong><span>租户提交 DAR 域名申请后在此处理。</span></td></tr>';
+    function allTenantDomains(tenant) {
+      return [...(tenant.domains || []), ...(tenant.merchantDomains || [])];
+    }
+
+    function domainActionButtons(domain, permissions) {
+      if (!permissions.canAccessProcess) return '<span class="cell-sub">—</span>';
+      const unbind = domain.kind.includes('自定义域名')
+        ? '<button class="btn danger" data-domain-action="解绑域名" data-domain-id="' + domain.id + '"><i data-lucide="unlink"></i>解绑</button>'
+        : '';
+      if (domain.status === '未启用') {
+        return '<button class="btn primary" data-domain-action="启用域名" data-domain-id="' + domain.id + '"><i data-lucide="circle-check"></i>启用</button>' + unbind;
       }
-      return requests.map(request => {
-        const active = ['待平台处理', '检查中'].includes(request.status);
-        const action = active && permissions.canAccessProcess
-          ? '<button class="btn primary" data-access-request="' + request.id + '" data-access-tenant="' + tenant.id + '"><i data-lucide="clipboard-check"></i>处理</button>'
-          : active
-            ? disabledButton('处理', 'clipboard-check', appState.currentRole + ' 无访问配置处理权限')
-            : '<button class="btn" data-access-request="' + request.id + '" data-access-tenant="' + tenant.id + '"><i data-lucide="eye"></i>详情</button>';
+      if (domain.status === '可用') {
+        return '<button class="btn danger" data-domain-action="停用域名" data-domain-id="' + domain.id + '"><i data-lucide="ban"></i>停用</button>' + unbind;
+      }
+      if (domain.status === '已停用') {
+        return '<button class="btn primary" data-domain-action="启用域名" data-domain-id="' + domain.id + '"><i data-lucide="circle-check"></i>启用</button>' + unbind;
+      }
+      return unbind || '<span class="cell-sub">—</span>';
+    }
+
+    function renderDomainRows(domains, permissions) {
+      if (!domains.length) {
+        return '<tr><td colspan="3" class="table-empty"><strong>暂无域名记录</strong><span>平台录入或系统生成后在此展示。</span></td></tr>';
+      }
+      return domains.map(domain => {
         return '<tr>' +
-          '<td class="mono">' + request.id + '</td>' +
-          '<td>' + accessTypeLabels[request.type] + '</td>' +
-          '<td><strong>' + request.value + '</strong><br><span class="cell-sub">' + request.reason + '</span></td>' +
-          '<td>' + tag(request.status, accessStatusTone(request.status)) + '</td>' +
-          '<td class="mono">' + request.requestedAt + '</td>' +
-          '<td>' + (request.result || '-') + '</td>' +
+          '<td><strong class="mono">' + domain.value + '</strong><br><span class="cell-sub">' + domain.id + '</span></td>' +
+          '<td>' + tag(domain.status, domainStatusTone(domain.status)) + '</td>' +
+          '<td><div class="table-actions">' + domainActionButtons(domain, permissions) + '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderIpRuleRows(type, rules, permissions, readonlyTenant) {
+      if (!rules.length) {
+        return '<tr><td colspan="6" class="table-empty"><strong>暂无规则</strong><span>' + (type === 'login' ? '新增并启用后，规则才参与租户后台登录校验。' : '业务 API 启用前需至少配置并启用一条来源规则。') + '</span></td></tr>';
+      }
+      return rules.map(rule => {
+        const canOperate = permissions.canSecurity && !readonlyTenant;
+        const action = canOperate
+          ? '<button class="btn ' + (rule.status === '启用' ? 'danger' : 'primary') + '" data-ip-action="toggle" data-ip-type="' + type + '" data-ip-id="' + rule.id + '"><i data-lucide="' + (rule.status === '启用' ? 'pause-circle' : 'play-circle') + '"></i>' + (rule.status === '启用' ? '停用' : '启用') + '</button>'
+          : disabledButton(rule.status === '启用' ? '停用' : '启用', rule.status === '启用' ? 'pause-circle' : 'play-circle', readonlyTenant ? '当前租户状态只允许查看' : appState.currentRole + ' 无安全配置权限');
+        return '<tr>' +
+          '<td class="mono">' + rule.id + '</td>' +
+          '<td><strong class="mono">' + rule.value + '</strong></td>' +
+          '<td>' + rule.name + '</td>' +
+          '<td>' + tag(rule.status, rule.status === '启用' ? 'green' : 'gray') + '</td>' +
+          '<td class="mono">' + rule.updatedAt + '</td>' +
           '<td><div class="table-actions">' + action + '</div></td>' +
         '</tr>';
       }).join('');
+    }
+
+    function tenantIpRules(tenant, type) {
+      return type === 'api' ? tenant.apiIpRules : tenant.loginIpRules;
+    }
+
+    function currentIpRuleForAction() {
+      const tenant = currentTenantForAction();
+      if (!tenant) return null;
+      return tenantIpRules(tenant, appState.confirmIpType).find(rule => rule.id === appState.confirmIpId) || null;
+    }
+
+    function validCompleteIpv4(value) {
+      const parts = String(value || '').split('.');
+      return parts.length === 4 && parts.every(part => /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255 && String(Number(part)) === part);
+    }
+
+    function validApiIpRule(value) {
+      if (validCompleteIpv4(value)) return true;
+      const [ip, prefix] = String(value || '').split('/');
+      return validCompleteIpv4(ip) && /^\d{1,2}$/.test(prefix || '') && Number(prefix) >= 0 && Number(prefix) <= 32;
+    }
+
+    function openIpAction(action, type, ruleId = '') {
+      appState.confirmIpType = type;
+      appState.confirmIpId = ruleId;
+      const typeName = type === 'api' ? '业务 API 来源 IP' : '租户后台登录 IP';
+      openConfirm(action === 'add' ? '新增' + typeName : (currentIpRuleForAction()?.status === '启用' ? '停用' : '启用') + typeName, '两套名单相互独立，不自动同步或联动。', appState.selectedTenant?.id || '');
+    }
+
+    function renderIpConfirmForm(title, form, actionBtn) {
+      if (!appState.confirmIpType || !/(登录 IP|API 来源 IP)/.test(title)) return false;
+      const type = appState.confirmIpType;
+      const typeName = type === 'api' ? '业务 API 来源 IP' : '租户后台登录 IP';
+      const rule = currentIpRuleForAction();
+      document.getElementById('confirmDetail').textContent = type === 'api'
+        ? '仅控制租户业务 API 请求来源，不影响租户后台登录。'
+        : '仅控制租户管理员后台登录，不影响业务 API 请求。';
+      if (title.startsWith('新增')) {
+        form.innerHTML =
+          '<div class="field wide"><label for="newTenantIpValue">' + typeName + '</label><input id="newTenantIpValue" class="mono" placeholder="' + (type === 'api' ? 'IPv4 或 CIDR，例如 10.20.0.0/24' : '完整 IPv4，例如 103.18.50.80') + '" autocomplete="off"></div>' +
+          '<div class="field wide"><label for="newTenantIpName">用途说明</label><input id="newTenantIpName" placeholder="例如管理员办公出口 / API 生产出口"></div>' +
+          '<div class="field"><label>初始状态</label><input value="停用" readonly></div>' +
+          '<div class="field"><label>名单边界</label><input value="' + (type === 'api' ? '只校验业务 API' : '只校验后台登录') + '" readonly></div>';
+        actionBtn.className = 'btn primary';
+        actionBtn.innerHTML = '<i data-lucide="save"></i>保存为停用';
+        return true;
+      }
+      if (!rule) return false;
+      const enabling = rule.status !== '启用';
+      form.innerHTML =
+        '<div class="field wide"><label>规则</label><input class="mono" value="' + rule.value + '" readonly></div>' +
+        '<div class="field"><label>当前状态</label><input value="' + rule.status + '" readonly></div>' +
+        '<div class="field wide"><label for="tenantIpActionReason">操作原因</label><textarea id="tenantIpActionReason" placeholder="必填，写入永久审计"></textarea></div>' +
+        '<div class="field wide"><label for="tenantIpAction2fa">当前操作人 Google 2FA</label><input id="tenantIpAction2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code"></div>';
+      actionBtn.className = enabling ? 'btn primary' : 'btn danger';
+      actionBtn.innerHTML = '<i data-lucide="' + (enabling ? 'play-circle' : 'pause-circle') + '"></i>确认' + (enabling ? '启用' : '停用');
+      return true;
+    }
+
+    function currentDomainForAction() {
+      const tenant = currentTenantForAction();
+      if (!tenant) return null;
+      return allTenantDomains(tenant).find(item => item.id === appState.confirmDomainId) || null;
+    }
+
+    function nextTenantDomainId(tenant) {
+      return 'DOM-' + tenant.id.slice(-3) + '-' + String((tenant.domains || []).length + 1).padStart(3, '0');
+    }
+
+    function nextMerchantPortalDomainId(tenant) {
+      return 'MDOM-' + tenant.id.slice(-3) + '-' + String((tenant.merchantDomains || []).length + 1).padStart(3, '0');
+    }
+
+    function openDomainAction(action, domainId = '') {
+      appState.confirmDomainId = domainId;
+      appState.confirmDomainAction = action;
+      openConfirm(action, '域名由平台登记并控制开放状态；全部操作永久写入审计。', appState.selectedTenant?.id || '');
+    }
+
+    function renderDomainConfirmForm(title, form, actionBtn) {
+      const tenant = currentTenantForAction();
+      const domain = currentDomainForAction();
+      if (title === '新增自定义域名' || title === '新增商户端域名') {
+        const merchantPortal = title === '新增商户端域名';
+        document.getElementById('confirmDetail').textContent = merchantPortal
+          ? '仅平台人员录入当前租户的商户端共享登录域名；保存后进入未启用状态，当前租户下全部商户共用。'
+          : '仅平台人员录入租户后台自定义域名；保存后进入未启用状态，不会直接开放登录。';
+        form.innerHTML =
+          '<div class="field wide"><label for="newCustomDomain">完整域名</label><input id="newCustomDomain" class="mono" placeholder="pay.example.com" autocomplete="off"></div>' +
+          '<div class="field"><label>绑定租户</label><input value="' + tenant.id + ' / ' + tenant.name + '" readonly></div>' +
+          '<div class="field"><label>入口类型</label><input value="' + (merchantPortal ? '商户端共享登录' : '租户后台登录') + '" readonly></div>' +
+          '<div class="field"><label>初始状态</label><input value="未启用" readonly></div>' +
+          '<div class="field wide"><label for="domainAddReason">线下沟通说明</label><textarea id="domainAddReason" placeholder="记录线下沟通对象和配置目的"></textarea></div>';
+        actionBtn.className = 'btn primary';
+        actionBtn.innerHTML = '<i data-lucide="save"></i>保存域名';
+        return true;
+      }
+      if (!domain) return false;
+      document.getElementById('confirmDetail').textContent = '目标域名：' + domain.value + '；本次操作只影响该域名，不改变主体、账号或其他可用域名。';
+      form.innerHTML =
+        '<div class="field wide"><label>域名</label><input class="mono" value="' + domain.value + '" readonly></div>' +
+        '<div class="field"><label>当前状态</label><input value="' + domain.status + '" readonly></div>';
+      if (title === '启用域名') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><div class="notice"><i data-lucide="info"></i><div>启用只开放平台登录准入；DNS、网关和证书仍由运维在线下配置。</div></div></div>' +
+          '<div class="field wide"><label for="domainActionReason">启用原因</label><textarea id="domainActionReason" placeholder="必填，永久写入审计"></textarea></div>' +
+          '<div class="field wide"><label for="domainAction2fa">当前操作人 2FA</label><input id="domainAction2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code"></div>'
+        );
+        actionBtn.className = 'btn primary';
+        actionBtn.innerHTML = '<i data-lucide="circle-check"></i>确认启用';
+        return true;
+      }
+      if (title === '停用域名') {
+        const isLastUsableForType = allTenantDomains(tenant).filter(item => item.subjectType === domain.subjectType && item.status === '可用').length <= 1;
+        form.insertAdjacentHTML('beforeend',
+          (isLastUsableForType ? '<div class="field wide"><div class="notice danger"><i data-lucide="triangle-alert"></i><div><strong>这是该入口类型最后一个可用域名。</strong><br>停用后将暂时没有可用登录地址，确认后仍可继续。</div></div></div>' : '') +
+          '<div class="field wide"><label>会话影响</label><textarea readonly>停用后立即阻止该域名全部新访问，并使该域名下已有登录会话失效；其他可用域名不受影响。</textarea></div>' +
+          '<div class="field wide"><label for="domainActionReason">停用原因</label><textarea id="domainActionReason" placeholder="必填，永久写入审计"></textarea></div>' +
+          '<div class="field wide"><label for="domainAction2fa">当前操作人 2FA</label><input id="domainAction2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code"></div>'
+        );
+        actionBtn.className = 'btn danger';
+        actionBtn.innerHTML = '<i data-lucide="ban"></i>确认停用';
+        return true;
+      }
+      if (title === '解绑域名') {
+        form.insertAdjacentHTML('beforeend',
+          '<div class="field wide"><div class="empty compact"><strong>解绑后立即停止域名识别</strong><p>系统将删除当前绑定关系。即使 DNS、网关或证书配置仍存在，访问该域名也无法反查到租户编号并进入登录。</p></div></div>' +
+          '<div class="field wide"><label for="domainActionReason">解绑原因</label><textarea id="domainActionReason" placeholder="请说明本次解绑原因"></textarea></div>' +
+          '<div class="field wide"><label for="domainAction2fa">当前操作人 2FA</label><input id="domainAction2fa" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code"></div>'
+        );
+        actionBtn.className = 'btn danger';
+        actionBtn.innerHTML = '<i data-lucide="unlink"></i>确认解绑';
+        return true;
+      }
+      return false;
     }
 
     function renderConfirmForm(title, detail) {
       const form = document.getElementById('confirmForm');
       const actionBtn = document.getElementById('confirmActionBtn');
 
-      if (title === '处理访问配置申请') {
-        const tenant = currentTenantForAction();
-        const request = (tenant.accessRequests || []).find(item => item.id === appState.confirmRequestId);
-        if (!request) {
-          form.innerHTML = '<div class="field wide"><label>处理结果</label><input value="申请记录不存在或已刷新" readonly></div>';
-          actionBtn.className = 'btn primary';
-          actionBtn.textContent = '关闭';
-          return;
-        }
-        const labels = accessCheckCatalog[request.type] || [];
-        const editable = ['待平台处理', '检查中'].includes(request.status) && getPermissions().canAccessProcess;
-        document.getElementById('confirmDetail').textContent = accessTypeLabels[request.type] + ' · ' + request.id + '；平台不能修改租户提交值，检查未全部通过时不能启用。';
-        form.innerHTML =
-          '<div class="field"><label>申请编号</label><input value="' + request.id + '" readonly></div>' +
-          '<div class="field"><label>申请类型</label><input value="' + accessTypeLabels[request.type] + '" readonly></div>' +
-          '<div class="field wide"><label>申请内容</label><input value="' + request.value + '" readonly></div>' +
-          '<div class="field"><label>申请人</label><input value="' + request.requestedBy + '" readonly></div>' +
-          '<div class="field"><label>申请时间</label><input value="' + request.requestedAt + '（UTC+8）" readonly></div>' +
-          '<div class="field wide"><label>检查项</label><div class="tag-row">' + labels.map((label, index) => '<label class="ability-pill' + (request.checks[index] ? ' active' : '') + '"><input type="checkbox" data-access-check="' + index + '" ' + (request.checks[index] ? 'checked' : '') + (editable ? '' : ' disabled') + '> ' + label + '</label>').join('') + '</div></div>' +
-          '<div class="field wide"><label for="accessProcessReason">处理说明</label><textarea id="accessProcessReason" ' + (editable ? '' : 'readonly') + '>' + (request.result === '-' ? '按申请类型完成检查并记录结果' : request.result) + '</textarea></div>' +
-          (editable ? '<div class="field wide"><label for="accessProcess2fa">当前操作人 2FA 验证码</label><input id="accessProcess2fa" inputmode="numeric" maxlength="6" placeholder="启用或驳回时填写 6 位验证码" autocomplete="one-time-code"></div>' +
-            '<div class="field wide"><div class="tag-row"><button class="btn" type="button" data-access-process="check"><i data-lucide="list-checks"></i>保存检查结果</button><button class="btn danger" type="button" data-access-process="reject"><i data-lucide="x-circle"></i>驳回申请</button><button class="btn primary" type="button" data-access-process="enable"><i data-lucide="shield-check"></i>启用配置</button></div></div>' : '') +
-          '<div class="field wide"><label>当前状态</label><input value="' + request.status + ' / ' + (request.result || '-') + '" readonly></div>';
-        actionBtn.className = 'btn primary';
-        actionBtn.innerHTML = '<i data-lucide="x"></i>关闭';
-        return;
-      }
+      if (renderDomainConfirmForm(title, form, actionBtn)) return;
+      if (renderIpConfirmForm(title, form, actionBtn)) return;
 
       if (title === '重置账号') {
         const tenant = currentTenantForAction();
@@ -2842,15 +3086,13 @@
           kv('代付钱包总额', formatMoney(tenant.wallet)) +
           kv('当前状态', tenant.status) +
         '</div>' +
-        sectionTitle('访问配置') +
+        sectionTitle('后台入口摘要') +
         '<div class="kv-grid">' +
-          kv('当前访问域名', tenant.domain) +
-          kv('内部数据方式', '平台与租户读取同一份按租户隔离的数据') +
+          kv('当前可用域名', String((tenant.domains || []).filter(item => item.status === '可用').length)) +
+          kv('商户端可用域名', String((tenant.merchantDomains || []).filter(item => item.status === '可用').length)) +
+          kv('启用登录 IP', String((tenant.loginIpRules || []).filter(item => item.status === '启用').length)) +
+          kv('启用 API 来源 IP', String((tenant.apiIpRules || []).filter(item => item.status === '启用').length)) +
         '</div>' +
-        sectionTitle('访问域名申请') +
-        '<div class="table-wrap detail-table"><table aria-label="访问域名申请表"><thead><tr><th>申请编号</th><th>类型</th><th>申请域名</th><th>状态</th><th>申请时间</th><th>处理结果</th><th style="text-align:right;">操作</th></tr></thead><tbody>' +
-          renderAccessRequestRows(tenant, permissions) +
-        '</tbody></table></div>' +
         sectionTitle('详情操作') +
         '<div class="tag-row">' +
           editProfileAction +
@@ -2895,10 +3137,62 @@
           (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置密码" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="将为管理账号发起密码重置，并通过当前操作人 2FA 验证。保存后通知租户重新设置。"><i data-lucide="key-round"></i>重置密码</button>' : disabledButton('重置密码', 'key-round', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
           (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置 2FA" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="解除当前管理账号的 2FA 绑定，并通过当前操作人 2FA 验证。管理员下次登录需重新绑定。"><i data-lucide="shield"></i>重置 2FA</button>' : disabledButton('重置 2FA', 'shield', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
         '</div>' +
+        sectionTitle('租户后台登录 IP 白名单') +
+        '<div class="notice"><i data-lucide="log-in"></i><div><strong>只控制租户后台登录。</strong>创建租户时至少原子写入一条启用规则；正常或审核中的租户始终保留至少一条启用规则。</div></div>' +
+        '<div class="tag-row" style="margin:12px 0">' +
+          (permissions.canSecurity && !readonlyTenant ? '<button class="btn primary" data-ip-action="add" data-ip-type="login"><i data-lucide="plus"></i>新增登录 IP</button>' : disabledButton('新增登录 IP', 'plus', readonlyTenant ? '当前租户状态不允许新增规则' : appState.currentRole + ' 无安全配置权限')) +
+          '<span class="cell-sub">新增后默认停用，需在规则行显式启用。</span>' +
+        '</div>' +
+        '<div class="table-wrap detail-table"><table aria-label="租户后台登录 IP 白名单"><thead><tr><th>规则编号</th><th>IP</th><th>用途说明</th><th>状态</th><th>最近更新</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          renderIpRuleRows('login', tenant.loginIpRules || [], permissions, readonlyTenant) +
+        '</tbody></table></div>' +
+        sectionTitle('业务 API 来源 IP 白名单') +
+        '<div class="notice"><i data-lucide="braces"></i><div><strong>只控制业务 API 请求。</strong>支持 IPv4 或 CIDR，与后台登录名单完全独立，不复制、不同步。</div></div>' +
+        '<div class="tag-row" style="margin:12px 0">' +
+          (permissions.canSecurity && !readonlyTenant ? '<button class="btn primary" data-ip-action="add" data-ip-type="api"><i data-lucide="plus"></i>新增 API 来源 IP</button>' : disabledButton('新增 API 来源 IP', 'plus', readonlyTenant ? '当前租户状态不允许新增规则' : appState.currentRole + ' 无安全配置权限')) +
+          '<span class="cell-sub">业务启用前至少需要一条已启用来源规则。</span>' +
+        '</div>' +
+        '<div class="table-wrap detail-table"><table aria-label="业务 API 来源 IP 白名单"><thead><tr><th>规则编号</th><th>IP / CIDR</th><th>用途说明</th><th>状态</th><th>最近更新</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          renderIpRuleRows('api', tenant.apiIpRules || [], permissions, readonlyTenant) +
+        '</tbody></table></div>' +
         sectionTitle('状态操作') +
         '<div class="tag-row">' +
           (permissions.canSecurity && !closed ? '<button class="btn danger" data-confirm="关闭租户" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="关闭后只允许历史查看，不允许创建新业务或新资金申请。"><i data-lucide="ban"></i>关闭</button>' : disabledButton('关闭', 'ban', closed ? '已关闭租户不可重复关闭' : appState.currentRole + ' 无状态操作权限')) +
         '</div>';
+
+      const tenantDomains = tenant.domains || [];
+      const merchantDomains = tenant.merchantDomains || [];
+      const usableDomains = allTenantDomains(tenant).filter(item => item.status === '可用');
+      const pendingDomains = allTenantDomains(tenant).filter(item => item.status === '未启用');
+      document.getElementById('tab-domains').innerHTML =
+        sectionTitle('域名管理') +
+        '<div class="kv-grid">' +
+          kv('可用域名', String(usableDomains.length)) +
+          kv('租户域名', String(tenantDomains.length)) +
+          kv('待处理域名', String(pendingDomains.length)) +
+          kv('管理边界', '平台录入并启停，租户与商户只读') +
+        '</div>' +
+        '<div class="filter-bar" style="margin-top:16px;grid-template-columns:minmax(220px,1.5fr) minmax(150px,1fr) auto">' +
+          '<div class="field"><label for="domainKeyword">域名关键词</label><input id="domainKeyword" placeholder="输入域名或编号"></div>' +
+          '<div class="field"><label for="domainStatusFilter">状态</label><select id="domainStatusFilter"><option value="">全部状态</option><option>未启用</option><option>可用</option><option>已停用</option></select></div>' +
+          '<div class="tag-row"><button class="btn" data-domain-filter><i data-lucide="search"></i>筛选</button><button class="btn" data-domain-reset>重置</button></div>' +
+        '</div>' +
+        sectionTitle('租户后台域名') +
+        '<div class="tag-row" style="margin-bottom:12px">' +
+          (permissions.canAccessProcess && !readonlyTenant ? '<button class="btn primary" data-domain-action="新增自定义域名"><i data-lucide="plus"></i>新增域名</button>' : disabledButton('新增域名', 'plus', readonlyTenant ? '当前租户状态不允许新增域名' : appState.currentRole + ' 无域名管理权限')) +
+          '<span class="cell-sub">一个租户支持多个域名同时可用；任一可用域名均可识别并进入当前租户后台。</span>' +
+        '</div>' +
+        '<div class="table-wrap detail-table"><table aria-label="租户后台域名列表"><thead><tr><th>域名</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="tenantDomainRows">' +
+          renderDomainRows(tenantDomains, permissions) +
+        '</tbody></table></div>' +
+        sectionTitle('商户端共享登录域名') +
+        '<div class="tag-row" style="margin-bottom:12px">' +
+          (permissions.canAccessProcess && !readonlyTenant ? '<button class="btn primary" data-domain-action="新增商户端域名"><i data-lucide="plus"></i>新增域名</button>' : disabledButton('新增域名', 'plus', readonlyTenant ? '当前租户状态不允许新增域名' : appState.currentRole + ' 无域名管理权限')) +
+          '<span class="cell-sub">域名只识别当前租户；该租户下全部商户共用，登录账号再确定具体商户。</span>' +
+        '</div>' +
+        '<div class="table-wrap detail-table"><table aria-label="商户端共享登录域名列表"><thead><tr><th>域名</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="merchantDomainRows">' +
+          renderDomainRows(merchantDomains, permissions) +
+        '</tbody></table></div>';
 
       const walletAccounts = tenant.wallets || [];
       const walletCards = walletAccounts.map(wallet => (
@@ -2928,11 +3222,7 @@
           '<tr><td>服务费扣款</td><td class="amount">CNY 3,580.12</td><td>' + tenant.feePolicy + '</td><td>' + tag('已扣款', 'green') + '</td><td>订单成功后实时入账</td></tr>' +
           '<tr><td>人工加款</td><td class="amount">CNY 8,000.00</td><td>租户财务申请</td><td>' + tag('待平台审核', 'orange') + '</td><td>平台不替租户创建申请</td></tr>' +
         '</tbody></table></div>' +
-        '<div class="notice"><i data-lucide="info"></i><div><strong>页面边界：</strong>租户详情只保留钱包和待处理摘要，不在本页审核、查单、登记结果或直接改账。</div></div>' +
-        '<div class="tag-row">' +
-          '<button class="btn primary" data-master-page="wallets" data-master-note="进入独立租户平台钱包并带入当前租户筛选。"><i data-lucide="wallet-cards"></i>前往租户平台钱包</button>' +
-          '<button class="btn" data-master-page="funds" data-master-note="进入独立资金待办并带入当前租户筛选。"><i data-lucide="list-checks"></i>前往资金待办</button>' +
-        '</div>';
+        '<div class="notice"><i data-lucide="info"></i><div><strong>页面边界：</strong>租户详情只保留钱包和待处理摘要，不在本页审核、查单、登记结果或直接改账。</div></div>';
 
       document.getElementById('tab-audit').innerHTML = sectionTitle('审计日志') +
         '<div class="table-wrap"><table aria-label="租户详情审计日志表格"><thead><tr>' +
@@ -2989,8 +3279,17 @@
       document.getElementById('contactInput').value = mode === 'edit' ? tenant.contact : '新联系人';
       document.getElementById('mobileInput').value = mode === 'edit' ? tenant.phone : '+63 900 000 0000';
       document.getElementById('expireInput').value = mode === 'edit' ? tenant.expire : '2027-07-18';
-      document.getElementById('domainInput').value = mode === 'edit' ? 'https://' + tenant.domain : '保存后按租户编号生成';
+      const domainPrefixInput = document.getElementById('domainPrefixInput');
+      const nextPrefix = 'tenant-' + String(appState.tenantSequence).padStart(3, '0');
+      const currentPrefix = String(tenant.domain || '').replace(/\.hs-pay\.com$/, '');
+      domainPrefixInput.value = mode === 'edit' ? currentPrefix : nextPrefix;
+      domainPrefixInput.readOnly = mode === 'edit';
+      document.getElementById('domainInput').value = (mode === 'edit' ? currentPrefix : nextPrefix) + '.hs-pay.com';
       document.getElementById('adminInput').value = mode === 'edit' ? tenant.admin : '创建成功后生成唯一超级管理员账号';
+      const initialLoginIpInput = document.getElementById('initialLoginIpInput');
+      initialLoginIpInput.value = mode === 'edit' ? ((tenant.loginIpRules || []).find(rule => rule.status === '启用')?.value || '请在安全页维护') : '103.18.50.80';
+      initialLoginIpInput.readOnly = mode === 'edit';
+      document.getElementById('initialLoginIpField').hidden = false;
       document.getElementById('tenantRemarkInput').value = mode === 'edit' ? tenant.remark : '';
       document.getElementById('modalBackdrop').classList.add('open');
       showTenantDialog(document.getElementById('tenantModal'));
@@ -3022,92 +3321,6 @@
       document.getElementById('modalBackdrop').classList.add('open');
       showTenantDialog(document.getElementById('confirmModal'));
       refreshIcons();
-    }
-
-    function openAccessRequest(tenantId, requestId) {
-      appState.confirmRequestId = requestId;
-      openConfirm('处理访问配置申请', '查看申请、检查结果和处理状态。', tenantId);
-    }
-
-    function processAccessRequest(action) {
-      const tenant = currentTenantForAction();
-      const request = (tenant?.accessRequests || []).find(item => item.id === appState.confirmRequestId);
-      if (!tenant || !request || !['待平台处理', '检查中'].includes(request.status)) {
-        showFormError('confirmFormError', '申请状态已变化，请关闭后刷新最新记录。');
-        return;
-      }
-      if (!getPermissions().canAccessProcess) {
-        showFormError('confirmFormError', '当前角色没有访问配置处理权限。');
-        return;
-      }
-      const checks = [...document.querySelectorAll('[data-access-check]')].map(input => input.checked);
-      const reason = document.getElementById('accessProcessReason')?.value.trim() || '';
-      if (!reason) {
-        showFormError('confirmFormError', '请填写处理说明。', ['accessProcessReason']);
-        return;
-      }
-      request.checks = checks;
-      if (action === 'check') {
-        request.status = '检查中';
-        request.result = `检查通过 ${checks.filter(Boolean).length}/${checks.length}`;
-        const audit = addTenantAudit(tenant, '保存访问配置检查', '检查中', request.id + ' / ' + request.result, 'orange');
-        setOperationReceipt({ title: '访问配置检查已保存', tenant, status: '检查中', detail: request.id + ' · ' + request.result, audit });
-        renderRows();
-        renderDetailSections(tenant);
-        renderConfirmForm('处理访问配置申请', '检查结果已保存');
-        refreshIcons();
-        showToast('检查结果已保存', request.id + ' 当前仍未生效。');
-        return;
-      }
-      const otp = document.getElementById('accessProcess2fa')?.value.trim() || '';
-      if (!/^\d{6}$/.test(otp)) {
-        const otpField = document.getElementById('accessProcess2fa');
-        if (otpField) otpField.value = '';
-        showFormError('confirmFormError', '启用或驳回需要当前操作人的 6 位 Google 2FA 验证码。', ['accessProcess2fa']);
-        return;
-      }
-      if (action === 'reject') {
-        request.status = '已驳回';
-        request.result = reason;
-        request.processedAt = platformNow();
-        request.processedBy = appState.currentRole;
-        const audit = addTenantAudit(tenant, '驳回访问配置申请', '已驳回', request.id + ' / ' + reason, 'red');
-        setOperationReceipt({ title: '访问配置申请已驳回', tenant, status: '已驳回', detail: request.id + ' · 当前配置未变化', audit });
-        renderRows();
-        renderDetailSections(tenant);
-        closeConfirm();
-        showToast('申请已驳回', request.id + ' 当前配置保持不变。');
-        return;
-      }
-      if (!checks.length || checks.some(value => !value)) {
-        const otpField = document.getElementById('accessProcess2fa');
-        if (otpField) otpField.value = '';
-        showFormError('confirmFormError', '全部域名检查通过后才能启用。');
-        return;
-      }
-      if (request.type !== 'domain') {
-        showFormError('confirmFormError', '当前只处理 DAR 访问域名申请。');
-        return;
-      }
-      const hostname = String(request.value || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
-      const duplicate = tenants.find(item => item.id !== tenant.id && item.domain === hostname);
-      if (duplicate) {
-        showFormError('confirmFormError', '域名已被 ' + duplicate.id + ' 使用，不能启用。');
-        return;
-      }
-      const previous = tenant.domain;
-      tenant.previousDomain = { value: tenant.domain, status: '72 小时跳转过渡', expiresAt: '2026-07-21 ' + platformNow().slice(11) };
-      tenant.domain = hostname;
-      request.result = '新域名已启用；旧域名保留 72 小时跳转';
-      request.status = '已启用';
-      request.processedAt = platformNow();
-      request.processedBy = appState.currentRole;
-      const audit = addTenantAudit(tenant, '启用访问域名', '已启用', request.id + ' / ' + previous + ' → ' + tenant.domain);
-      setOperationReceipt({ title: '访问域名已启用', tenant, status: '已启用', detail: request.id + ' · ' + request.result, audit });
-      renderRows();
-      renderDetailSections(tenant);
-      closeConfirm();
-      showToast('访问域名已启用', request.result + '；审计编号 ' + audit.id + '。');
     }
 
     function closeConfirm() {
@@ -3187,14 +3400,17 @@
       appState.confirmTenantId = tenant.id;
       document.getElementById('confirmTitle').textContent = '租户创建完成';
       document.getElementById('confirmHeadline').textContent = tenant.id + ' 已创建';
-      document.getElementById('confirmDetail').textContent = '初始系统访问地址、三个 CNY 钱包和唯一超级管理员账号已建立；一次性密码仅在本结果中显示，关闭后不再展示。';
+      document.getElementById('confirmDetail').textContent = '租户、唯一超级管理员、初始登录 IP、未启用系统域名和三个 CNY 钱包已原子创建；管理员登录准入已就绪。';
       document.getElementById('confirmForm').innerHTML =
         '<div class="field"><label>租户编号</label><input value="' + tenant.id + '" readonly></div>' +
         '<div class="field"><label>当前状态</label><input value="审核中" readonly></div>' +
-        '<div class="field wide"><label>初始系统访问地址</label><input value="https://' + tenant.domain + '" readonly></div>' +
+        '<div class="field wide"><label>系统域名</label><input value="https://' + tenant.domain + '" readonly></div>' +
+        '<div class="field"><label>域名状态</label><input value="未启用" readonly></div>' +
         '<div class="field"><label>超级管理员账号</label><input value="' + tenant.admin + '" readonly></div>' +
         '<div class="field"><label>一次性密码</label><input value="' + oneTimePassword + '" readonly></div>' +
-        '<div class="field wide"><label>首次登录要求</label><input value="24 小时内登录，修改密码并绑定 Google 2FA" readonly></div>';
+        '<div class="field"><label>初始登录 IP</label><input class="mono" value="' + (tenant.loginIpRules?.[0]?.value || '-') + ' / 已启用" readonly></div>' +
+        '<div class="field"><label>登录准备度</label><input value="IP 准入就绪 · 域名待启用" readonly></div>' +
+        '<div class="field wide"><label>交付要求</label><input value="域名启用后安全交付；首次登录须改密并绑定 Google 2FA；API 来源 IP 后续独立配置" readonly></div>';
       const actionBtn = document.getElementById('confirmActionBtn');
       actionBtn.className = 'btn primary';
       actionBtn.innerHTML = '<i data-lucide="check"></i>知道了';
@@ -3215,7 +3431,9 @@
         contact: document.getElementById('contactInput').value.trim(),
         phone: document.getElementById('mobileInput').value.trim(),
         expire: document.getElementById('expireInput').value,
-        remark: document.getElementById('tenantRemarkInput').value.trim()
+        remark: document.getElementById('tenantRemarkInput').value.trim(),
+        domainPrefix: document.getElementById('domainPrefixInput').value.trim().toLowerCase(),
+        initialLoginIp: document.getElementById('initialLoginIpInput').value.trim()
       };
       const missing = [
         ['name', 'tenantNameInput'], ['contact', 'contactInput'], ['phone', 'mobileInput'],
@@ -3229,6 +3447,22 @@
         showFormError('tenantFormError', '联系手机格式不正确，请至少填写 8 位数字并保留国家或地区区号。', ['mobileInput']);
         return;
       }
+      if (!editing && !/^(?!-)[a-z0-9-]{3,48}(?<!-)$/.test(values.domainPrefix)) {
+        showFormError('tenantFormError', '初始域名前缀只能使用小写字母、数字和连字符，长度为 3–48 位，且不能以连字符开头或结尾。', ['domainPrefixInput']);
+        return;
+      }
+      if (!editing && !validCompleteIpv4(values.initialLoginIp)) {
+        showFormError('tenantFormError', '初始管理员登录 IP 必填，且仅支持完整 IPv4；不支持 CIDR、范围、通配符或 IPv6。', ['initialLoginIpInput']);
+        return;
+      }
+      const requestedDomain = values.domainPrefix + '.hs-pay.com';
+      if (!editing && tenants.flatMap(allTenantDomains).some(item => item.value.toLowerCase() === requestedDomain)) {
+        showFormError('tenantFormError', '完整系统域名已存在，请调整域名前缀。', ['domainPrefixInput']);
+        return;
+      }
+      delete values.domainPrefix;
+      const initialLoginIp = values.initialLoginIp;
+      delete values.initialLoginIp;
       const duplicateName = tenants.find(item => item.id !== appState.editingTenantId && item.name.toLowerCase() === values.name.toLowerCase());
       if (duplicateName) {
         showFormError('tenantFormError', `租户名称已存在，对应租户 ${duplicateName.id}；本次未创建重复租户。`, ['tenantNameInput']);
@@ -3252,8 +3486,7 @@
         tenant = {
           id,
           ...values,
-          domain: `tenant-${suffix}.hs-pay.com`,
-          accessRequests: [],
+          domain: requestedDomain,
           status: '审核中',
           statusTone: 'orange',
           business: [],
@@ -3272,6 +3505,8 @@
           ],
           credit: 0,
           admin: `admin_${suffix}`,
+          loginIpRules: [{ id: `LIP-${suffix}-001`, value: initialLoginIp, name: '初始管理员登录 IP', status: '启用', updatedAt: platformNow() }],
+          apiIpRules: [],
           channels: [],
           tx: '-',
           feePolicy: '待业务开通绑定套餐',
@@ -3288,12 +3523,12 @@
 
       appState.selectedTenant = tenant;
       ensureTenantAccessState(tenant);
-      const audit = addTenantAudit(tenant, action, '成功', editing ? '更新租户基础资料，访问配置、管理账号和白名单未改变' : '创建租户、初始系统访问地址、三个 CNY 钱包和唯一超级管理员账号');
+      const audit = addTenantAudit(tenant, action, '成功', editing ? '更新租户基础资料，域名配置、管理账号和白名单未改变' : '原子创建租户、唯一超级管理员、已启用初始登录 IP、未启用系统域名和三个 CNY 钱包');
       setOperationReceipt({
         title: editing ? '租户资料已保存并生效' : '租户已创建',
         tenant,
         status: editing ? tenant.status : '审核中',
-        detail: editing ? '列表与详情已更新' : '钱包和超级管理员已建立，等待平台内部审核',
+        detail: editing ? '列表与详情已更新' : '超级管理员及初始登录 IP 已可用于首次登录；API 来源 IP 待后续独立配置',
         audit
       });
       closeTenantModal();
@@ -3317,7 +3552,7 @@
     }
 
     function applyTenantConfirm() {
-      if (appState.currentConfirm === '审计详情' || appState.currentConfirm === '租户创建结果' || appState.currentConfirm === '处理访问配置申请') {
+      if (appState.currentConfirm === '审计详情' || appState.currentConfirm === '租户创建结果' || appState.currentConfirm === '查看域名') {
         closeConfirm();
         return;
       }
@@ -3328,6 +3563,182 @@
       }
       if (tenant.status === '关闭') {
         showFormError('confirmFormError', '该租户已关闭，只能查看历史资料，本次操作未执行。');
+        return;
+      }
+
+      if (appState.currentConfirm === '新增自定义域名' || appState.currentConfirm === '新增商户端域名') {
+        const merchantPortal = appState.currentConfirm === '新增商户端域名';
+        const raw = document.getElementById('newCustomDomain')?.value.trim().toLowerCase() || '';
+        const reason = document.getElementById('domainAddReason')?.value.trim() || '';
+        const hostname = raw.replace(/\.$/, '');
+        if (!/^(?=.{4,253}$)(?!-)[a-z0-9-]+(?:\.[a-z0-9-]+)+$/.test(hostname) || /[:/?#]/.test(hostname)) {
+          showFormError('confirmFormError', '请输入不带协议、端口、路径、参数或锚点的完整公网域名。', ['newCustomDomain']);
+          return;
+        }
+        if (!reason) {
+          showFormError('confirmFormError', '请填写线下沟通说明。', ['domainAddReason']);
+          return;
+        }
+        const duplicate = tenants.flatMap(allTenantDomains).find(item => item.value.toLowerCase().replace(/\.$/, '') === hostname);
+        if (duplicate) {
+          showFormError('confirmFormError', '该域名已经存在，不能重复绑定。', ['newCustomDomain']);
+          return;
+        }
+        const domain = {
+          id: merchantPortal ? nextMerchantPortalDomainId(tenant) : nextTenantDomainId(tenant),
+          value: hostname,
+          kind: merchantPortal ? '商户端自定义域名' : '租户自定义域名',
+          subjectType: merchantPortal ? 'merchant_portal' : 'tenant',
+          subjectId: tenant.id,
+          subjectName: tenant.name,
+          status: '未启用',
+          lastCheck: '待检测',
+          updatedAt: platformNow()
+        };
+        (merchantPortal ? tenant.merchantDomains : tenant.domains).push(domain);
+        finishTenantAction(tenant, {
+          action: merchantPortal ? '录入商户端共享域名' : '录入租户自定义域名',
+          detail: hostname + ' 已保存为未启用，等待平台确认开放登录准入',
+          reason
+        });
+        return;
+      }
+
+      if (['启用域名', '停用域名', '解绑域名'].includes(appState.currentConfirm)) {
+        const domain = currentDomainForAction();
+        if (!domain) {
+          showFormError('confirmFormError', '域名状态已变化，请关闭弹窗并刷新后重试。');
+          return;
+        }
+        const action = appState.currentConfirm;
+        const reason = document.getElementById('domainActionReason')?.value.trim() || '';
+        const otpField = document.getElementById('domainAction2fa');
+        const otp = otpField?.value.trim() || '';
+        if (action === '启用域名') {
+          if (!['未启用', '已停用'].includes(domain.status)) {
+            showFormError('confirmFormError', '只有未启用或已停用的域名可以启用。');
+            return;
+          }
+          if (!reason || !/^\d{6}$/.test(otp)) {
+            if (otpField) otpField.value = '';
+            showFormError('confirmFormError', '请填写启用原因并输入当前操作人的 6 位 Google 2FA 验证码。', [!reason ? 'domainActionReason' : 'domainAction2fa']);
+            return;
+          }
+          domain.status = '可用';
+          domain.updatedAt = platformNow();
+          finishTenantAction(tenant, {
+            action: '启用域名',
+            detail: domain.value + ' 已可识别绑定主体并进入登录流程',
+            reason
+          });
+          return;
+        }
+        if (action === '停用域名') {
+          if (domain.status !== '可用') {
+            showFormError('confirmFormError', '只有可用域名可以停用。');
+            return;
+          }
+          if (!reason || !/^\d{6}$/.test(otp)) {
+            if (otpField) otpField.value = '';
+            showFormError('confirmFormError', '请填写停用原因并输入当前操作人的 6 位 Google 2FA 验证码。', [!reason ? 'domainActionReason' : 'domainAction2fa']);
+            return;
+          }
+          domain.status = '已停用';
+          domain.updatedAt = platformNow();
+          finishTenantAction(tenant, {
+            action: '停用域名',
+            detail: domain.value + ' 的新访问和既有会话已失效，其他可用域名继续使用',
+            reason
+          });
+          return;
+        }
+        if (action === '解绑域名') {
+          if (!domain.kind.includes('自定义域名')) {
+            showFormError('confirmFormError', '只有自定义域名可以解绑。');
+            return;
+          }
+          if (!reason || !/^\d{6}$/.test(otp)) {
+            if (otpField) otpField.value = '';
+            showFormError('confirmFormError', '请填写解绑原因并输入当前操作人的 6 位 Google 2FA 验证码。', [!reason ? 'domainActionReason' : 'domainAction2fa']);
+            return;
+          }
+          if (domain.subjectType === 'merchant_portal') tenant.merchantDomains = (tenant.merchantDomains || []).filter(item => item.id !== domain.id);
+          else tenant.domains = (tenant.domains || []).filter(item => item.id !== domain.id);
+          finishTenantAction(tenant, {
+            action: '解绑域名',
+            detail: domain.value + ' 已解除当前租户绑定并从当前列表移除',
+            reason
+          });
+          return;
+        }
+      }
+
+      if (appState.confirmIpType && /(登录 IP|API 来源 IP)/.test(appState.currentConfirm)) {
+        const type = appState.confirmIpType;
+        const rules = tenantIpRules(tenant, type);
+        const typeName = type === 'api' ? '业务 API 来源 IP' : '租户后台登录 IP';
+        if (appState.currentConfirm.startsWith('新增')) {
+          const value = document.getElementById('newTenantIpValue')?.value.trim() || '';
+          const name = document.getElementById('newTenantIpName')?.value.trim() || '';
+          const valid = type === 'api' ? validApiIpRule(value) : validCompleteIpv4(value);
+          if (!valid) {
+            showFormError('confirmFormError', type === 'api' ? '请输入有效的完整 IPv4 或 CIDR；不支持 IPv6、范围或通配符。' : '请输入有效的完整 IPv4；不支持 CIDR、IPv6、范围或通配符。', ['newTenantIpValue']);
+            return;
+          }
+          if (!name) {
+            showFormError('confirmFormError', '请填写用途说明。', ['newTenantIpName']);
+            return;
+          }
+          if (rules.some(rule => rule.value === value)) {
+            showFormError('confirmFormError', '该名单内已存在相同规则，不能重复新增。', ['newTenantIpValue']);
+            return;
+          }
+          const prefix = type === 'api' ? 'AIP' : 'LIP';
+          const sequence = String(Math.max(0, ...rules.map(rule => Number(rule.id.split('-').pop()) || 0)) + 1).padStart(3, '0');
+          rules.push({ id: prefix + '-' + tenant.id.slice(-3) + '-' + sequence, value, name, status: '停用', updatedAt: platformNow() });
+          finishTenantAction(tenant, {
+            action: '新增' + typeName,
+            detail: value + ' 已保存为停用，请在规则行显式启用后再参与校验',
+            reason: name
+          });
+          return;
+        }
+
+        const rule = currentIpRuleForAction();
+        if (!rule) {
+          showFormError('confirmFormError', 'IP 规则已变化，请关闭弹窗并刷新后重试。');
+          return;
+        }
+        const reason = document.getElementById('tenantIpActionReason')?.value.trim() || '';
+        const otpField = document.getElementById('tenantIpAction2fa');
+        const otp = otpField?.value.trim() || '';
+        if (!reason || !/^\d{6}$/.test(otp)) {
+          if (otpField) otpField.value = '';
+          showFormError('confirmFormError', '请填写操作原因并输入当前操作人的 6 位 Google 2FA 验证码。', [!reason ? 'tenantIpActionReason' : 'tenantIpAction2fa']);
+          return;
+        }
+        const enabling = rule.status !== '启用';
+        if (!enabling) {
+          const activeCount = rules.filter(item => item.status === '启用').length;
+          if (type === 'login' && ['正常', '审核中'].includes(tenant.status) && activeCount <= 1) {
+            otpField.value = '';
+            showFormError('confirmFormError', '正常或审核中的租户必须保留至少一条启用的后台登录 IP，已阻断停用。');
+            return;
+          }
+          const hasLiveBusiness = (tenant.businessCatalog || []).some(item => item.status === '已授权');
+          if (type === 'api' && hasLiveBusiness && activeCount <= 1) {
+            otpField.value = '';
+            showFormError('confirmFormError', '当前租户已有启用业务，必须保留至少一条启用的 API 来源 IP，已阻断停用。');
+            return;
+          }
+        }
+        rule.status = enabling ? '启用' : '停用';
+        rule.updatedAt = platformNow();
+        finishTenantAction(tenant, {
+          action: (enabling ? '启用' : '停用') + typeName,
+          detail: rule.value + ' 已' + (enabling ? '启用并参与' : '停用且不再参与') + (type === 'api' ? '业务 API 来源校验' : '租户后台登录校验'),
+          reason
+        });
         return;
       }
 
@@ -3412,9 +3823,10 @@
         if (enabling) {
           const hasFeeBinding = Boolean(tenant.feePolicy) && !/待业务开通|待计费/.test(tenant.feePolicy);
           const hasUsableChannel = (tenant.channels || []).some(channel => channel.startsWith(item.name + ' / '));
-          if (tenant.status !== '正常' || !hasFeeBinding || !hasUsableChannel) {
+          const hasActiveApiIp = (tenant.apiIpRules || []).some(rule => rule.status === '启用');
+          if (tenant.status !== '正常' || !hasFeeBinding || !hasUsableChannel || !hasActiveApiIp) {
             otpField.value = '';
-            const missing = [tenant.status !== '正常' && '租户当前不是正常状态', !hasFeeBinding && '没有唯一启用套餐', !hasUsableChannel && '没有可用授权通道'].filter(Boolean).join('；');
+            const missing = [tenant.status !== '正常' && '租户当前不是正常状态', !hasFeeBinding && '没有唯一启用套餐', !hasUsableChannel && '没有可用授权通道', !hasActiveApiIp && '没有已启用的业务 API 来源 IP'].filter(Boolean).join('；');
             showFormError('confirmFormError', `${missing}，业务继续保持原状态，本次未重置任何下级状态。`);
             return;
           }
@@ -3482,15 +3894,38 @@
           return;
         }
 
-        const accessRequestBtn = event.target.closest('[data-access-request]');
-        if (accessRequestBtn) {
-          openAccessRequest(accessRequestBtn.dataset.accessTenant, accessRequestBtn.dataset.accessRequest);
+        const domainActionBtn = event.target.closest('[data-domain-action]');
+        if (domainActionBtn) {
+          openDomainAction(domainActionBtn.dataset.domainAction, domainActionBtn.dataset.domainId || '');
           return;
         }
 
-        const accessProcessBtn = event.target.closest('[data-access-process]');
-        if (accessProcessBtn) {
-          processAccessRequest(accessProcessBtn.dataset.accessProcess);
+        const ipActionBtn = event.target.closest('[data-ip-action]');
+        if (ipActionBtn) {
+          openIpAction(ipActionBtn.dataset.ipAction, ipActionBtn.dataset.ipType, ipActionBtn.dataset.ipId || '');
+          return;
+        }
+
+        const domainFilterBtn = event.target.closest('[data-domain-filter]');
+        if (domainFilterBtn) {
+          const keyword = (document.getElementById('domainKeyword')?.value || '').trim().toLowerCase();
+          const status = document.getElementById('domainStatusFilter')?.value || '';
+          document.querySelectorAll('#tenantDomainRows tr, #merchantDomainRows tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.hidden = Boolean((keyword && !text.includes(keyword)) || (status && !text.includes(status)));
+          });
+          showToast('域名筛选已更新', '已按关键词和状态刷新当前租户域名。');
+          return;
+        }
+
+        const domainResetBtn = event.target.closest('[data-domain-reset]');
+        if (domainResetBtn) {
+          const keyword = document.getElementById('domainKeyword');
+          const status = document.getElementById('domainStatusFilter');
+          if (keyword) keyword.value = '';
+          if (status) status.value = '';
+          document.querySelectorAll('#tenantDomainRows tr, #merchantDomainRows tr').forEach(row => { row.hidden = false; });
+          showToast('域名筛选已重置', '已展示当前租户全部域名记录。');
           return;
         }
 
@@ -3530,6 +3965,10 @@
         showToast('数据已刷新', '已保留当前筛选并重新加载租户列表。');
       });
       document.getElementById('createTenantTop').addEventListener('click', () => openTenantModal('create'));
+      document.getElementById('domainPrefixInput').addEventListener('input', event => {
+        const normalized = event.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        document.getElementById('domainInput').value = normalized ? normalized + '.hs-pay.com' : '请输入域名前缀';
+      });
       document.getElementById('saveTenantBtn').addEventListener('click', saveTenantProfile);
       document.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', closeTenantModal));
       document.querySelectorAll('[data-close-confirm]').forEach(button => button.addEventListener('click', closeConfirm));
@@ -3573,6 +4012,13 @@
       renderOperationReceipt();
       bindEvents();
       applyPlatformTenantAuthorization();
+      const initialRoute = window.__UNIFIED_DEMO_HASH || window.location.hash.replace('#', '');
+      if (initialRoute.startsWith('detail-')) {
+        openDetailModal(tenants[0].id);
+        activateDetailTab(initialRoute.replace('detail-', ''));
+      } else if (initialRoute === 'create') {
+        openTenantModal('create');
+      }
       refreshIcons();
     }
 
@@ -3584,8 +4030,7 @@
         status: tenant.status,
         admin: tenant.admin,
         domain: tenant.domain,
-        previousDomain: tenant.previousDomain ? { ...tenant.previousDomain } : null,
-        accessRequests: (tenant.accessRequests || []).map(request => ({ ...request, checks: [...request.checks] })),
+        domains: allTenantDomains(tenant).map(domain => ({ ...domain })),
         businessCatalog: (tenant.businessCatalog || []).map(item => ({ ...item })),
         wallets: (tenant.wallets || []).map(wallet => ({ ...wallet }))
       })),

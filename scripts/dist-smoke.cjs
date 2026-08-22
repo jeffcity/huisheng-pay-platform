@@ -12,12 +12,12 @@ const DIST = 'file://' + process.argv[2];
   await page.goto(DIST, { waitUntil: 'networkidle0', timeout: 30000 });
 
   // React 壳就绪：侧边导航 + iframe 出现
-  await page.waitForSelector('.platform-nav-item', { timeout: 10000 });
+  await page.waitForSelector('.arco-menu-item', { timeout: 10000 });
   console.log('SHELL_OK React+Arco 壳渲染');
 
   // 切到资金待办（默认 home，点资金待办）
   await page.evaluate(() => {
-    [...document.querySelectorAll('.platform-nav-item')].find(b => b.dataset.module === 'funds')?.click();
+    [...document.querySelectorAll('.arco-menu-item')].find(b => b.textContent.includes('资金待办'))?.click();
   });
 
   // 内页在 iframe 内，等引擎表格
