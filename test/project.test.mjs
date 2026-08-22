@@ -115,6 +115,12 @@ test("财务模块保留七类独立待办入口", async () => {
   }
 });
 
+test("财务模块导航只展示租户平台钱包", async () => {
+  const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
+  assert.match(moduleSource, /\{ module: 'wallets', label: '租户平台钱包' \}/);
+  assert.doesNotMatch(moduleSource, /\{ module: 'funds', label: '资金待办' \}/);
+});
+
 test("统一导航使用最新模块名称", async () => {
   const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
   const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");

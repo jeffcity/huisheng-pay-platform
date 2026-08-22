@@ -331,43 +331,6 @@
       justify-content: flex-end;
     }
 
-    .ops-strip {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--bg-card);
-      box-shadow: var(--shadow-panel);
-      padding: 10px 14px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .ops-strip strong {
-      color: var(--text-primary);
-    }
-
-    .ops-chip {
-      height: 28px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 0 9px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-secondary);
-      background: #F8FAFC;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .ops-chip.queue {
-      border-color: #BFDBFE;
-      color: #1D4ED8;
-      background: #EFF6FF;
-    }
-
     .btn {
       min-height: 34px;
       border-radius: var(--radius-md);
@@ -500,7 +463,7 @@
 
     .filter-bar {
       display: grid;
-      grid-template-columns: 1.45fr repeat(3, minmax(130px, 1fr)) auto auto;
+      grid-template-columns: 1.45fr repeat(2, minmax(130px, 1fr)) auto auto;
       gap: 10px;
       margin-bottom: 12px;
       align-items: end;
@@ -598,8 +561,7 @@
     }
 
     .mono,
-    .amount,
-    .ops-chip {
+    .amount {
       font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
     }
 
@@ -1652,8 +1614,6 @@
 
         <div class="operation-receipt" id="operationReceipt" role="status" aria-live="polite"></div>
 
-        <div class="ops-strip" id="opsStrip" aria-label="租户列表筛选摘要"></div>
-
         <div class="layout-grid">
           <section class="panel tenant-list-panel">
             <div class="panel-header">
@@ -1676,18 +1636,10 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label for="businessFilter">业务大类</label>
+                  <label for="businessFilter">业务</label>
                   <select id="businessFilter">
                     <option value="all">全部业务</option>
                     <option value="法币业务">法币业务</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="expireFilter">到期状态</label>
-                  <select id="expireFilter">
-                    <option value="all">全部到期</option>
-                    <option value="expiring">120 天内到期</option>
-                    <option value="expired">已过期</option>
                   </select>
                 </div>
                 <button class="btn primary" id="applyFilter"><i data-lucide="sliders-horizontal"></i>筛选</button>
@@ -2298,7 +2250,6 @@
       }
     }
 
-    const today = new Date('2026-07-18T00:00:00+08:00');
 
     const businessAbilities = [
       [
@@ -2467,18 +2418,6 @@
       return permissions.canCreate && permissions.scopeCode === 'platform.all_tenants';
     }
 
-    function daysUntilExpire(tenant) {
-      const expire = new Date(tenant.expire + 'T00:00:00');
-      return Math.round((expire - today) / 86400000);
-    }
-
-    function expireLabel(tenant) {
-      const days = daysUntilExpire(tenant);
-      if (days < 0) return tag('已过期', 'red');
-      if (days <= 120) return tag(days + ' 天到期', 'orange');
-      return tag('有效', 'green');
-    }
-
     function disabledButton(label, icon, reason) {
       return '<button class="btn" disabled title="' + reason + '"><i data-lucide="' + icon + '"></i>' + label + '</button>';
     }
@@ -2518,33 +2457,8 @@
           '<span class="amount">' + formatLedgerAmount(row[1].CNY, 'CNY') + '</span>' +
         '</div>'
       )).join('') +
-        '<button class="wallet-link" data-open-wallet="' + tenant.id + '">CNY 钱包</button>' +
+        '<button class="wallet-link" data-open-wallet="' + tenant.id + '">钱包详情</button>' +
       '</div>';
-    }
-
-    function renderOpsStrip() {
-      const visible = appState.filtered.length;
-      const normal = appState.filtered.filter(tenant => tenant.status === '正常').length;
-      const pending = appState.filtered.filter(tenant => tenant.status === '审核中').length;
-      const stopped = appState.filtered.filter(tenant => tenant.status === '停用').length;
-      const expiring = appState.filtered.filter(tenant => {
-        const days = daysUntilExpire(tenant);
-        return days >= 0 && days <= 120;
-      }).length;
-      const permissions = getPermissions();
-      const roleLimited = tenants.filter(tenant => !tenantInCurrentScope(tenant)).length;
-      const accessPending = appState.filtered.reduce((sum, tenant) => sum + allTenantDomains(tenant).filter(domain => domain.status === '未启用').length, 0);
-      document.getElementById('opsStrip').innerHTML =
-        '<strong>筛选结果 ' + visible + ' 个租户</strong>' +
-        '<span class="ops-chip">正常 ' + normal + '</span>' +
-        '<span class="ops-chip">审核中 ' + pending + '</span>' +
-        '<span class="ops-chip">停用 ' + stopped + '</span>' +
-        '<span class="ops-chip queue">待处理队列 审核 ' + pending + '</span>' +
-        '<span class="ops-chip queue">域名待处理 ' + accessPending + '</span>' +
-        '<span class="ops-chip queue">到期 ' + expiring + '</span>' +
-        '<span class="ops-chip queue">权限受限 ' + roleLimited + '</span>' +
-        '<span class="ops-chip">当前角色 ' + appState.currentRole + '</span>' +
-        '<span class="ops-chip">当前范围 ' + (permissions.scopeCode === 'platform.all_tenants' ? '全部租户' : '指定租户 ' + permissions.tenantIds.length + ' 个') + '</span>';
     }
 
     function tag(text, tone) {
@@ -2556,7 +2470,6 @@
       const result = appState.filtered;
       const permissions = getPermissions();
       const createAllowed = canCreateTenant();
-      renderOpsStrip();
       document.getElementById('createTenantTop').disabled = !createAllowed;
       document.getElementById('createTenantTop').title = createAllowed ? '' : (permissions.canCreate ? '新增顶层租户要求“全部租户”数据范围' : appState.currentRole + ' 无新增租户权限');
 
@@ -2775,12 +2688,12 @@
       if (title === '新增自定义域名' || title === '新增商户端域名') {
         const merchantPortal = title === '新增商户端域名';
         document.getElementById('confirmDetail').textContent = merchantPortal
-          ? '仅平台人员录入当前租户的商户端共享登录域名；保存后进入未启用状态，当前租户下全部商户共用。'
+          ? '仅平台人员录入当前租户的商户端域名；保存后进入未启用状态，当前租户下全部商户共用。'
           : '仅平台人员录入租户后台自定义域名；保存后进入未启用状态，不会直接开放登录。';
         form.innerHTML =
           '<div class="field wide"><label for="newCustomDomain">完整域名</label><input id="newCustomDomain" class="mono" placeholder="pay.example.com" autocomplete="off"></div>' +
           '<div class="field"><label>绑定租户</label><input value="' + tenant.id + ' / ' + tenant.name + '" readonly></div>' +
-          '<div class="field"><label>入口类型</label><input value="' + (merchantPortal ? '商户端共享登录' : '租户后台登录') + '" readonly></div>' +
+          '<div class="field"><label>入口类型</label><input value="' + (merchantPortal ? '商户端登录' : '租户后台登录') + '" readonly></div>' +
           '<div class="field"><label>初始状态</label><input value="未启用" readonly></div>' +
           '<div class="field wide"><label for="domainAddReason">线下沟通说明</label><textarea id="domainAddReason" placeholder="记录线下沟通对象和配置目的"></textarea></div>';
         actionBtn.className = 'btn primary';
@@ -3013,7 +2926,6 @@
       document.getElementById('globalSearch').value = '';
       document.getElementById('statusFilter').value = 'all';
       document.getElementById('businessFilter').value = 'all';
-      document.getElementById('expireFilter').value = 'all';
       applyFilters(false);
     }
 
@@ -3022,17 +2934,14 @@
       const globalKeyword = document.getElementById('globalSearch').value.trim().toLowerCase();
       const status = document.getElementById('statusFilter').value;
       const business = document.getElementById('businessFilter').value;
-      const expire = document.getElementById('expireFilter').value;
       const search = keyword || globalKeyword;
 
       appState.filtered = tenants.filter(tenant => {
         const text = [tenant.id, tenant.name, tenant.contact, tenant.phone, tenant.domain].join(' ').toLowerCase();
-        const days = daysUntilExpire(tenant);
         const okSearch = !search || text.includes(search);
         const okStatus = status === 'all' || tenant.status === status;
         const okBusiness = business === 'all' || tenant.businessTypes.includes(business);
-        const okExpire = expire === 'all' || (expire === 'expiring' && days >= 0 && days <= 120) || (expire === 'expired' && days < 0);
-        return tenantInCurrentScope(tenant) && okSearch && okStatus && okBusiness && okExpire;
+        return tenantInCurrentScope(tenant) && okSearch && okStatus && okBusiness;
       });
 
       renderRows();
@@ -3086,14 +2995,6 @@
           kv('代付钱包总额', formatMoney(tenant.wallet)) +
           kv('当前状态', tenant.status) +
         '</div>' +
-        sectionTitle('后台入口摘要') +
-        '<div class="kv-grid">' +
-          kv('当前可用域名', String((tenant.domains || []).filter(item => item.status === '可用').length)) +
-          kv('商户端可用域名', String((tenant.merchantDomains || []).filter(item => item.status === '可用').length)) +
-          kv('启用登录 IP', String((tenant.loginIpRules || []).filter(item => item.status === '启用').length)) +
-          kv('启用 API 来源 IP', String((tenant.apiIpRules || []).filter(item => item.status === '启用').length)) +
-        '</div>' +
-        sectionTitle('详情操作') +
         '<div class="tag-row">' +
           editProfileAction +
         '</div>';
@@ -3138,7 +3039,6 @@
           (permissions.canSecurity && !closed ? '<button class="btn" data-confirm="重置 2FA" data-confirm-tenant="' + tenant.id + '" data-confirm-detail="解除当前管理账号的 2FA 绑定，并通过当前操作人 2FA 验证。管理员下次登录需重新绑定。"><i data-lucide="shield"></i>重置 2FA</button>' : disabledButton('重置 2FA', 'shield', closed ? '关闭租户只允许历史查看' : appState.currentRole + ' 无安全操作权限')) +
         '</div>' +
         sectionTitle('租户后台登录 IP 白名单') +
-        '<div class="notice"><i data-lucide="log-in"></i><div><strong>只控制租户后台登录。</strong>创建租户时至少原子写入一条启用规则；正常或审核中的租户始终保留至少一条启用规则。</div></div>' +
         '<div class="tag-row" style="margin:12px 0">' +
           (permissions.canSecurity && !readonlyTenant ? '<button class="btn primary" data-ip-action="add" data-ip-type="login"><i data-lucide="plus"></i>新增登录 IP</button>' : disabledButton('新增登录 IP', 'plus', readonlyTenant ? '当前租户状态不允许新增规则' : appState.currentRole + ' 无安全配置权限')) +
           '<span class="cell-sub">新增后默认停用，需在规则行显式启用。</span>' +
@@ -3147,7 +3047,6 @@
           renderIpRuleRows('login', tenant.loginIpRules || [], permissions, readonlyTenant) +
         '</tbody></table></div>' +
         sectionTitle('业务 API 来源 IP 白名单') +
-        '<div class="notice"><i data-lucide="braces"></i><div><strong>只控制业务 API 请求。</strong>支持 IPv4 或 CIDR，与后台登录名单完全独立，不复制、不同步。</div></div>' +
         '<div class="tag-row" style="margin:12px 0">' +
           (permissions.canSecurity && !readonlyTenant ? '<button class="btn primary" data-ip-action="add" data-ip-type="api"><i data-lucide="plus"></i>新增 API 来源 IP</button>' : disabledButton('新增 API 来源 IP', 'plus', readonlyTenant ? '当前租户状态不允许新增规则' : appState.currentRole + ' 无安全配置权限')) +
           '<span class="cell-sub">业务启用前至少需要一条已启用来源规则。</span>' +
@@ -3185,12 +3084,12 @@
         '<div class="table-wrap detail-table"><table aria-label="租户后台域名列表"><thead><tr><th>域名</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="tenantDomainRows">' +
           renderDomainRows(tenantDomains, permissions) +
         '</tbody></table></div>' +
-        sectionTitle('商户端共享登录域名') +
+        sectionTitle('商户端域名') +
         '<div class="tag-row" style="margin-bottom:12px">' +
           (permissions.canAccessProcess && !readonlyTenant ? '<button class="btn primary" data-domain-action="新增商户端域名"><i data-lucide="plus"></i>新增域名</button>' : disabledButton('新增域名', 'plus', readonlyTenant ? '当前租户状态不允许新增域名' : appState.currentRole + ' 无域名管理权限')) +
           '<span class="cell-sub">域名只识别当前租户；该租户下全部商户共用，登录账号再确定具体商户。</span>' +
         '</div>' +
-        '<div class="table-wrap detail-table"><table aria-label="商户端共享登录域名列表"><thead><tr><th>域名</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="merchantDomainRows">' +
+        '<div class="table-wrap detail-table"><table aria-label="商户端域名列表"><thead><tr><th>域名</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="merchantDomainRows">' +
           renderDomainRows(merchantDomains, permissions) +
         '</tbody></table></div>';
 

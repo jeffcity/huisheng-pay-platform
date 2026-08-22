@@ -16,7 +16,6 @@ export const NAV_GROUPS = [
   ]},
   { title: '财务模块', items: [
     { module: 'wallets', label: '租户平台钱包' },
-    { module: 'funds', label: '资金待办' },
   ]},
   { title: '通道管理', items: [
     { module: 'channel-vendors', label: '通道管理' },
