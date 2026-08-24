@@ -1,71 +1,97 @@
-// dist 冒烟：React 壳加载 → 租户平台钱包渲染 → 钱包详情 → 租户流水下钻。
-// 与当前统一导航和重构后的构建产物保持一致。
+// dist 冒烟：React 壳加载 → 租户平台钱包渲染 → 钱包弹窗 → 流水时间切换。
+// 与当前统一导航和钱包 Demo 的构建产物保持一致。
 const puppeteer = require('puppeteer-core');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const DIST = 'file://' + process.argv[2];
 
 (async () => {
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--allow-file-access-from-files'] });
-  const page = await browser.newPage();
-  page.on('pageerror', e => console.log('PAGEERROR:', e.message.slice(0, 200)));
-  await page.setViewport({ width: 1440, height: 900 });
-  await page.goto(DIST, { waitUntil: 'networkidle0', timeout: 30000 });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: CHROME,
+      headless: 'new',
+      args: ['--no-sandbox', '--allow-file-access-from-files']
+    });
+    const page = await browser.newPage();
+    page.on('pageerror', error => console.log('PAGEERROR:', error.message.slice(0, 200)));
+    await page.setViewport({ width: 1440, height: 900 });
+    await page.goto(DIST, { waitUntil: 'networkidle0', timeout: 30000 });
 
-  // React 壳就绪：侧边导航 + iframe 出现
-  await page.waitForSelector('.arco-menu-item', { timeout: 10000 });
-  console.log('SHELL_OK React+Arco 壳渲染');
+    await page.waitForSelector('.arco-menu-item', { timeout: 10000 });
+    console.log('SHELL_OK React+Arco 壳渲染');
 
-  // 切到财务模块当前唯一入口：租户平台钱包
-  await page.evaluate(() => {
-    [...document.querySelectorAll('.arco-menu-item')].find(b => b.textContent.includes('租户平台钱包'))?.click();
-  });
+    const walletMenu = await page.waitForFunction(() => (
+      [...document.querySelectorAll('.arco-menu-item')]
+        .find(item => item.textContent.includes('租户平台钱包')) || null
+    ), { timeout: 10000 });
+    await walletMenu.asElement().click();
 
-  // 内页在 iframe 内，等待钱包表格与原型接口就绪
-  await page.waitForFunction(() => {
-    const frame = document.querySelector('iframe');
-    try {
-      const inner = frame?.contentDocument;
-      return inner?.querySelector('#tableBody tr') && inner?.defaultView?.__HSPlatformPrototype?.getWalletRows;
-    } catch {
-      return false;
+    await page.waitForFunction(() => {
+      const frame = document.querySelector('iframe');
+      try {
+        const inner = frame?.contentDocument;
+        return Boolean(
+          inner?.querySelector('#tableBody tr') &&
+          inner?.defaultView?.__HSPlatformPrototype?.getWalletRows
+        );
+      } catch {
+        return false;
+      }
+    }, { timeout: 15000 });
+    console.log('EMBED_OK 租户平台钱包经 embed 管线加载');
+
+    const walletCount = await page.evaluate(() => {
+      const inner = document.querySelector('iframe').contentDocument;
+      return inner.defaultView.__HSPlatformPrototype.getWalletRows().length;
+    });
+
+    await page.evaluate(() => {
+      document.querySelector('iframe').contentDocument
+        .querySelector('#tableBody tr [data-detail]')?.click();
+    });
+    await page.waitForFunction(() => {
+      const inner = document.querySelector('iframe').contentDocument;
+      return Boolean(
+        inner.querySelector('#drawer.open.wallet-modal') &&
+        inner.querySelector('#drawerTitle')?.textContent.includes('租户钱包') &&
+        inner.querySelectorAll('.wallet-detail-card').length === 3 &&
+        inner.querySelector('[data-wallet-flow-section]')
+      );
+    }, { timeout: 5000 });
+    console.log('MODAL_OPEN 租户钱包详情弹窗');
+
+    for (const period of ['today', 'yesterday']) {
+      await page.evaluate(selectedPeriod => {
+        document.querySelector('iframe').contentDocument
+          .querySelector(`[data-wallet-flow-period="${selectedPeriod}"]`)?.click();
+      }, period);
+      await page.waitForFunction(selectedPeriod => {
+        const inner = document.querySelector('iframe').contentDocument;
+        const tab = inner.querySelector(`[data-wallet-flow-period="${selectedPeriod}"]`);
+        return tab?.getAttribute('aria-selected') === 'true' &&
+          inner.querySelectorAll('[data-wallet-flow-section] tbody tr').length > 0;
+      }, { timeout: 5000 }, period);
     }
-  }, { timeout: 15000 });
-  console.log('EMBED_OK 租户平台钱包经 embed 管线加载');
 
-  const doc = () => page.evaluateHandle(() => document.querySelector('iframe').contentDocument);
-  const walletCount = await page.evaluate(async d => d.defaultView.__HSPlatformPrototype.getWalletRows().length, await doc());
+    const result = await page.evaluate(() => {
+      const inner = document.querySelector('iframe').contentDocument;
+      return {
+        title: inner.querySelector('#drawerTitle')?.textContent.trim(),
+        cards: inner.querySelectorAll('.wallet-detail-card').length,
+        flowRows: inner.querySelectorAll('[data-wallet-flow-section] tbody tr').length,
+        activePeriod: inner.querySelector('[data-wallet-flow-period][aria-selected="true"]')?.textContent.trim()
+      };
+    });
 
-  // 打开首条钱包详情
-  await page.evaluate(async d => {
-    d.defaultView.document.querySelector('#tableBody tr [data-detail]')?.click();
-  }, await doc());
-  await page.waitForFunction(async d => {
-    const inner = d.defaultView.document;
-    return inner.querySelector('#drawer.open') && inner.querySelector('#drawerTitle')?.textContent.includes('租户平台钱包详情');
-  }, { timeout: 5000 }, await doc());
-  console.log('DRAWER_OPEN 钱包详情');
-
-  // 从钱包详情下钻至当前租户流水
-  await page.evaluate(async d => {
-    d.defaultView.document.querySelector('#drawerBody [data-jump-page="ledger"]')?.click();
-  }, await doc());
-  await page.waitForFunction(async d => {
-    const inner = d.defaultView.document;
-    return inner.querySelector('#pageTitle')?.textContent.includes('租户整体流水') && inner.querySelector('#tableBody tr');
-  }, { timeout: 5000 }, await doc());
-
-  const result = await page.evaluate(async d => {
-    const inner = d.defaultView.document;
-    return {
-      title: inner.querySelector('#pageTitle')?.textContent.trim(),
-      rows: inner.querySelectorAll('#tableBody tr').length
-    };
-  }, await doc());
-
-  const pass = walletCount > 0 && result.title.includes('租户整体流水') && result.rows > 0;
-  console.log('AFTER 钱包详情:', walletCount, '个租户钱包 | 下钻', result.title, '| 列表', result.rows, '行');
-  console.log(pass ? 'DIST_SMOKE_PASS 重构产物钱包查看与流水下钻链路完好' : 'DIST_SMOKE_FAIL');
-  await page.screenshot({ path: 'smoke-dist.png' });
-  await browser.close();
-  process.exit(pass ? 0 : 1);
+    const pass = walletCount > 0 && result.cards === 3 && result.flowRows > 0 && result.activePeriod === '昨日';
+    console.log('AFTER 钱包详情:', walletCount, '个租户钱包 |', result.title, '|', result.cards, '个钱包 |', result.activePeriod, result.flowRows, '条流水');
+    console.log(pass ? 'DIST_SMOKE_PASS 钱包弹窗与流水时间切换链路完好' : 'DIST_SMOKE_FAIL');
+    await page.screenshot({ path: 'smoke-dist.png' });
+    process.exitCode = pass ? 0 : 1;
+  } catch (error) {
+    console.error('DIST_SMOKE_ERROR', error);
+    process.exitCode = 1;
+  } finally {
+    await browser?.close();
+  }
 })();
