@@ -810,6 +810,44 @@
       grid-template-columns: repeat(3, minmax(180px, 1fr));
     }
 
+    .metrics.wallet-metrics {
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+    }
+
+    .wallet-currency-switch {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .wallet-currency-switch > span {
+      margin-right: 4px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .currency-button {
+      min-height: 34px;
+      padding: 0 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .currency-button.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
     .context-panel {
       display: none;
       padding: 12px 14px;
@@ -1358,6 +1396,88 @@
 
     .drawer.open {
       transform: translateX(0);
+    }
+
+    .drawer.wallet-modal {
+      top: 50%;
+      left: 50%;
+      right: auto;
+      width: min(960px, calc(100vw - 48px));
+      height: min(820px, calc(100vh - 64px));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 24px 64px rgba(29, 33, 41, 0.2);
+      transform: translate(-50%, -48%) scale(0.98);
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .drawer.wallet-modal.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .drawer.wallet-modal .drawer-body > * {
+      flex-shrink: 0;
+    }
+
+    .wallet-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .wallet-detail-card {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .wallet-detail-card > span:not(.pill),
+    .wallet-detail-card > small {
+      color: var(--muted);
+    }
+
+    .wallet-detail-card > strong {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .wallet-detail-card .pill {
+      align-self: flex-start;
+    }
+
+    .wallet-flow-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .wallet-flow-tab {
+      min-height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .wallet-flow-tab.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary);
     }
 
     .drawer-head {
@@ -1921,6 +2041,15 @@
     }
 
     @media (max-width: 768px) {
+      .drawer.wallet-modal {
+        width: calc(100vw - 24px);
+        height: calc(100vh - 24px);
+      }
+
+      .wallet-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
       button,
       [role="button"] {
         min-width: 44px !important;
@@ -1974,18 +2103,6 @@
       </header>
 
       <section class="content">
-        <div class="risk-strip">
-          <strong>首版口径</strong>
-          <div class="risk-list">
-            <span class="pill orange">首版仅 CNY</span>
-            <span class="pill orange">业务实时处理</span>
-            <span class="pill orange">租户资金平台审核</span>
-            <span class="pill orange">通道由租户手动切换</span>
-            <span class="pill orange">导出二次确认</span>
-            <span class="pill orange">审计永久保存</span>
-          </div>
-        </div>
-
         <section class="page-head">
           <div>
             <h1 class="page-title" id="pageTitle"></h1>
@@ -4839,7 +4956,7 @@
       wallets: {
         group: '资金运营',
         title: '租户平台钱包',
-        subtitle: '跨租户查看 CNY 代收、代付和提款钱包的总额、可用、冻结及关联流水；本页不提供直接改账。',
+        subtitle: '按币种查看各租户代收、代付和提款钱包的余额、可用余额与冻结金额。',
         tableTitle: '租户钱包列表',
         primaryAction: '刷新钱包余额',
         secondaryAction: '导出钱包清单',
@@ -4848,16 +4965,15 @@
         stats: [
           ['三钱包总额', 'CNY 12.84M', '跨 128 个租户', 'blue'],
           ['可用余额', 'CNY 10.92M', '实时账本结果', 'green'],
-          ['冻结金额', 'CNY 1.92M', '订单与提款占用', 'orange'],
-          ['核对异常', '5', '进入资金待办处理', 'red']
+          ['冻结金额', 'CNY 1.92M', '订单与提款占用', 'orange']
         ],
-        filters: ['租户名称 / 编号', '钱包状态', '余额区间', 'UTC+8 最近变化开始日期', 'UTC+8 最近变化结束日期'],
-        columns: ['租户编号', '租户名称', '代收钱包', '代付钱包', '提款钱包', '冻结合计', '待处理事项', '最近变化', '状态', '操作'],
+        filters: ['租户名称 / 编号'],
+        columns: ['租户编号', '租户名称', '代收钱包', '代付钱包', '提款钱包', '冻结合计', '操作'],
         rows: [
           ['HS-TEN-001', '汇盛东南亚', 'CNY 1,208,362.22', 'CNY 820,310.88', 'CNY 320,000.00', 'CNY 353,550.80', '5 项', '2026-07-17 16:06', '正常'],
-          ['HS-TEN-017', '蓝盛拆分租户', 'CNY 385,000.00', 'CNY 12,680.20', 'CNY 30,000.00', 'CNY 0.00', '2 项', '2026-07-17 13:41', '低'],
-          ['HS-TEN-029', '北辰支付', 'CNY 0.00', 'CNY 8,230.55', 'CNY 20,000.00', 'CNY 28,230.55', '3 项', '2026-07-17 12:09', '风险观察'],
-          ['HS-TEN-046', '澜海商服', 'CNY 7,380,000.00', 'CNY 219,004.08', 'CNY 80,000.00', 'CNY 300,000.00', '1 项', '2026-07-17 10:22', '正常']
+          ['HS-TEN-018', '北辰支付', 'CNY 385,000.00', 'CNY 12,680.20', 'CNY 30,000.00', 'CNY 0.00', '2 项', '2026-07-17 13:41', '低'],
+          ['HS-TEN-029', '蓝盛拆分租户', 'CNY 0.00', 'CNY 8,230.55', 'CNY 20,000.00', 'CNY 28,230.55', '3 项', '2026-07-17 12:09', '风险观察'],
+          ['HS-TEN-044', '海岚通道业务', 'CNY 7,380,000.00', 'CNY 219,004.08', 'CNY 80,000.00', 'CNY 300,000.00', '1 项', '2026-07-17 10:22', '正常']
         ],
         detailKind: 'wallet'
       },
@@ -5908,6 +6024,45 @@
       return `CNY ${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
+    let activeWalletCurrency = 'CNY';
+    const walletCurrencyRates = Object.freeze({ CNY: 1, USD: 0.14, PHP: 8.05, THB: 4.78 });
+
+    function walletCurrencyValue(value) {
+      return Number(value || 0) * (walletCurrencyRates[activeWalletCurrency] || 1);
+    }
+
+    function formatWalletAmount(value) {
+      return `${activeWalletCurrency} ${walletCurrencyValue(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function formatWalletMetric(value) {
+      const amount = walletCurrencyValue(value);
+      return `${activeWalletCurrency} ${(amount / 1000000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+    }
+
+    function renderWalletMetrics() {
+      const metrics = [
+        ['三钱包总额', 12840000, '跨 128 个租户', 'blue'],
+        ['可用余额', 10920000, '可用余额合计', 'green'],
+        ['冻结金额', 1920000, '冻结金额合计', 'orange']
+      ];
+      return `
+        <div class="wallet-currency-switch" role="tablist" aria-label="钱包币种">
+          <span>币种</span>
+          ${Object.keys(walletCurrencyRates).map(currency => `<button class="currency-button ${currency === activeWalletCurrency ? 'active' : ''}" type="button" role="tab" aria-selected="${currency === activeWalletCurrency}" data-wallet-currency="${currency}">${currency}</button>`).join('')}
+        </div>
+        ${metrics.map((item, index) => `
+          <article class="metric">
+            <div>
+              <label>${item[0]}</label>
+              <strong>${formatWalletMetric(item[1])}</strong>
+              <small>${item[2]}</small>
+            </div>
+            ${renderMetricSpark(index, item[3])}
+          </article>
+        `).join('')}`;
+    }
+
     function platformWalletRow(tenantName) {
       return pages.wallets.rows.find(row => row[1] === tenantName);
     }
@@ -6218,6 +6373,8 @@
           ? renderPlatformHomeMetrics(platformHomeReportRows())
         : id === 'report'
           ? renderPlatformReportMetrics(visibleRows)
+        : id === 'wallets'
+          ? renderWalletMetrics()
         : page.stats.map((item, index) => `
         <article class="metric ${id === 'home' ? 'metric-link' : ''}" ${id === 'home' ? `data-home-metric="${index}" data-source-target="${platformHomeMetricTarget(index)}" role="button" tabindex="0" aria-label="查看${item[0]}来源"` : ''}>
           <div>
@@ -6229,6 +6386,7 @@
         </article>
       `).join('');
       document.getElementById('metrics').classList.toggle('home-metrics', id === 'home');
+      document.getElementById('metrics').classList.toggle('wallet-metrics', id === 'wallets');
       document.getElementById('metrics').classList.toggle('stale', id === 'home' && ['failure', 'delayed'].includes(metricHealth.status));
 
       const homeExtra = document.getElementById('homeExtra');
@@ -6313,11 +6471,14 @@
         const rowIndex = page.rows.indexOf(row);
         const fundMeta = pageId === 'funds' ? platformFundMeta.get(row[0]) || {} : null;
         const orderMeta = pageId === 'orders' ? platformOrderQueryMetaFor(row) : null;
+        const displayCells = pageId === 'wallets'
+          ? row.slice(0, 6).map((cell, cellIndex) => cellIndex >= 2 ? formatWalletAmount(parseCny(cell)) : cell)
+          : row;
         return `
         <tr data-row="${rowIndex}">
-          ${row.map((cell, cellIndex) => {
+          ${displayCells.map((cell, cellIndex) => {
             const value = String(cell);
-            const cls = cellIndex === 0 || /CNY|%|2026|ORD|LG|AL|CFG|CH|HS|FT-/.test(value) ? 'mono' : '';
+            const cls = cellIndex === 0 || (pageId === 'wallets' && cellIndex >= 2) || /CNY|%|2026|ORD|LG|AL|CFG|CH|HS|FT-/.test(value) ? 'mono' : '';
             if (pageId === 'funds' && cellIndex === 0) {
               return `<td class="mono"><div class="stack"><span data-platform-fund-task-id="${escapeHtml(row[0])}">${escapeHtml(row[0])}</span>${fundMeta.tenantRequestNo ? `<span class="muted" data-tenant-request-no="${escapeHtml(fundMeta.tenantRequestNo)}">租户 ${escapeHtml(fundMeta.tenantRequestNo)}</span>` : ''}${fundMeta.fundApplicationId ? `<span class="muted" data-fund-application-id="${escapeHtml(fundMeta.fundApplicationId)}">平台 ${escapeHtml(fundMeta.fundApplicationId)}</span>` : ''}</div></td>`;
             }
@@ -7366,8 +7527,8 @@
         return;
       }
       if (id === 'wallets') {
-        panel.innerHTML = `${sourceHtml}<p class="context-note" style="margin:0">平台只维护租户的 CNY 代收、代付和提款钱包。租户授权账号可按允许路径实时内部划转；平台端只读查看，不审核、不重放。待处理事项不计入余额，商户钱包与本页无关。</p>`;
-        panel.classList.add('show');
+        panel.innerHTML = sourceHtml;
+        panel.classList.toggle('show', Boolean(source));
         return;
       }
       if (id === 'report') {
@@ -7590,6 +7751,158 @@
       }).join('');
     }
 
+    const platformWalletDetailProfiles = new Map([
+      ['HS-TEN-001', {
+        transactionId: 'TX-20260705-0018',
+        feePolicy: '套餐 A / 订单成功实时计费',
+        wallets: [
+          { name: '代收钱包', frozen: 248900, status: '正常', tone: 'green' },
+          { name: '代付钱包', frozen: 84630.80, status: '正常', tone: 'green' },
+          { name: '提款钱包', frozen: 20020, status: '正常', tone: 'green' }
+        ]
+      }],
+      ['HS-TEN-018', {
+        transactionId: 'TX-20260705-0019',
+        feePolicy: '套餐 B / 订单成功实时计费',
+        wallets: [
+          { name: '代收钱包', frozen: 0, status: '审核中', tone: 'orange' },
+          { name: '代付钱包', frozen: 0, status: '低余额', tone: 'orange' },
+          { name: '提款钱包', frozen: 0, status: '正常', tone: 'green' }
+        ]
+      }],
+      ['HS-TEN-029', {
+        transactionId: 'TX-20260705-0020',
+        feePolicy: '套餐 A / 订单成功实时计费',
+        wallets: [
+          { name: '代收钱包', frozen: 0, status: '停用', tone: 'red' },
+          { name: '代付钱包', frozen: 8230.55, status: '冻结', tone: 'red' },
+          { name: '提款钱包', frozen: 20000, status: '冻结', tone: 'red' }
+        ]
+      }],
+      ['HS-TEN-044', {
+        transactionId: 'TX-20260705-0021',
+        feePolicy: '套餐 C / 订单成功实时计费',
+        wallets: [
+          { name: '代收钱包', frozen: 280000, status: '正常', tone: 'green' },
+          { name: '代付钱包', frozen: 20000, status: '正常', tone: 'green' },
+          { name: '提款钱包', frozen: 0, status: '正常', tone: 'green' }
+        ]
+      }]
+    ]);
+
+    let activeWalletFlowPeriod = 'hour';
+
+    function platformWalletFlowMarkup(row, profile, wallets) {
+      const collectBalance = wallets[0]?.total || 0;
+      const payoutBalance = wallets[1]?.total || 0;
+      const withdrawBalance = wallets[2]?.total || 0;
+      const periods = {
+        hour: {
+          label: '近一小时',
+          rows: [
+            ['16:42:18', '代付钱包', '代付成功扣款', '支出', 28600, Math.max(0, payoutBalance - 28600), 'HS-P-20260717-00428'],
+            ['16:28:04', '代收钱包', '代收成功入账', '收入', 147655.96, collectBalance, profile.transactionId],
+            ['16:10:32', '提款钱包', '提款申请冻结', '冻结', 20000, withdrawBalance, 'WD-20260717-00118']
+          ]
+        },
+        today: {
+          label: '今日',
+          rows: [
+            ['15:35:41', '代收钱包', '代收成功入账', '收入', 86500, Math.max(0, collectBalance - 147655.96), 'HS-C-20260717-08126'],
+            ['14:22:08', '代付钱包', '服务费扣款', '支出', 3580.12, Math.max(0, payoutBalance - 32200.12), 'FEE-20260717-00412'],
+            ['11:06:52', '提款钱包', '提款成功扣款', '支出', 50000, Math.max(0, withdrawBalance - 50000), 'WD-20260717-00096']
+          ]
+        },
+        yesterday: {
+          label: '昨日',
+          rows: [
+            ['昨天 22:18:09', '代收钱包', '代收退款', '支出', 12800, Math.max(0, collectBalance - 234155.96), 'RF-20260716-00208'],
+            ['昨天 17:46:33', '代付钱包', '人工加款', '收入', 8000, Math.max(0, payoutBalance - 35780.12), 'ADJ-20260716-00031'],
+            ['昨天 09:12:27', '提款钱包', '提款失败解冻', '解冻', 30000, Math.max(0, withdrawBalance - 20000), 'WD-20260716-00074']
+          ]
+        }
+      };
+      const selected = periods[activeWalletFlowPeriod] || periods.hour;
+      const tabs = Object.entries(periods).map(([key, period]) => `
+        <button class="wallet-flow-tab ${key === activeWalletFlowPeriod ? 'active' : ''}" type="button" role="tab" aria-selected="${key === activeWalletFlowPeriod}" data-wallet-flow-period="${key}">${period.label}</button>
+      `).join('');
+      const rows = selected.rows.map(item => `
+        <tr>
+          <td class="mono">${escapeHtml(item[0])}</td>
+          <td>${escapeHtml(item[1])}</td>
+          <td>${escapeHtml(item[2])}</td>
+          <td><span class="pill ${item[3] === '收入' || item[3] === '解冻' ? 'green' : item[3] === '冻结' ? 'orange' : 'gray'}">${escapeHtml(item[3])}</span></td>
+          <td class="mono">${escapeHtml(formatWalletAmount(item[4]))}</td>
+          <td class="mono">${escapeHtml(formatWalletAmount(item[5]))}</td>
+          <td class="mono">${escapeHtml(item[6])}</td>
+        </tr>
+      `).join('');
+      return `
+        <div class="detail-section" data-wallet-flow-section>
+          <h3>最近钱包流水</h3>
+          <div class="wallet-flow-tabs" role="tablist" aria-label="钱包流水时间范围">${tabs}</div>
+          <div class="table-wrap"><table aria-label="${escapeHtml(row[1])} ${escapeHtml(selected.label)}钱包流水">
+            <thead><tr><th>时间</th><th>钱包</th><th>流水类型</th><th>收支</th><th>金额</th><th>变动后余额</th><th>关联单号</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div>
+        </div>
+      `;
+    }
+
+    function platformWalletDetailMarkup(row) {
+      const profile = platformWalletDetailProfiles.get(row[0]) || {
+        transactionId: '-',
+        feePolicy: '订单成功实时计费',
+        wallets: ['代收钱包', '代付钱包', '提款钱包'].map(name => ({ name, frozen: 0, status: '正常', tone: 'green' }))
+      };
+      const wallets = profile.wallets.map((wallet, index) => {
+        const liveState = platformWalletState(row[1], wallet.name);
+        const total = liveState ? liveState.total : parseCny(row[index + 2]);
+        const frozen = liveState ? liveState.frozen : wallet.frozen;
+        return {
+          ...wallet,
+          total,
+          frozen,
+          available: Math.max(0, total - frozen)
+        };
+      });
+      const walletCards = wallets.map(wallet => `
+        <article class="wallet-detail-card">
+          <span>${escapeHtml(wallet.name)}</span>
+          <strong>${escapeHtml(formatWalletAmount(wallet.total))}</strong>
+          <small>可用 ${escapeHtml(formatWalletAmount(wallet.available))}</small>
+          <span class="pill ${escapeHtml(wallet.tone)}">${escapeHtml(wallet.status)}</span>
+        </article>
+      `).join('');
+      const walletRows = wallets.map(wallet => `
+        <tr>
+          <td><strong>${escapeHtml(activeWalletCurrency)}</strong><br><span class="mono">${escapeHtml(wallet.name)}</span></td>
+          <td class="mono">${escapeHtml(formatWalletAmount(wallet.total))}</td>
+          <td class="mono">${escapeHtml(formatWalletAmount(wallet.available))}</td>
+          <td class="mono">${escapeHtml(formatWalletAmount(wallet.frozen))}</td>
+          <td><span class="pill ${escapeHtml(wallet.tone)}">${escapeHtml(wallet.status)}</span></td>
+        </tr>
+      `).join('');
+      return `
+        <div class="detail-section">
+          <h3>租户钱包</h3>
+          <div class="kv">
+            <div>租户编号</div><div class="mono">${escapeHtml(row[0])}</div>
+            <div>租户名称</div><div>${escapeHtml(row[1])}</div>
+          </div>
+        </div>
+        <div class="wallet-detail-grid">${walletCards}</div>
+        <div class="detail-section">
+          <h3>${escapeHtml(activeWalletCurrency)} 钱包列表</h3>
+          <div class="table-wrap"><table aria-label="${escapeHtml(row[1])} ${escapeHtml(activeWalletCurrency)} 钱包列表">
+            <thead><tr><th>钱包</th><th>余额</th><th>可用余额</th><th>冻结金额</th><th>状态</th></tr></thead>
+            <tbody>${walletRows}</tbody>
+          </table></div>
+        </div>
+        ${platformWalletFlowMarkup(row, profile, wallets)}
+      `;
+    }
+
     function detailMarkup(page, row) {
       const rowMap = page.columns.slice(0, -1).map((column, index) => [column, row[index] || '-']);
       const shared = renderKv(rowMap);
@@ -7639,38 +7952,7 @@
             ['审计要求', '授权、停用、套餐切换均写审计日志']
           ]))}
         `,
-        wallet: `
-          ${section('租户三钱包摘要', shared)}
-          ${section('余额与流水边界', renderKv([
-            ['钱包范围', 'CNY 代收钱包 / 代付钱包 / 提款钱包'],
-            ['余额字段', '当前总额、可用余额、冻结金额'],
-            ['待处理事项', `${row[6]}，只作数量摘要，不计入钱包余额`],
-            ['数据时效', '钱包和账户流水实时更新'],
-            ['禁止动作', '直接加款、扣款、冻结、解冻、修改或删除历史流水']
-          ]))}
-          ${section('关联流水示例', renderKv([
-            ['WL-20260717-9041', '代收服务费扣款 / CNY 100.00 / 关联 HS-C-260717-078210'],
-            ['WL-20260717-9038', '代收钱包划转提款钱包 / CNY 20,000.00 / 双边流水'],
-            ['LG202607170176-AMT-FRZ', '提款本金冻结 / CNY 20,000.00 / 关联 TW202607170006 / PW202607170019'],
-            ['LG202607170176-FEE-FRZ', '提款手续费冻结 / CNY 20.00 / 关联 TW202607170006 / PW202607170019'],
-            ['商户钱包', '不属于平台钱包，不查询、不汇总、不改账']
-          ]))}
-          ${row[0] === 'HS-TEN-001' ? section('内部划转只读事实', renderKv([...platformWalletTransferFacts.values()].map(item => [item.transferId, `${item.sourceWallet} → ${item.targetWallet} / ${formatCny(item.amount)} / ${item.ledgerIds.join(' / ')} / ${item.occurredAt} UTC+8`]).concat([['平台端动作', '只读查看；不审核、不重放、不撤回、不反向划转']])) ) : ''}
-          ${row[0] === 'HS-TEN-001' ? section('当前风险冻结', renderKv([
-            ['风险冻结编号', 'RH-20260717-00220'],
-            ['关联平台订单', 'HS-P-260717-000220 / 受理前取消后迟到成功'],
-            ['应冻结 / 已冻结 / 待补足', 'CNY 7,210.80 / CNY 7,210.80 / CNY 0.00'],
-            ['新代付与提款', '未暂停；冻结已足额'],
-            ['处理入口', '资金待办 FT-20260717-011 / FC-20260717-00220 待复核']
-          ])) : ''}
-          ${row[0] === 'HS-TEN-001' ? section('成功后迟到失败待冲正', renderKv([
-            ['关联平台订单', 'HS-P-260717-000221 / 原成功后迟到失败'],
-            ['原成功出账', 'LG-20260717-00221 / CNY 6,409.60 / 永久保留'],
-            ['通道资金退回', 'CRF-20260717-00221 / 收款人未到账 / 本金 CNY 6,400.00 已退回'],
-            ['当前钱包结果', '尚未冲正；复核本身不改余额'],
-            ['处理入口', '资金待办 FT-20260717-012 / FC-20260717-00221 待复核']
-          ])) : ''}
-        `,
+        wallet: platformWalletDetailMarkup(row),
         fund: `
           ${section('资金事项摘要', shared)}
           ${section('申请编号关联', renderKv([
@@ -7922,7 +8204,11 @@
     function openDrawer(rowIndex) {
       const page = pages[currentPage];
       const row = page.rows[rowIndex];
-      document.getElementById('drawerTitle').textContent = `${page.title}详情`;
+      const drawer = document.getElementById('drawer');
+      if (page.detailKind === 'wallet') activeWalletFlowPeriod = 'hour';
+      drawer.dataset.detailRow = rowIndex;
+      drawer.classList.toggle('wallet-modal', page.detailKind === 'wallet');
+      document.getElementById('drawerTitle').textContent = page.detailKind === 'wallet' ? `租户钱包 · ${row[1]}` : `${page.title}详情`;
       document.getElementById('drawerBody').innerHTML = detailMarkup(page, row) + detailActions(page, row);
       showPlatformDrawerSurface();
     }
@@ -7972,7 +8258,7 @@
         return `<div class="page-actions" style="justify-content:flex-start">${targetButton}<button class="btn" data-platform-safe-copy="${escapeHtml(platformSafeSummary(page, row))}" data-platform-copy-action="复制脱敏审计摘要" data-platform-copy-object="${escapeHtml(row[0])}">${iconButton('copy')}复制安全摘要</button><button class="btn" data-export-page="audit">${iconButton('export')}导出明细</button></div>`;
       }
       if (page.detailKind === 'wallet') {
-        return `<div class="page-actions" style="justify-content:flex-start"><button class="btn primary" data-jump-page="ledger" data-jump-filter="${escapeHtml(row[0])}">查看租户流水</button><button class="btn" data-export-page="wallets">${iconButton('export')}导出明细</button></div>`;
+        return '';
       }
       if (page.detailKind === 'business') {
         const rowIndex = pages.business.rows.indexOf(row);
@@ -8002,6 +8288,7 @@
     }
 
     function showDrawer(title, body) {
+      document.getElementById('drawer').classList.remove('wallet-modal');
       document.getElementById('drawerTitle').textContent = title;
       const drawerBody = document.getElementById('drawerBody');
       drawerBody.innerHTML = body;
@@ -8800,6 +9087,25 @@
         return;
       }
       const safeCopyButton = event.target.closest('[data-platform-safe-copy]');
+      const walletFlowPeriodButton = event.target.closest('[data-wallet-flow-period]');
+      if (walletFlowPeriodButton) {
+        const drawer = document.getElementById('drawer');
+        const row = pages.wallets.rows[Number(drawer.dataset.detailRow)];
+        if (!row) return;
+        activeWalletFlowPeriod = walletFlowPeriodButton.dataset.walletFlowPeriod;
+        const drawerBody = document.getElementById('drawerBody');
+        const scrollTop = drawerBody.scrollTop;
+        drawerBody.innerHTML = platformWalletDetailMarkup(row);
+        drawerBody.scrollTop = scrollTop;
+        drawerBody.querySelector(`[data-wallet-flow-period="${activeWalletFlowPeriod}"]`)?.focus({ preventScroll: true });
+        return;
+      }
+      const walletCurrencyButton = event.target.closest('[data-wallet-currency]');
+      if (walletCurrencyButton) {
+        activeWalletCurrency = walletCurrencyButton.dataset.walletCurrency;
+        renderPage('wallets');
+        return;
+      }
       if (safeCopyButton) {
         const copied = await copyText(safeCopyButton.dataset.platformSafeCopy);
         if (!copied) {

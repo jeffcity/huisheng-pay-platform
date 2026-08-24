@@ -121,6 +121,36 @@ test("财务模块导航只展示租户平台钱包", async () => {
   assert.doesNotMatch(moduleSource, /\{ module: 'funds', label: '资金待办' \}/);
 });
 
+test("租户平台钱包详情使用弹窗并展示租户钱包信息", async () => {
+  const wallets = await readFile(path.join(root, "public/legacy/sources/wallets.html"), "utf8");
+  const walletDetail = wallets.slice(wallets.indexOf("function platformWalletDetailMarkup"), wallets.indexOf("function detailMarkup"));
+  const walletPageStart = wallets.indexOf("      wallets: {");
+  const walletPage = wallets.slice(walletPageStart, wallets.indexOf("      funds: {", walletPageStart));
+  assert.match(wallets, /classList\.toggle\('wallet-modal', page\.detailKind === 'wallet'\)/);
+  assert.match(wallets, /\.drawer\.wallet-modal/);
+  assert.match(walletDetail, /租户钱包/);
+  assert.match(walletDetail, /activeWalletCurrency/);
+  assert.match(wallets, /最近钱包流水/);
+  assert.match(wallets, /data-wallet-flow-period/);
+  for (const period of ["近一小时", "今日", "昨日"]) assert.match(wallets, new RegExp(period));
+  assert.doesNotMatch(wallets, /最近资金摘要/);
+  assert.match(walletDetail, /可用余额/);
+  assert.match(walletDetail, /冻结金额/);
+  assert.match(wallets, /data-wallet-currency/);
+  for (const currency of ["CNY", "USD", "PHP", "THB"]) assert.match(wallets, new RegExp(`${currency}:`));
+  assert.doesNotMatch(wallets, /<div class="risk-strip">/);
+  assert.doesNotMatch(wallets, /平台只维护租户的 CNY 代收/);
+  assert.doesNotMatch(walletPage, /核对异常/);
+  for (const hiddenColumn of ["待处理事项", "最近变化", "状态"]) {
+    assert.doesNotMatch(walletPage.match(/columns: \[[^\n]+/)?.[0] || "", new RegExp(hiddenColumn));
+  }
+  const walletActions = wallets.slice(wallets.indexOf("function detailActions"), wallets.indexOf("function platformSafeSummary"));
+  assert.match(walletActions, /page\.detailKind === 'wallet'[\s\S]*?return ''/);
+  for (const outdatedBlock of ["租户三钱包摘要", "余额与流水边界", "关联流水示例", "内部划转只读事实", "当前风险冻结", "成功后迟到失败待冲正"]) {
+    assert.doesNotMatch(walletDetail, new RegExp(outdatedBlock));
+  }
+});
+
 test("统一导航使用最新模块名称", async () => {
   const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
   const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");
