@@ -1360,6 +1360,199 @@
       transform: translateX(0);
     }
 
+    body[data-current-page="orders"] .risk-strip,
+    body[data-current-page="orders"] #contextPanel {
+      display: none !important;
+    }
+
+    body[data-current-page="orders"] .metrics {
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+    }
+
+    body[data-current-page="orders"] .panel-head {
+      min-height: 58px;
+    }
+
+    body[data-current-page="orders"] .filters {
+      grid-template-columns: minmax(220px, 1.45fr) minmax(180px, 1fr) repeat(3, minmax(140px, .76fr)) auto;
+      align-items: end;
+    }
+
+    body[data-current-page="orders"] .table-wrap {
+      overflow-x: auto;
+    }
+
+    body[data-current-page="orders"] table {
+      min-width: 1360px;
+    }
+
+    body[data-current-page="orders"] tbody tr.order-exception {
+      background: #fff7f7;
+    }
+
+    body[data-current-page="orders"] tbody tr.order-exception:hover {
+      background: #fff0f0;
+    }
+
+    body[data-current-page="orders"] .order-row-stack {
+      display: grid;
+      gap: 4px;
+      line-height: 1.35;
+    }
+
+    body[data-current-page="orders"] .drawer {
+      top: 50%;
+      right: auto;
+      left: 50%;
+      width: min(920px, calc(100vw - 48px));
+      height: auto;
+      max-height: min(88vh, 860px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 24px 64px rgba(29, 33, 41, .22);
+      transform: translate(-50%, -48%) scale(.985);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .2s ease, opacity .2s ease;
+    }
+
+    body[data-current-page="orders"] .drawer.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    body[data-current-page="orders"] .drawer-body {
+      padding: 18px 20px 22px;
+    }
+
+    body[data-current-page="orders"] .drawer-body > * {
+      flex: 0 0 auto;
+    }
+
+    .order-detail-summary {
+      display: grid;
+      gap: 14px;
+    }
+
+    .order-detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .order-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px 22px;
+      padding: 14px;
+    }
+
+    .order-summary-item {
+      min-width: 0;
+    }
+
+    .order-summary-item span,
+    .order-summary-item strong {
+      display: block;
+    }
+
+    .order-summary-item span {
+      margin-bottom: 5px;
+      color: var(--text-tertiary);
+      font-size: 12px;
+    }
+
+    .order-summary-item strong {
+      color: var(--text);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .order-summary-party {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 5px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-summary-party small {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .order-lifecycle {
+      display: grid;
+      gap: 0;
+      padding: 12px 16px 14px;
+    }
+
+    .order-life-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      gap: 10px;
+      min-height: 74px;
+    }
+
+    .order-life-item:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      bottom: -4px;
+      left: 7px;
+      width: 2px;
+      background: #e5e6eb;
+    }
+
+    .order-life-dot {
+      position: relative;
+      z-index: 1;
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      border: 3px solid #00b42a;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .order-life-item.warning .order-life-dot { border-color: #ff7d00; }
+    .order-life-item.danger .order-life-dot { border-color: #f53f3f; }
+    .order-life-item.pending .order-life-dot { border-color: #86909c; }
+
+    .order-life-card {
+      min-width: 0;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #f7f8fa;
+    }
+
+    .order-life-card strong,
+    .order-life-card span {
+      display: block;
+    }
+
+    .order-life-card strong {
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    .order-life-card span {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .order-life-time {
+      padding-top: 12px;
+      color: var(--text-tertiary);
+      font-family: var(--mono);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     .drawer-head {
       min-height: 64px;
       padding: 16px 18px;
@@ -1937,6 +2130,26 @@
       .topbar {
         height: auto !important;
         min-height: var(--topbar-height);
+      }
+
+      body[data-current-page="orders"] .metrics,
+      body[data-current-page="orders"] .filters,
+      .order-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      body[data-current-page="orders"] .drawer {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+      }
+
+      .order-life-item {
+        grid-template-columns: 22px minmax(0, 1fr);
+      }
+
+      .order-life-time {
+        grid-column: 2;
+        padding: 0 0 10px;
       }
     }
   </style>
@@ -5007,22 +5220,21 @@
         detailKind: 'ledger'
       },
       orders: {
-        group: '审计体系',
+        group: '审计模块',
         title: '全局订单查询',
-        subtitle: '跨租户只读查询 CNY 代收、代收退款和代付；支持四层订单号追溯，不在本页查单、补推或改账。',
-        tableTitle: '全局订单列表',
-        primaryAction: '精确查询',
-        primaryKey: 'order-search',
-        primaryIcon: 'search',
-        secondaryAction: '导出订单',
+        subtitle: '按订单号查看跨租户订单的当前处理状态、异常节点、失败原因与通知结果。',
+        tableTitle: '全生命周期记录列表',
+        primaryAction: '刷新数据',
+        primaryKey: 'order-refresh',
+        primaryIcon: 'refresh',
+        secondaryAction: '导出数据',
         stats: [
-          ['今日正式订单', '24,806', '代收 / 退款 / 代付', 'blue'],
-          ['异常待处理', '133', '含终态冲突风险冻结', 'orange'],
-          ['租户可见', '24,806', '共享业务状态', 'green'],
-          ['业务处理按钮', '0', '本页严格只读', 'green']
+          ['当前订单', '13', '覆盖 CNY 代收、退款与代付', 'blue'],
+          ['当前异常', '5', '失败、取消后迟到结果与未知终态', 'red'],
+          ['通知失败率', '7.69%', '当前筛选范围', 'orange']
         ],
-        filters: ['完整四层订单号 / 幂等键', '租户编号 / 名称', '商户参考编号 / 名称', '业务方向', '平台状态', '通道商', '实际通道编号 / 名称', '通知状态', 'CNY 最小金额', 'CNY 最大金额', 'UTC+8 开始日期', 'UTC+8 结束日期'],
-        columns: ['平台订单号', '租户', '商户参考', '业务方向', '平台状态', '订单金额', '通道 / 结果', '租户可见状态', '更新时间', '操作'],
+        filters: ['订单号 / 租户订单号', '租户', '订单类型', '当前状态', 'UTC+8 日期'],
+        columns: ['平台订单号', '通道订单号 / 租户订单号', '租户', '类型 / 金额', '当前状态', '异常节点', '结果摘要', '通知结果', '更新时间', '操作'],
         rows: [
           ['HS-C-260717-000941', '汇盛东南亚', 'MCH-2031', '代收', '成功', 'CNY 8,600.00', 'QuickPay / 成功', '已同步', '2026-07-17 14:33:20'],
           ['HS-C-260717-000982', '汇盛东南亚', 'MCH-2031', '代收', '异常待处理', 'CNY 12,800.00', 'QuickPay / 未知', '异常可见', '2026-07-17 15:42:18'],
@@ -6180,7 +6392,7 @@
     }
 
     function platformFilterInputType(pageId, index) {
-      const dateIndices = { home: [0, 3], report: [2, 3], wallets: [3, 4], funds: [8, 9], orders: [10, 11], ledger: [9, 10], audit: [8, 9] };
+      const dateIndices = { home: [0, 3], report: [2, 3], wallets: [3, 4], funds: [8, 9], orders: [4], ledger: [9, 10], audit: [8, 9] };
       return dateIndices[pageId]?.includes(index) ? 'date' : 'text';
     }
 
@@ -6190,6 +6402,7 @@
         return false;
       }
       currentPage = id;
+      document.body.dataset.currentPage = id;
       if (!integratedRoutes[id] && window.location.hash !== `#${id}`) {
         window.history.replaceState(null, '', `#${id}`);
       }
@@ -6211,6 +6424,9 @@
         <button class="btn" ${page.secondaryKey ? `data-special="${page.secondaryKey}"` : /导出/.test(page.secondaryAction) ? `data-export-page="${id}"` : `data-toast="${page.secondaryAction} 已执行"`}>${iconButton(/导出/.test(page.secondaryAction) ? 'export' : 'plus')}${page.secondaryAction}</button>
       `;
 
+      if (id === 'orders') {
+        page.stats = platformOrderStatsFor(visibleRows);
+      }
       const metricHealth = platformHomeHealth.metrics;
       document.getElementById('metrics').innerHTML = id === 'home' && metricHealth.status === 'empty'
         ? `<article class="metric" style="grid-column:1/-1"><div><label>首页指标</label><strong style="font-size:18px">当前条件暂无指标数据</strong><small>请调整范围或稍后重试</small></div><button class="btn" type="button" data-retry-platform-home="metrics">重新加载</button></article>`
@@ -6237,12 +6453,45 @@
 
       renderContextPanel(id);
 
-      document.getElementById('tableTools').innerHTML = `
-        <button class="btn ghost" data-reset-filters>${iconButton('refresh')}重置</button>
-        <button class="btn" data-export-page="${id}">${iconButton('export')}导出</button>
-      `;
+      document.getElementById('tableTools').innerHTML = id === 'orders'
+        ? `<span class="muted">共 ${visibleRows.length} 笔，异常 ${visibleRows.filter(row => row[4] === '异常待处理').length} 笔（当前筛选）</span>`
+        : `
+          <button class="btn ghost" data-reset-filters>${iconButton('refresh')}重置</button>
+          <button class="btn" data-export-page="${id}">${iconButton('export')}导出</button>
+        `;
 
-      document.getElementById('filters').innerHTML = page.filters.map((label, index) => `
+      document.getElementById('filters').innerHTML = id === 'orders' ? `
+        <div class="field">
+          <label for="pageFilter0">订单号 / 租户订单号</label>
+          <input class="filter-control" id="pageFilter0" data-page-filter="0" value="${escapeHtml(filterState.orders[0] || '')}" placeholder="商户 / 租户 / 平台 / 通道订单号">
+        </div>
+        <div class="field">
+          <label for="pageFilter1">租户</label>
+          <input class="filter-control" id="pageFilter1" data-page-filter="1" value="${escapeHtml(filterState.orders[1] || '')}" placeholder="租户名称或编号">
+        </div>
+        <div class="field">
+          <label for="pageFilter2">订单类型</label>
+          <select class="filter-control" id="pageFilter2" data-page-filter="2">
+            <option value="">全部类型</option>
+            ${['代收', '代收退款', '代付'].map(value => `<option value="${value}" ${filterState.orders[2] === value ? 'selected' : ''}>${value}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="pageFilter3">当前状态</label>
+          <select class="filter-control" id="pageFilter3" data-page-filter="3">
+            <option value="">全部状态</option>
+            ${['处理中', '成功', '失败', '已取消', '异常待处理'].map(value => `<option value="${value}" ${filterState.orders[3] === value ? 'selected' : ''}>${value}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="pageFilter4">UTC+8 日期</label>
+          <input class="filter-control" type="date" id="pageFilter4" data-page-filter="4" value="${escapeHtml(filterState.orders[4] || '')}">
+        </div>
+        <div class="page-actions" style="justify-content:flex-start">
+          <button class="btn primary" data-apply-filters>${iconButton('search')}查询</button>
+          <button class="btn" data-reset-filters>${iconButton('refresh')}重置</button>
+        </div>
+      ` : page.filters.map((label, index) => `
         <div class="field">
           <label for="pageFilter${index}">${label}</label>
           <input class="filter-control" type="${platformFilterInputType(id, index)}" id="pageFilter${index}" data-page-filter="${index}" value="${escapeHtml(filterState[id][index] || '')}" placeholder="${platformFilterInputType(id, index) === 'date' ? 'YYYY-MM-DD' : '全部'}">
@@ -6290,6 +6539,70 @@
         </span>`;
     }
 
+    function platformOrderExceptionNode(row) {
+      const status = String(row?.[4] || '');
+      const result = String(row?.[6] || '');
+      if (status === '异常待处理') {
+        if (/迟到|冲突|冻结|退回/.test(result)) return '终态冲突处理';
+        return '通道结果确认';
+      }
+      if (status === '失败') return '通道处理';
+      if (status === '已取消') return '受理前取消';
+      return '—';
+    }
+
+    function platformOrderResultSummary(row, facts = orderFactsFor(row)) {
+      if (facts.failureReason) return facts.failureReason;
+      if (facts.cancellationReason) return facts.cancellationReason;
+      if (facts.riskSummary && facts.riskSummary !== '不适用') return facts.riskSummary;
+      if (String(row?.[4] || '') === '异常待处理') return facts.conflictRule || String(row?.[6] || '等待明确通道结果');
+      return String(row?.[6] || '—');
+    }
+
+    function platformOrderHandlingSummary(row, facts = orderFactsFor(row)) {
+      const summary = [facts.correctionSummary, facts.riskSummary, facts.returnSummary, facts.walletSummary]
+        .map(value => String(value || '').trim())
+        .find(value => value && value !== '不适用');
+      return summary || (String(row?.[4] || '') === '异常待处理'
+        ? '保留原订单与资金结果，等待异常确认。'
+        : '保留原订单与处理记录。');
+    }
+
+    function platformOrderNotificationResult(row, meta = platformOrderQueryMetaFor(row)) {
+      const value = String(meta.notificationStatus || row?.[7] || '未通知');
+      return value || '未通知';
+    }
+
+    function platformOrderNotificationFailed(row, meta = platformOrderQueryMetaFor(row)) {
+      return platformOrderNotificationResult(row, meta) === '通知失败';
+    }
+
+    function platformOrderStatsFor(rows) {
+      const exceptionCount = rows.filter(row => String(row[4] || '') === '异常待处理').length;
+      const notificationFailureCount = rows.filter(row => platformOrderNotificationFailed(row)).length;
+      const notificationFailureRate = rows.length ? `${(notificationFailureCount / rows.length * 100).toFixed(2)}%` : '0.00%';
+      return [
+        ['当前订单', String(rows.length), '覆盖 CNY 代收、退款与代付', 'blue'],
+        ['当前异常', String(exceptionCount), '失败、取消后迟到结果与未知终态', 'red'],
+        ['通知失败率', notificationFailureRate, '当前筛选范围', 'orange']
+      ];
+    }
+
+    function renderPlatformOrderMetrics(rows) {
+      const stats = platformOrderStatsFor(rows);
+      pages.orders.stats = stats;
+      return stats.map((item, index) => `
+        <article class="metric">
+          <div>
+            <label>${item[0]}</label>
+            <strong>${item[1]}</strong>
+            <small>${item[2]}</small>
+          </div>
+          ${renderMetricSpark(index, item[3])}
+        </article>
+      `).join('');
+    }
+
     function renderTableRows(page, rows, { resetPage = false } = {}) {
       const pageId = Object.entries(pages).find(([, item]) => item === page)?.[0] || currentPage;
       const state = platformListState[pageId];
@@ -6313,6 +6626,26 @@
         const rowIndex = page.rows.indexOf(row);
         const fundMeta = pageId === 'funds' ? platformFundMeta.get(row[0]) || {} : null;
         const orderMeta = pageId === 'orders' ? platformOrderQueryMetaFor(row) : null;
+        if (pageId === 'orders') {
+          const facts = orderFactsFor(row);
+          const identifiers = facts.identifiers || {};
+          const channelOrder = identifiers['通道订单号'] || '—';
+          const tenantOrder = identifiers['租户订单 / 请求号'] || '—';
+          const exceptional = ['异常待处理', '失败'].includes(String(row[4] || ''));
+          return `
+            <tr data-row="${rowIndex}" class="${exceptional ? 'order-exception' : ''}">
+              <td class="mono">${escapeHtml(row[0])}</td>
+              <td><div class="order-row-stack"><span class="mono">${escapeHtml(channelOrder)}</span><span class="mono muted">${escapeHtml(tenantOrder)}</span></div></td>
+              <td><div class="order-row-stack"><strong>${escapeHtml(orderMeta.tenantName || row[1])}</strong><span class="mono muted">${escapeHtml(orderMeta.tenantId || '—')}</span></div></td>
+              <td><div class="order-row-stack"><strong>${escapeHtml(row[3])}</strong><span class="mono muted">${escapeHtml(row[5])}</span></div></td>
+              <td><div class="order-row-stack"><span class="pill ${statusClass(row[4])}">${escapeHtml(row[4])}</span><span class="muted">${escapeHtml(exceptional ? `当前节点：${platformOrderExceptionNode(row)}` : row[4] === '处理中' ? '通道处理中' : '明确终态')}</span></div></td>
+              <td>${escapeHtml(platformOrderExceptionNode(row))}</td>
+              <td><span title="${escapeHtml(platformOrderResultSummary(row, facts))}">${escapeHtml(platformOrderResultSummary(row, facts))}</span></td>
+              <td><span class="pill ${platformOrderNotificationFailed(row, orderMeta) ? 'red' : /成功|已同步|已通知/.test(platformOrderNotificationResult(row, orderMeta)) ? 'green' : 'gray'}">${escapeHtml(platformOrderNotificationResult(row, orderMeta))}</span></td>
+              <td class="mono">${escapeHtml(row[8])}</td>
+              <td><button class="link-btn" data-detail="${rowIndex}">详情</button></td>
+            </tr>`;
+        }
         return `
         <tr data-row="${rowIndex}">
           ${row.map((cell, cellIndex) => {
@@ -6524,7 +6857,7 @@
       const fallbackDate = platformReportMetaFor(row).reportDateUtc8;
       const range = normalizedUtc8DateRange(filterStart || fallbackDate, filterEnd || fallbackDate);
       return target === 'orders'
-        ? { 1: row[0], 3: row[2], 10: range.start, 11: range.end }
+        ? { 1: row[0], 2: row[2], 4: range.start }
         : { 1: row[0], 6: row[2], 9: range.start, 10: range.end };
     }
 
@@ -6566,7 +6899,7 @@
       const [startDate, businessDirection, tenant, endDate] = filterState.home || [];
       const mappings = {
         report: { 0: tenant, 1: businessDirection, 2: startDate, 3: endDate },
-        orders: { 1: tenant, 3: businessDirection, 10: startDate, 11: endDate },
+        orders: { 1: tenant, 2: businessDirection, 4: startDate },
         ledger: { 1: tenant, 6: businessDirection, 9: startDate, 10: endDate },
         funds: { 1: tenant, 8: startDate, 9: endDate },
         wallets: { 0: tenant, 3: startDate, 4: endDate },
@@ -6696,23 +7029,14 @@
           return true;
         }
         if (pageId === 'orders') {
-          const [identifier, tenant, merchant, businessDirection, platformStatus, channelVendor, actualChannel, notificationStatus, minimumAmount, maximumAmount, startDateUtc8, endDateUtc8] = rawValues;
+          const [identifier, tenant, businessDirection, platformStatus, dateUtc8] = rawValues;
           const exactIdentifiers = Object.values(orderIdentifiersFor(row)).map(value => String(value).trim().toLowerCase());
           const meta = platformOrderQueryMetaFor(row);
-          const amount = parseCny(row[5]);
-          const minimum = minimumAmount ? parseLedgerQueryAmount(minimumAmount) : null;
-          const maximum = maximumAmount ? parseLedgerQueryAmount(maximumAmount) : null;
           if (identifier && !exactIdentifiers.includes(identifier)) return false;
           if (tenant && !`${meta.tenantId} ${meta.tenantName}`.toLowerCase().includes(tenant)) return false;
-          if (merchant && !`${meta.merchantId} ${meta.merchantName}`.toLowerCase().includes(merchant)) return false;
           if (businessDirection && String(row[3] || '').trim().toLowerCase() !== businessDirection) return false;
           if (platformStatus && String(row[4] || '').trim().toLowerCase() !== platformStatus) return false;
-          if (channelVendor && !`${meta.channelVendorId} ${meta.channelVendorName}`.toLowerCase().includes(channelVendor)) return false;
-          if (actualChannel && !`${meta.actualChannelId} ${meta.actualChannelName}`.toLowerCase().includes(actualChannel)) return false;
-          if (notificationStatus && String(meta.notificationStatus || '').trim().toLowerCase() !== notificationStatus) return false;
-          if (minimumAmount && (minimum === null || amount < minimum)) return false;
-          if (maximumAmount && (maximum === null || amount > maximum)) return false;
-          if (!inUtc8DateRange(row[8], startDateUtc8, endDateUtc8)) return false;
+          if (!inUtc8DateRange(row[8], dateUtc8, dateUtc8)) return false;
           return true;
         }
         if (pageId === 'ledger') {
@@ -6830,7 +7154,7 @@
     }
 
     function validatePlatformDateFilters(pageId = currentPage) {
-      const dateIndices = { home: [0, 3], report: [2, 3], wallets: [3, 4], funds: [8, 9], orders: [10, 11], ledger: [9, 10], audit: [8, 9] };
+      const dateIndices = { home: [0, 3], report: [2, 3], wallets: [3, 4], funds: [8, 9], orders: [4, 4], ledger: [9, 10], audit: [8, 9] };
       const indices = dateIndices[pageId];
       if (!indices) return true;
       const [startIndex, endIndex] = indices;
@@ -6867,6 +7191,10 @@
         return rows.length;
       }
       renderTableRows(page, rows, { resetPage: true });
+      if (currentPage === 'orders') {
+        document.getElementById('metrics').innerHTML = renderPlatformOrderMetrics(rows);
+        document.getElementById('tableTools').innerHTML = `<span class="muted">共 ${rows.length} 笔，异常 ${rows.filter(row => row[4] === '异常待处理').length} 笔（当前筛选）</span>`;
+      }
       if (currentPage === 'report') document.getElementById('metrics').innerHTML = renderPlatformReportMetrics(rows);
       document.getElementById('tableTitle').textContent = currentPage === 'funds' && activeFundQueue !== '全部'
         ? `${activeFundQueue}待办`
@@ -6889,6 +7217,10 @@
         return;
       }
       renderTableRows(pages[currentPage], rows, { resetPage: true });
+      if (currentPage === 'orders') {
+        document.getElementById('metrics').innerHTML = renderPlatformOrderMetrics(rows);
+        document.getElementById('tableTools').innerHTML = `<span class="muted">共 ${rows.length} 笔，异常 ${rows.filter(row => row[4] === '异常待处理').length} 笔（当前筛选）</span>`;
+      }
       if (currentPage === 'report') {
         document.getElementById('metrics').innerHTML = renderPlatformReportMetrics(rows);
         document.getElementById('tableTitle').textContent = platformReportTableTitle();
@@ -7019,7 +7351,23 @@
       const visibleRows = pageId === 'home' && dataScope?.scopeCode === 'platform.assigned_tenants'
         ? platformHomeOverviewRows(platformExportRowsCoveredByScope('report', filteredRowsForPage('report'), dataScope), dataScope)
         : platformExportRowsCoveredByScope(pageId, filteredRowsForPage(pageId), dataScope);
-      const rowSnapshot = visibleRows.map(row => fieldSnapshot.map((_, index) => String(row[index] ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()));
+      const rowSnapshot = pageId === 'orders'
+        ? visibleRows.map(row => {
+            const facts = orderFactsFor(row);
+            const meta = platformOrderQueryMetaFor(row);
+            return [
+              row[0],
+              `${facts.identifiers?.['通道订单号'] || '—'} / ${facts.identifiers?.['租户订单 / 请求号'] || '—'}`,
+              `${meta.tenantName || row[1]} / ${meta.tenantId || '—'}`,
+              `${row[3]} / ${row[5]}`,
+              row[4],
+              platformOrderExceptionNode(row),
+              platformOrderResultSummary(row, facts),
+              platformOrderNotificationResult(row, meta),
+              row[8]
+            ].map(value => String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
+          })
+        : visibleRows.map(row => fieldSnapshot.map((_, index) => String(row[index] ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()));
       return { fieldSnapshot, rowSnapshot };
     }
 
@@ -7793,33 +8141,25 @@
           ])) : ''}
         `,
         order: `
-          ${section('订单概览', shared)}
-          ${section('适用层级编号与幂等', renderKv(Object.entries(orderFacts.identifiers)))}
-          ${section('通道结果', renderKv([
-            ['通道结果摘要', row[6]],
-            ['原始结果', orderFacts.rawResult || (row[4] === '异常待处理' ? 'FC-PENDING-UNKNOWN / 未映射' : orderFacts.failureReason || orderFacts.cancellationReason || `${row[4]} / 已映射快照`)],
-            ['取得方式', orderFacts.resultSource || (row[4] === '异常待处理' ? '主动查单，无明确结果' : row[4] === '已取消' ? '租户发起受理前取消；通道明确未受理且取消成功' : '通道商 API 通知')],
-            ['结果时间', row[8]],
-            ['状态版本 / 成功事件', orderFacts.successEventId ? `v${orderFacts.statusVersion} / ${orderFacts.successEventId}` : '按当前订单状态版本展示'],
-            ['冲突规则', orderFacts.conflictRule || '成功与失败冲突时保留全部结果；失败或取消后迟到成功进入异常与风险冻结']
-          ]))}
-          ${section('费用、钱包与资料', renderKv([
-            ['业务来源', orderFacts.source],
-            ['平台服务费', orderFacts.platformFee],
-            ['通道成本', orderFacts.channelCost],
-            ['平台利润', orderFacts.platformProfit],
-            ['钱包摘要', orderFacts.walletSummary],
-            ['风险冻结与更正', orderFacts.riskSummary || '不适用'],
-            ['资金更正', orderFacts.correctionSummary || '不适用'],
-            ['数据边界', orderFacts.dataBoundary],
-            ['收付款资料', '按权限脱敏；安全复制不包含完整资料或原始报文']
-          ]))}
-          ${section('租户可见状态与关联记录', renderKv([
+          ${renderPlatformOrderSummary(row, orderFacts)}
+          ${['异常待处理', '失败', '已取消'].includes(row[4]) ? section('异常摘要', renderKv([
+            ['异常节点', escapeHtml(platformOrderExceptionNode(row))],
+            ['异常原因', escapeHtml(platformOrderResultSummary(row, orderFacts))],
+            ['处理摘要', escapeHtml(platformOrderHandlingSummary(row, orderFacts))]
+          ])) : ''}
+          ${section('生命周期节点', renderPlatformOrderLifecycle(row, orderFacts))}
+          ${section('通知记录', renderKv([
+            ['当前结果', platformOrderNotificationResult(row)],
             ['租户可见状态', `${row[7]} / 与平台业务状态使用同一数据版本`],
-            ['数据边界', '按租户隔离读取；本页不产生内部投递或补推'],
-            ['关联流水', `${orderFacts.ledgerRef} / 只读下钻`],
-            ['关联审计', `${orderFacts.auditRef} / 查询、详情、复制和导出留痕`],
-            ['禁止动作', '主动查单、登记结果、改状态、创建工单或资金处理']
+            ['记录规则', '通知失败不改变订单与资金结果；查看、复制与导出均记录审计']
+          ]))}
+          ${section('请求快照', renderKv([
+            ['业务来源', orderFacts.source],
+            ['订单与费用', `${row[5]} / 平台服务费 ${orderFacts.platformFee}`],
+            ['实际通道', `${platformOrderQueryMetaFor(row).actualChannelName || '未形成'} / ${platformOrderQueryMetaFor(row).actualChannelId || '—'}`],
+            ['关联流水', orderFacts.ledgerRef || '未形成'],
+            ['关联审计', orderFacts.auditRef || '当前详情查看审计'],
+            ['安全边界', '按权限展示脱敏摘要，不展示密码、密钥、令牌、2FA 或完整原始报文']
           ]))}
         `,
         audit: `
@@ -7885,6 +8225,54 @@
       return `<div class="kv">${rows.map(item => `<div>${item[0]}</div><div>${item[1]}</div>`).join('')}</div>`;
     }
 
+    function renderPlatformOrderSummary(row, orderFacts) {
+      const meta = platformOrderQueryMetaFor(row);
+      const identifiers = orderFacts.identifiers || {};
+      const tone = statusClass(row[4]);
+      return `<div class="detail-section order-detail-summary">
+        <div class="order-detail-tags" style="padding:14px 14px 0">
+          <span class="pill ${tone}">${escapeHtml(row[4])}</span>
+          <span class="pill gray">${escapeHtml(row[3])}</span>
+        </div>
+        <div class="order-summary-grid">
+          <div class="order-summary-item order-summary-party">
+            <span>租户</span>
+            <strong>${escapeHtml(meta.tenantName || row[1])}</strong>
+            <small class="mono">${escapeHtml(meta.tenantId || '—')}</small>
+            <small>商户编号：<b class="mono">${escapeHtml(meta.merchantId || '不适用（租户代付请求）')}</b>${meta.merchantName ? ` · ${escapeHtml(meta.merchantName)}` : ''}</small>
+          </div>
+          <div class="order-summary-item"><span>平台订单号</span><strong class="mono">${escapeHtml(row[0])}</strong></div>
+          <div class="order-summary-item"><span>通道订单号</span><strong class="mono">${escapeHtml(identifiers['通道订单号'] || '—')}</strong></div>
+          <div class="order-summary-item"><span>租户订单 / 请求号</span><strong class="mono">${escapeHtml(identifiers['租户订单 / 请求号'] || '—')}</strong></div>
+          <div class="order-summary-item"><span>订单金额</span><strong class="mono">${escapeHtml(row[5])}</strong></div>
+          <div class="order-summary-item"><span>实际通道</span><strong>${escapeHtml(meta.actualChannelName || '未形成')}</strong></div>
+          <div class="order-summary-item"><span>更新时间</span><strong class="mono">${escapeHtml(row[8])} UTC+8</strong></div>
+        </div>
+      </div>`;
+    }
+
+    function renderPlatformOrderLifecycle(row, orderFacts) {
+      const meta = platformOrderQueryMetaFor(row);
+      const updatedTime = String(row[8] || '').slice(11, 19) || '—';
+      const status = String(row[4] || '');
+      const finalTone = status === '失败' ? 'danger' : status === '异常待处理' || status === '已取消' ? 'warning' : status === '处理中' ? 'pending' : '';
+      const finalTitle = status === '处理中' ? '等待通道明确结果' : status === '异常待处理' ? '进入异常确认' : status === '已取消' ? '受理前取消完成' : `订单${status}`;
+      const finalMessage = platformOrderResultSummary(row, orderFacts);
+      const nodes = [
+        ['', '请求受理', '保存租户请求并建立订单追踪记录', '—'],
+        ['', '租户与业务校验', '租户状态、业务授权、币种与数据范围校验通过', '—'],
+        ['', '平台订单创建', `平台订单号：${row[0]}`, '—'],
+        [status === '失败' && !orderFacts.identifiers?.['通道订单号'] ? 'danger' : '', '提交实际通道', meta.actualChannelName ? `${meta.actualChannelName} / ${meta.actualChannelId || '通道编号未提供'}` : '未形成实际通道', '—'],
+        [finalTone, finalTitle, finalMessage, updatedTime]
+      ];
+      return `<div class="order-lifecycle">${nodes.map(([tone, title, message, at]) => `
+        <div class="order-life-item ${tone}">
+          <span class="order-life-dot" aria-hidden="true"></span>
+          <div class="order-life-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>
+          <time class="order-life-time">${escapeHtml(at)}</time>
+        </div>`).join('')}</div>`;
+    }
+
     function renderPlatformWorkOrderTimeline(order) {
       if (!order?.events?.length) return '<p class="muted">当前没有公开时间线。</p>';
       return renderKv(order.events.map(event => [
@@ -7922,7 +8310,7 @@
     function openDrawer(rowIndex) {
       const page = pages[currentPage];
       const row = page.rows[rowIndex];
-      document.getElementById('drawerTitle').textContent = `${page.title}详情`;
+      document.getElementById('drawerTitle').textContent = page.detailKind === 'order' ? row[0] : `${page.title}详情`;
       document.getElementById('drawerBody').innerHTML = detailMarkup(page, row) + detailActions(page, row);
       showPlatformDrawerSurface();
     }
@@ -7945,7 +8333,7 @@
         return `<div class="page-actions" style="justify-content:flex-start"><button class="btn" data-export-page="report">${iconButton('export')}导出本行</button></div>`;
       }
       if (page.detailKind === 'order') {
-        return `<div class="page-actions" style="justify-content:flex-start"><button class="btn primary" data-jump-page="ledger" data-jump-filter="${escapeHtml(row[0])}">查看关联流水</button><button class="btn" data-jump-page="audit" data-jump-filter="${escapeHtml(row[0])}">查看关联审计</button><button class="btn" data-platform-safe-copy="${escapeHtml(platformSafeSummary(page, row))}" data-platform-copy-action="复制全局订单安全摘要" data-platform-copy-object="${escapeHtml(row[0])}">${iconButton('copy')}复制安全摘要</button><button class="btn" data-export-page="orders">${iconButton('export')}导出明细</button></div>`;
+        return '';
       }
       if (page.detailKind === 'ledger') {
         const relation = row[9];
@@ -7983,6 +8371,21 @@
     }
 
     function platformSafeSummary(page, row) {
+      if (page.detailKind === 'order') {
+        const facts = orderFactsFor(row);
+        const meta = platformOrderQueryMetaFor(row);
+        return [
+          ['平台订单号', row[0]],
+          ['通道订单号 / 租户订单号', `${facts.identifiers?.['通道订单号'] || '—'} / ${facts.identifiers?.['租户订单 / 请求号'] || '—'}`],
+          ['租户', `${meta.tenantName || row[1]} / ${meta.tenantId || '—'}`],
+          ['类型 / 金额', `${row[3]} / ${row[5]}`],
+          ['当前状态', row[4]],
+          ['异常节点', platformOrderExceptionNode(row)],
+          ['结果摘要', platformOrderResultSummary(row, facts)],
+          ['通知结果', platformOrderNotificationResult(row, meta)],
+          ['更新时间', row[8]]
+        ].map(([label, value]) => `${label}：${value}`).join('\n');
+      }
       return row.slice(0, page.columns.length - 1).map((value, index) => {
         const holder = document.createElement('div');
         holder.innerHTML = String(value ?? '');
@@ -9055,6 +9458,11 @@
         if (specialButton.dataset.special === 'ledger-refresh') {
           renderPage('ledger');
           showToast('不可变更流水已刷新，原筛选条件保持不变');
+        }
+        if (specialButton.dataset.special === 'order-refresh') {
+          capturePageFilters();
+          renderPage('orders');
+          showToast(`全生命周期记录已刷新；数据更新 ${utc8DateTime()} UTC+8`);
         }
         if (specialButton.dataset.special === 'order-search') openOrderSearch();
         if (specialButton.dataset.special === 'audit-search') {
