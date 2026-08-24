@@ -133,6 +133,14 @@ test("租户平台钱包详情使用弹窗并展示租户钱包信息", async ()
   assert.match(wallets, /最近钱包流水/);
   assert.match(wallets, /data-wallet-flow-period/);
   for (const period of ["近一小时", "今日", "昨日"]) assert.match(wallets, new RegExp(period));
+  const walletFlow = wallets.slice(wallets.indexOf("function platformWalletFlowMarkup"), wallets.indexOf("function platformWalletDetailMarkup"));
+  assert.match(walletFlow, /<th>流水单号<\/th>/);
+  assert.match(walletFlow, /<th>订单类型<\/th>/);
+  for (const orderType of ["人工调整", "冻结", "解冻", "增加", "减少"]) {
+    assert.match(walletFlow, new RegExp(orderType), `钱包流水缺少订单类型：${orderType}`);
+  }
+  assert.doesNotMatch(walletFlow, /<th>流水类型<\/th>/);
+  assert.doesNotMatch(walletFlow, /<th>收支<\/th>/);
   assert.doesNotMatch(wallets, /最近资金摘要/);
   assert.match(walletDetail, /可用余额/);
   assert.match(walletDetail, /冻结金额/);
