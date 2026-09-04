@@ -2129,7 +2129,7 @@
     const hashUserTab = { users: "accounts", roles: "roles" };
 
     const state = {
-      module: hashUserTab[initialHash] ? "users" : ["security", "menus"].includes(initialHash) ? initialHash : "users",
+      module: hashUserTab[initialHash] ? "users" : ["security", "menus", "tenant-menus"].includes(initialHash) ? initialHash : "users",
       userTab: hashUserTab[initialHash] || "accounts",
       selectedAccount: "jeff",
       selectedRole: "ops",
@@ -2142,6 +2142,15 @@
         visible: "全部显示状态"
       },
       menuRefreshedAt: "2026-07-19 09:30",
+      selectedTenantMenu: "tenantOperations",
+      tenantMenuCollapsed: new Set(),
+      tenantMenuFilters: {
+        keyword: "",
+        type: "全部类型",
+        status: "全部发布状态",
+        scope: "全部适用范围"
+      },
+      tenantMenuRefreshedAt: "2026-09-04 10:20",
       modalAction: "",
       modalPayload: "",
       modalToast: "",
@@ -2205,7 +2214,8 @@
     const navItems = [
       { id: "users", label: "用户与角色", icon: "users-round" },
       { id: "security", label: "安全配置", icon: "shield" },
-      { id: "menus", label: "菜单管理", icon: "panel-left" }
+      { id: "menus", label: "平台菜单管理", icon: "panel-left" },
+      { id: "tenant-menus", label: "租户菜单管理", icon: "panels-top-left" }
     ];
 
     const platformNavGroups = [
@@ -2221,7 +2231,7 @@
         { id: "orders", label: "全局订单查询", icon: "search-check", note: "全局订单查询归审计模块，只读排查。" },
         { id: "audit", label: "审计日志", icon: "shield-check", note: "审计日志归审计模块，只读不可改。" }
       ] },
-      { group: "系统管理 / 设置", items: [{ id: "settings", label: "系统管理", icon: "settings-2", note: "当前页面。系统管理承接平台账号、角色权限、安全配置和菜单管理。" }] }
+      { group: "系统管理 / 设置", items: [{ id: "settings", label: "系统管理", icon: "settings-2", note: "当前页面。系统管理承接平台账号、角色权限、安全配置、平台菜单和租户菜单目录。" }] }
     ];
 
     const platformMasterRoutes = {
@@ -2240,7 +2250,7 @@
       orders: 'platform.order.view', audit: 'platform.audit.view', settings: 'platform.user.manage'
     };
     const platformSystemPagePermissions = {
-      users: 'platform.user.manage', security: 'platform.security.whitelist.view', menus: 'platform.menu.manage'
+      users: 'platform.user.manage', security: 'platform.security.whitelist.view', menus: 'platform.menu.manage', 'tenant-menus': 'platform.tenant_menu.view'
     };
 
     function navigatePlatformMaster(pageId, href) {
@@ -2259,8 +2269,13 @@
         metrics: []
       },
       menus: {
-        title: "菜单管理",
+        title: "平台菜单管理",
         desc: "维护平台端菜单目录、层级、路由、排序和启停状态。",
+        metrics: []
+      },
+      "tenant-menus": {
+        title: "租户菜单管理",
+        desc: "统一登记租户端页面、路由、组件和权限标识，并通过发布范围控制哪些租户可进入授权目录。",
         metrics: []
       }
     };
@@ -2298,9 +2313,11 @@
       { id: "platformOrders", group: "审计模块", page: "全局订单查询", path: "审计模块 / 全局订单查询", pagePermission: "platform.order.view", actions: ["导出"], actionPermissions: { "导出": "platform.order.export" } },
       { id: "platformAudit", group: "审计模块", page: "审计日志", path: "审计模块 / 审计日志", pagePermission: "platform.audit.view", actions: ["导出", "查看审计"], actionPermissions: { "导出": "platform.audit.export", "查看审计": "platform.audit.view" } },
       { id: "platformTickets", group: "协同运营", page: "租户协同工单", path: "协同运营 / 租户协同工单", pagePermission: "platform.ticket.view", actions: ["受理", "回复", "要求补充", "标记解决", "导出"], actionPermissions: { "受理": "platform.ticket.handle", "回复": "platform.ticket.handle", "要求补充": "platform.ticket.handle", "标记解决": "platform.ticket.handle", "导出": "platform.ticket.export" } },
+      { id: "platformNotifications", group: "协同运营", page: "平台通知中心", path: "协同运营 / 平台通知中心", pagePermission: "platform.notification.view", actions: ["新增配置", "编辑配置", "启停配置", "导出"], actionPermissions: { "新增配置": "platform.notification.config.manage", "编辑配置": "platform.notification.config.manage", "启停配置": "platform.notification.config.manage", "导出": "platform.notification.export" } },
       { id: "platformUserRole", group: "系统管理", page: "用户与角色", path: "系统管理 / 用户与角色", pagePermission: "platform.user.manage", actions: ["新增", "编辑", "授权", "查看审计"], actionPermissions: { "新增": "platform.user.manage", "编辑": "platform.user.manage", "授权": "platform.role.manage", "查看审计": "platform.audit.view" } },
       { id: "platformSecurity", group: "系统管理", page: "安全配置", path: "系统管理 / 安全配置", pagePermission: "platform.security.whitelist.view", actions: ["编辑", "查看审计"], actionPermissions: { "编辑": "platform.security.whitelist.manage", "查看审计": "platform.audit.view" } },
-      { id: "platformMenus", group: "系统管理", page: "菜单管理", path: "系统管理 / 菜单管理", pagePermission: "platform.menu.manage", actions: ["新增", "编辑", "停用", "排序"], actionPermissions: { "新增": "platform.menu.manage", "编辑": "platform.menu.manage", "停用": "platform.menu.manage", "排序": "platform.menu.manage" } }
+      { id: "platformMenus", group: "系统管理", page: "平台菜单管理", path: "系统管理 / 平台菜单管理", pagePermission: "platform.menu.manage", actions: ["新增", "编辑", "停用", "排序"], actionPermissions: { "新增": "platform.menu.manage", "编辑": "platform.menu.manage", "停用": "platform.menu.manage", "排序": "platform.menu.manage" } },
+      { id: "platformTenantMenus", group: "系统管理", page: "租户菜单管理", path: "系统管理 / 租户菜单管理", pagePermission: "platform.tenant_menu.view", actions: ["新增", "编辑", "发布", "停用", "排序", "查看变更记录"], actionPermissions: { "新增": "platform.tenant_menu.manage", "编辑": "platform.tenant_menu.manage", "发布": "platform.tenant_menu.publish", "停用": "platform.tenant_menu.publish", "排序": "platform.tenant_menu.manage", "查看变更记录": "platform.tenant_menu.audit" } }
     ];
 
     const roleGrants = {
@@ -2314,14 +2331,16 @@
         platformReport: ["导出"],
         platformLedger: [],
         platformOrders: ["导出"],
-        platformTickets: ["受理", "回复", "要求补充", "标记解决", "导出"]
+        platformTickets: ["受理", "回复", "要求补充", "标记解决", "导出"],
+        platformNotifications: ["新增配置", "编辑配置", "启停配置", "导出"]
       },
       finance: {
         platformHome: [],
         platformWallet: ["导出"],
         platformFunds: ["审核租户资金申请", "执行已审核租户提款", "提交收款账户变更", "审核收款账户变更", "创建资金更正", "复核资金更正", "执行资金更正", "导出"],
         platformReport: ["导出"],
-        platformLedger: ["导出"]
+        platformLedger: ["导出"],
+        platformNotifications: []
       },
       audit: {
         platformTenant: ["导出"],
@@ -2334,9 +2353,11 @@
         platformOrders: ["导出"],
         platformAudit: ["导出", "查看审计"],
         platformTickets: ["导出"],
+        platformNotifications: ["导出"],
         platformUserRole: ["查看审计"],
         platformSecurity: ["查看审计"],
-        platformMenus: []
+        platformMenus: [],
+        platformTenantMenus: ["查看变更记录"]
       },
       legacy: {
         platformTenant: []
@@ -2414,11 +2435,27 @@
       { id: "audit", parentId: "auditRoot", parent: "审计模块", level: 1, name: "审计日志", type: "页面", path: "/platform/audit/logs", component: "platform/audit/logs", permission: "platform:audit:logs:view", order: "090-02", icon: "shield-check", visible: "显示", cache: "不缓存", status: "启用", updated: "Chen 2026-07-04 10:18", note: "只读审计入口" },
       { id: "settings", parentId: "root", parent: "根菜单", level: 0, name: "系统管理", type: "目录", path: "/platform/settings", component: "platform/settings/layout", permission: "platform:settings", order: "100", icon: "settings-2", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "当前页面入口" },
       { id: "settingsUsers", parentId: "settings", parent: "系统管理", level: 1, name: "用户与角色", type: "页面", path: "/platform/settings/users", component: "platform/settings/users", permission: "platform:settings:users", order: "100-01", icon: "users-round", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "平台账号与角色入口" },
-      { id: "settingsMenus", parentId: "settings", parent: "系统管理", level: 1, name: "菜单管理", type: "页面", path: "/platform/settings/menus", component: "platform/settings/menus", permission: "platform:settings:menus", order: "100-04", icon: "panel-left", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-07-04 16:30", note: "平台端菜单维护入口" }
+      { id: "settingsMenus", parentId: "settings", parent: "系统管理", level: 1, name: "平台菜单管理", type: "页面", path: "/platform/settings/menus", component: "platform/settings/menus", permission: "platform:settings:menus", order: "100-04", icon: "panel-left", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-09-04 10:20", note: "平台端自身菜单维护入口" },
+      { id: "settingsTenantMenus", parentId: "settings", parent: "系统管理", level: 1, name: "租户菜单管理", type: "页面", path: "/platform/settings/tenant-menus", component: "platform/settings/tenant-menus", permission: "platform:settings:tenant-menus", order: "100-05", icon: "panels-top-left", visible: "显示", cache: "不缓存", status: "启用", updated: "Jeff 2026-09-04 10:20", note: "租户端菜单目录、路由和发布范围维护入口" }
+    ];
+
+    const tenantMenuCatalog = [
+      { id: "tenantOverview", parentId: "root", parent: "根菜单", level: 0, name: "总览", type: "页面", path: "/tenant/overview", component: "tenant/overview/index", permission: "tenant:overview:view", order: "001", icon: "layout-dashboard", visible: "显示", cache: "缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 09:30", note: "租户登录后的默认首页" },
+      { id: "tenantMerchant", parentId: "root", parent: "根菜单", level: 0, name: "商户运营", type: "目录", path: "/tenant/merchants", component: "tenant/merchants/layout", permission: "tenant:merchants", order: "010", icon: "store", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 09:30", note: "商户档案和商户运营目录" },
+      { id: "tenantMerchantList", parentId: "tenantMerchant", parent: "商户运营", level: 1, name: "商户管理", type: "页面", path: "/tenant/merchants/list", component: "tenant/merchants/list", permission: "tenant:merchant:view", order: "010-01", icon: "list-filter", visible: "显示", cache: "缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 09:30", note: "当前租户商户管理" },
+      { id: "tenantBusiness", parentId: "root", parent: "根菜单", level: 0, name: "业务运营", type: "目录", path: "/tenant/business", component: "tenant/business/layout", permission: "tenant:business", order: "020", icon: "route", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "指定租户", tenantIds: ["HS-TEN-001", "HS-TEN-002"], capability: "CNY 法币业务", version: "T18", updated: "Lina 2026-09-03 16:10", note: "按平台业务开通范围进入租户可授权目录" },
+      { id: "tenantFunds", parentId: "root", parent: "根菜单", level: 0, name: "资金中心", type: "目录", path: "/tenant/funds", component: "tenant/funds/layout", permission: "tenant:funds", order: "030", icon: "wallet-cards", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "资金能力", version: "T18", updated: "Ming 2026-09-03 15:20", note: "租户钱包、资金划转和流水目录" },
+      { id: "tenantOperations", parentId: "root", parent: "根菜单", level: 0, name: "运营中心", type: "目录", path: "/tenant/operations", component: "tenant/operations/layout", permission: "tenant:operations", order: "040", icon: "briefcase-business", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 10:00", note: "工单、通知和全局追踪目录" },
+      { id: "tenantNotifications", parentId: "tenantOperations", parent: "运营中心", level: 1, name: "通知中心", type: "页面", path: "/tenant/operations/notifications", component: "tenant/operations/notifications", permission: "tenant:notification:view", order: "040-04", icon: "bell-ring", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 10:00", note: "租户业务通知和补推入口" },
+      { id: "tenantSubscriptions", parentId: "tenantOperations", parent: "运营中心", level: 1, name: "数据订阅", type: "页面", path: "/tenant/operations/subscriptions", component: "tenant/operations/subscriptions", permission: "tenant:subscription:view", order: "040-05", icon: "rss", visible: "显示", cache: "不缓存", status: "草稿", releaseScope: "指定租户", tenantIds: ["HS-TEN-001"], capability: "基础功能", version: "T19-draft", updated: "Lina 2026-09-04 10:10", note: "新页面示例：发布前租户端不可见" },
+      { id: "tenantSettings", parentId: "root", parent: "根菜单", level: 0, name: "系统管理", type: "目录", path: "/tenant/settings", component: "tenant/settings/layout", permission: "tenant:settings", order: "050", icon: "settings-2", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 09:30", note: "租户内部账号、角色与配置目录" },
+      { id: "tenantRoles", parentId: "tenantSettings", parent: "系统管理", level: 1, name: "角色管理", type: "页面", path: "/tenant/settings/roles", component: "tenant/settings/roles", permission: "tenant:role:manage", order: "050-02", icon: "shield-check", visible: "显示", cache: "不缓存", status: "已发布", releaseScope: "全部租户", tenantIds: [], capability: "基础功能", version: "T18", updated: "Jeff 2026-09-04 09:30", note: "仅在平台发布范围内配置租户角色授权" }
     ];
 
     const systemChangeHistory = [
-      { time: "2026-07-04 16:30", operator: "Jeff", module: "菜单", object: "系统管理 / 菜单管理", action: "编辑路由和权限标识", result: "成功" },
+      { time: "2026-09-04 10:20", operator: "Jeff", module: "租户菜单", object: "运营中心 / 通知中心", action: "发布到全部租户可授权目录（T18）", result: "成功" },
+      { time: "2026-09-04 10:10", operator: "Lina", module: "租户菜单", object: "运营中心 / 数据订阅", action: "保存草稿（未发布）", result: "成功" },
+      { time: "2026-07-04 16:30", operator: "Jeff", module: "平台菜单", object: "系统管理 / 平台菜单管理", action: "编辑路由和权限标识", result: "成功" },
       { time: "2026-07-04 15:40", operator: "Jeff", module: "菜单", object: "首页", action: "保存排序", result: "成功" },
       { time: "2026-07-03 18:20", operator: "Lina", module: "菜单", object: "租户详情", action: "改为隐藏菜单", result: "成功" }
     ];
@@ -2496,7 +2533,8 @@
       const map = {
         users: [["plus", "新增账号", "modal", "account:create"], ["shield-alert", "阻断示例", "toast", "角色仍有成员，需迁移后再停用。"]],
         security: [["save", "保存白名单", "security-save", ""]],
-        menus: [["plus", "新增菜单", "modal", "menu:create"], ["save", "保存排序", "modal", "menu:sort"]]
+        menus: [["plus", "新增菜单", "modal", "menu:create"], ["save", "保存排序", "modal", "menu:sort"]],
+        "tenant-menus": [["plus", "新增租户菜单", "modal", "tenant-menu:create"], ["save", "保存排序", "modal", "tenant-menu:sort"]]
       };
       actions.innerHTML = map[state.module].map(([icon, label, action, payload], index) => `
         <button class="btn ${index === 0 ? "primary" : ""}" type="button" data-head-action="${action}" data-payload="${payload}">
@@ -2530,6 +2568,7 @@
       if (state.module === "users") panel.innerHTML = renderUsers();
       if (state.module === "security") panel.innerHTML = renderSecurity();
       if (state.module === "menus") panel.innerHTML = renderMenus();
+      if (state.module === "tenant-menus") panel.innerHTML = renderTenantMenus();
       bindModuleEvents();
     }
 
@@ -2807,6 +2846,116 @@
         </div>`;
     }
 
+    function tenantMenuById(id) {
+      return tenantMenuCatalog.find(item => item.id === id) || tenantMenuCatalog[0];
+    }
+
+    function tenantMenuStatusTag(status) {
+      if (status === "已发布") return `<span class="tag success">已发布</span>`;
+      if (status === "草稿") return `<span class="tag info">草稿</span>`;
+      return `<span class="tag warning">${status}</span>`;
+    }
+
+    function tenantMenuMatchesFilters(item) {
+      const filters = state.tenantMenuFilters;
+      const keyword = filters.keyword.trim().toLowerCase();
+      const searchable = `${item.name} ${item.path} ${item.component} ${item.permission} ${item.capability}`.toLowerCase();
+      return (!keyword || searchable.includes(keyword))
+        && (filters.type === "全部类型" || item.type === filters.type)
+        && (filters.status === "全部发布状态" || item.status === filters.status)
+        && (filters.scope === "全部适用范围" || item.releaseScope === filters.scope);
+    }
+
+    function visibleTenantMenuCatalog() {
+      const included = new Set();
+      tenantMenuCatalog.filter(tenantMenuMatchesFilters).forEach(item => {
+        included.add(item.id);
+        let parentId = item.parentId;
+        while (parentId && parentId !== "root") {
+          included.add(parentId);
+          parentId = tenantMenuCatalog.find(parent => parent.id === parentId)?.parentId;
+        }
+      });
+      return tenantMenuCatalog.filter(item => {
+        if (!included.has(item.id)) return false;
+        let parentId = item.parentId;
+        while (parentId && parentId !== "root") {
+          if (state.tenantMenuCollapsed.has(parentId)) return false;
+          parentId = tenantMenuCatalog.find(parent => parent.id === parentId)?.parentId;
+        }
+        return true;
+      });
+    }
+
+    function renderTenantMenuRow(item) {
+      const hasChildren = tenantMenuCatalog.some(child => child.parentId === item.id);
+      const collapsed = hasChildren && state.tenantMenuCollapsed.has(item.id);
+      const scopeText = item.releaseScope === "全部租户" ? "全部租户" : `${item.tenantIds.length} 个指定租户`;
+      return `
+        <tr class="${state.selectedTenantMenu === item.id ? "selected" : ""}" data-tenant-menu="${item.id}">
+          <td>
+            <div class="tree-name" style="--level:${item.level}">
+              ${hasChildren ? `<button class="tree-toggle" type="button" data-action="tenant-menu-toggle" data-message="${item.id}" aria-label="${collapsed ? "展开" : "收起"}${item.name}" aria-expanded="${!collapsed}"><i data-lucide="${collapsed ? "chevron-right" : "chevron-down"}"></i></button>` : `<i data-lucide="${item.icon}"></i>`}
+              <span><strong>${item.name}</strong><small>${item.parent}</small></span>
+            </div>
+          </td>
+          <td><span class="tag ${item.type === "目录" ? "info" : "neutral"}">${item.type}</span></td>
+          <td><div class="route-stack"><strong>${item.path}</strong><small>${item.component}</small><small class="mono">${item.permission}</small></div></td>
+          <td><div class="route-stack"><strong>${scopeText}</strong><small>${item.capability}</small><small>${item.visible} / ${item.cache}</small></div></td>
+          <td><div class="route-stack">${tenantMenuStatusTag(item.status)}<small class="mono">${item.version}</small><small>${item.updated}</small></div></td>
+          <td>
+            <div class="row-actions">
+              ${item.type === "目录" ? `<button class="btn ghost" type="button" data-action="modal" data-message="tenant-menu:child:${item.id}"><i data-lucide="corner-down-right"></i><span>子级</span></button>` : ""}
+              <button class="btn ghost" type="button" data-action="modal" data-message="tenant-menu:edit:${item.id}"><i data-lucide="pencil"></i><span>编辑</span></button>
+              <button class="btn ${item.status === "已发布" ? "warning" : "primary"}" type="button" data-action="modal" data-message="tenant-menu:publish:${item.id}"><i data-lucide="${item.status === "已发布" ? "pause-circle" : "rocket"}"></i><span>${item.status === "已发布" ? "停用" : "发布"}</span></button>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    function renderTenantMenus() {
+      const visibleMenus = visibleTenantMenuCatalog();
+      const publishedCount = tenantMenuCatalog.filter(item => item.status === "已发布").length;
+      const draftCount = tenantMenuCatalog.filter(item => item.status === "草稿").length;
+      return `
+        <div class="panel-head">
+          <div><p class="panel-title">租户菜单管理</p><div class="panel-sub">租户端统一菜单目录、路由组件、权限标识、能力归属和发布范围</div></div>
+          <div class="row-actions">
+            <span class="tag success">已发布 ${publishedCount}</span>
+            <span class="tag info">草稿 ${draftCount}</span>
+            <button class="btn" type="button" data-action="tenant-menu-expand" ${state.tenantMenuCollapsed.size ? "" : "disabled"}><i data-lucide="chevrons-down"></i><span>展开全部</span></button>
+            <button class="btn primary" type="button" data-action="modal" data-message="tenant-menu:create"><i data-lucide="plus"></i><span>新增一级菜单</span></button>
+          </div>
+        </div>
+        <div class="risk-note"><strong>发布边界：</strong>新菜单默认保存为草稿。发布后只进入匹配租户的“可授权菜单范围”，不会自动给租户账号或角色授权；租户最终可见菜单仍取平台发布范围、租户业务授权、角色权限和账号状态的交集。</div>
+        <div class="menu-workbench">
+          <div class="menu-toolbar">
+            <div class="filters">
+              <input class="search" id="tenantMenuKeyword" value="${state.tenantMenuFilters.keyword}" placeholder="搜索名称 / 路由 / 权限标识" aria-label="搜索租户菜单">
+              <select class="select" id="tenantMenuFilterType" aria-label="租户菜单类型"><option ${state.tenantMenuFilters.type === "全部类型" ? "selected" : ""}>全部类型</option><option ${state.tenantMenuFilters.type === "目录" ? "selected" : ""}>目录</option><option ${state.tenantMenuFilters.type === "页面" ? "selected" : ""}>页面</option><option ${state.tenantMenuFilters.type === "按钮" ? "selected" : ""}>按钮</option></select>
+              <select class="select" id="tenantMenuFilterStatus" aria-label="租户菜单发布状态"><option ${state.tenantMenuFilters.status === "全部发布状态" ? "selected" : ""}>全部发布状态</option><option ${state.tenantMenuFilters.status === "草稿" ? "selected" : ""}>草稿</option><option ${state.tenantMenuFilters.status === "已发布" ? "selected" : ""}>已发布</option><option ${state.tenantMenuFilters.status === "已停用" ? "selected" : ""}>已停用</option></select>
+              <select class="select" id="tenantMenuFilterScope" aria-label="租户菜单适用范围"><option ${state.tenantMenuFilters.scope === "全部适用范围" ? "selected" : ""}>全部适用范围</option><option ${state.tenantMenuFilters.scope === "全部租户" ? "selected" : ""}>全部租户</option><option ${state.tenantMenuFilters.scope === "指定租户" ? "selected" : ""}>指定租户</option></select>
+            </div>
+            <div class="row-actions">
+              <button class="btn" type="button" data-action="tenant-menu-reset"><i data-lucide="rotate-ccw"></i><span>重置</span></button>
+              <button class="btn" type="button" data-action="tenant-menu-query"><i data-lucide="search"></i><span>查询</span></button>
+              <button class="btn" type="button" data-action="tenant-menu-refresh"><i data-lucide="refresh-cw"></i><span>重新载入</span></button>
+              <button class="btn" type="button" data-action="modal" data-message="tenant-menu:sort"><i data-lucide="save"></i><span>保存排序</span></button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="tree-table" aria-label="租户端菜单目录">
+              <thead><tr><th>菜单名称</th><th>类型</th><th>路由 / 组件 / 权限标识</th><th>发布范围 / 能力归属</th><th>发布状态 / 版本</th><th>操作</th></tr></thead>
+              <tbody>${visibleMenus.length ? visibleMenus.map(renderTenantMenuRow).join("") : `<tr><td colspan="6"><div class="empty-state"><strong>没有匹配的租户菜单</strong><span>请调整关键词、类型、发布状态或适用范围。</span></div></td></tr>`}</tbody>
+            </table>
+          </div>
+          <div class="menu-footer">
+            <span>当前显示 ${visibleMenus.length} / ${tenantMenuCatalog.length} 个节点；最近重新载入：${state.tenantMenuRefreshedAt} UTC+8。</span>
+            <div class="row-actions"><span class="tag info">当前发布版本：T18</span><button class="btn" type="button" data-action="modal" data-message="tenant-menu:audit"><i data-lucide="file-clock"></i><span>变更记录</span></button></div>
+          </div>
+        </div>`;
+    }
+
     function renderFees() {
       const visibleFeePlans = !platformSystemAuthorization || platformSystemAuthorization.dataScope.scopeCode === 'platform.all_tenants'
         ? feePlans
@@ -2850,15 +2999,19 @@
     function platformSystemRequiredAction(control) {
       const message = control.dataset.message || control.dataset.payload || '';
       const action = control.dataset.action || control.dataset.headAction || '';
-      if (action === 'toast' || ['menu-expand', 'menu-reset', 'menu-query', 'menu-refresh'].includes(action)) return '';
+      if (action === 'toast' || ['menu-expand', 'menu-reset', 'menu-query', 'menu-refresh', 'tenant-menu-expand', 'tenant-menu-reset', 'tenant-menu-query', 'tenant-menu-refresh'].includes(action)) return '';
       if (action === 'fee-export' || action === 'export-center') return 'platform.fee_package.export';
       if (control.hasAttribute('data-fee-create') || control.hasAttribute('data-fee-edit') || control.hasAttribute('data-fee-status') || action === 'fee-create') return 'platform.fee_package.manage';
       if (message.startsWith('account:')) return 'platform.user.manage';
       if (message.startsWith('role:')) return 'platform.role.manage';
       if (message.startsWith('menu:') || action === 'menu-toggle') return 'platform.menu.manage';
+      if (message.startsWith('tenant-menu:publish:')) return 'platform.tenant_menu.publish';
+      if (message === 'tenant-menu:audit') return 'platform.tenant_menu.audit';
+      if (message.startsWith('tenant-menu:') || action === 'tenant-menu-toggle') return 'platform.tenant_menu.manage';
       if (['security-save', 'security-entry-add', 'security-entry-toggle'].includes(action)) return 'platform.security.whitelist.manage';
       if (state.module === 'users' && (action === 'modal' || control.hasAttribute('data-head-action'))) return state.userTab === 'roles' ? 'platform.role.manage' : 'platform.user.manage';
       if (state.module === 'menus' && (action === 'modal' || control.hasAttribute('data-head-action'))) return 'platform.menu.manage';
+      if (state.module === 'tenant-menus' && (action === 'modal' || control.hasAttribute('data-head-action'))) return 'platform.tenant_menu.manage';
       if (state.module === 'fees' && control.hasAttribute('data-head-action')) return action === 'fee-export' ? 'platform.fee_package.export' : 'platform.fee_package.manage';
       return '';
     }
@@ -2898,6 +3051,13 @@
         btn.addEventListener("click", event => {
           if (event.target.closest("[data-action]")) return;
           state.selectedMenu = btn.dataset.menu;
+          render();
+        });
+      });
+      document.querySelectorAll("[data-tenant-menu]").forEach(row => {
+        row.addEventListener("click", event => {
+          if (event.target.closest("[data-action]")) return;
+          state.selectedTenantMenu = row.dataset.tenantMenu;
           render();
         });
       });
@@ -3781,6 +3941,112 @@
       return null;
     }
 
+    function tenantParentMenuOptions(selectedId) {
+      const options = [{ id: "root", name: "根菜单" }, ...tenantMenuCatalog.filter(item => item.type === "目录").map(item => ({ id: item.id, name: item.name }))];
+      return options.map(item => `<option value="${item.id}" ${selectedOption(item.id, selectedId)}>${item.name}</option>`).join("");
+    }
+
+    function tenantReleaseTenantChoices(selectedIds = []) {
+      return platformScopeTenants.map(tenant => `
+        <label class="permission-check">
+          <input type="checkbox" data-tenant-release-id="${tenant.id}" ${selectedIds.includes(tenant.id) ? "checked" : ""}>
+          <span><strong>${tenant.name}</strong><small class="mono">${tenant.id}</small></span>
+        </label>`).join("");
+    }
+
+    function renderTenantMenuForm(mode, item, parent) {
+      const isCreate = mode === "create";
+      const current = item || {
+        name: parent ? `${parent.name}新页面` : "客户支持",
+        parentId: parent ? parent.id : "root",
+        type: parent ? "页面" : "目录",
+        path: parent ? `${parent.path}/new-page` : "/tenant/support",
+        component: parent ? `${parent.component.replace("/layout", "")}/new-page` : "tenant/support/layout",
+        permission: parent ? `${parent.permission}:new-page` : "tenant:support",
+        order: parent ? `${parent.order}-99` : "045",
+        icon: parent ? "file-plus-2" : "life-buoy",
+        visible: "显示",
+        cache: "不缓存",
+        releaseScope: "全部租户",
+        tenantIds: [],
+        capability: "基础功能",
+        note: parent ? `${parent.name} 下新增租户页面` : "租户端客户支持目录"
+      };
+      return `
+        <div class="risk-note">${isCreate ? "新增菜单默认保存为草稿，租户端不会立即出现。" : "保存会形成待发布版本；线上版本继续有效，发布后才刷新匹配租户的菜单版本。"} 页面发布后仍需由租户管理员在可用范围内配置角色权限。</div>
+        <div class="form-grid">
+          <div class="form-field"><label for="tenantMenuName">菜单名称</label><input class="input" id="tenantMenuName" value="${current.name}" aria-label="租户菜单名称"></div>
+          <div class="form-field"><label for="tenantMenuParent">上级菜单</label><select class="select" id="tenantMenuParent" aria-label="租户菜单上级">${tenantParentMenuOptions(current.parentId)}</select></div>
+          <div class="form-field"><label for="tenantMenuType">菜单类型</label><select class="select" id="tenantMenuType" aria-label="租户菜单类型"><option ${selectedOption("目录", current.type)}>目录</option><option ${selectedOption("页面", current.type)}>页面</option><option ${selectedOption("按钮", current.type)}>按钮</option></select></div>
+          <div class="form-field"><label for="tenantMenuOrder">排序值</label><input class="input mono" id="tenantMenuOrder" value="${current.order}" aria-label="租户菜单排序值"></div>
+          <div class="form-field"><label for="tenantMenuPath">租户端路由</label><input class="input mono" id="tenantMenuPath" value="${current.path}" aria-label="租户端路由"><small>必须以 /tenant/ 开头，并在租户端正式路由表中存在。</small></div>
+          <div class="form-field"><label for="tenantMenuComponent">组件标识</label><input class="input mono" id="tenantMenuComponent" value="${current.component}" aria-label="租户端组件标识"></div>
+          <div class="form-field"><label for="tenantMenuPermission">权限标识</label><input class="input mono" id="tenantMenuPermission" value="${current.permission}" aria-label="租户菜单权限标识"><small>必须以 tenant: 开头，租户角色授权引用此标识。</small></div>
+          <div class="form-field"><label for="tenantMenuIcon">菜单图标</label><input class="input mono" id="tenantMenuIcon" value="${current.icon}" aria-label="租户菜单图标"></div>
+          <div class="form-field"><label for="tenantMenuCapability">能力归属</label><select class="select" id="tenantMenuCapability" aria-label="租户菜单能力归属"><option ${selectedOption("基础功能", current.capability)}>基础功能</option><option ${selectedOption("CNY 法币业务", current.capability)}>CNY 法币业务</option><option ${selectedOption("资金能力", current.capability)}>资金能力</option><option ${selectedOption("协同运营", current.capability)}>协同运营</option></select><small>业务类菜单还需命中平台业务开通范围。</small></div>
+          <div class="form-field"><label for="tenantMenuReleaseScope">适用范围</label><select class="select" id="tenantMenuReleaseScope" aria-label="租户菜单适用范围"><option ${selectedOption("全部租户", current.releaseScope)}>全部租户</option><option ${selectedOption("指定租户", current.releaseScope)}>指定租户</option></select></div>
+          <div class="form-field"><label for="tenantMenuVisible">显示状态</label><select class="select" id="tenantMenuVisible" aria-label="租户菜单显示状态"><option ${selectedOption("显示", current.visible)}>显示</option><option ${selectedOption("隐藏", current.visible)}>隐藏</option></select><small>隐藏页面仍必须校验路由权限。</small></div>
+          <div class="form-field"><label for="tenantMenuCache">缓存策略</label><select class="select" id="tenantMenuCache" aria-label="租户菜单缓存策略"><option ${selectedOption("缓存", current.cache)}>缓存</option><option ${selectedOption("不缓存", current.cache)}>不缓存</option></select></div>
+          <div class="form-field full"><label>指定租户</label><div class="permission-grid">${tenantReleaseTenantChoices(current.tenantIds)}</div><small>仅当适用范围为“指定租户”时生效；未选择租户会阻断发布。</small></div>
+          <div class="form-field full"><label for="tenantMenuNote">备注</label><textarea class="textarea" id="tenantMenuNote" aria-label="租户菜单备注">${current.note}</textarea></div>
+          <div class="form-field full"><label for="tenantMenuReason">变更原因</label><textarea class="textarea" id="tenantMenuReason" aria-label="租户菜单变更原因">${isCreate ? "登记租户端新页面，先保存草稿并完成路由联调后再发布。" : `调整 ${current.name} 的菜单元数据，线上版本保持不变，待复核后发布。`}</textarea></div>
+        </div>
+        ${auditStrip(isCreate ? "新增租户菜单草稿" : "保存租户菜单草稿", current.name)}`;
+    }
+
+    function renderTenantMenuPublishForm(item) {
+      const publishing = item.status !== "已发布";
+      const scopeText = item.releaseScope === "全部租户" ? "全部租户" : `${item.tenantIds.length} 个指定租户`;
+      return `
+        <div class="delete-impact">
+          <strong>${publishing ? `发布 ${item.name}` : `停用 ${item.name}`}</strong>
+          <span>${publishing ? `发布后进入 ${scopeText} 的可授权目录，但不会自动给租户角色授权。` : "停用后，匹配租户刷新菜单版本时移除入口，直连路由也必须拒绝；历史角色授权记录保留。"}</span>
+        </div>
+        <div class="kv-list">
+          <div class="kv"><span>当前状态</span><strong>${item.status} · ${item.version}</strong></div>
+          <div class="kv"><span>目标状态</span><strong>${publishing ? "已发布" : "已停用"}</strong></div>
+          <div class="kv"><span>发布范围</span><strong>${scopeText}</strong></div>
+          <div class="kv"><span>权限规则</span><strong>平台发布范围 ∩ 业务授权 ∩ 租户角色权限 ∩ 账号状态</strong></div>
+        </div>
+        <div class="form-field full"><label for="tenantMenuPublishReason">处理原因</label><textarea class="textarea" id="tenantMenuPublishReason">${publishing ? "路由、组件和权限标识已完成联调，按当前范围发布。" : "菜单下线，已确认租户必要入口和替代路径。"}</textarea></div>
+        ${auditStrip(publishing ? "发布租户菜单" : "停用租户菜单", item.name)}`;
+    }
+
+    function renderTenantMenuSortForm() {
+      return `
+        <div class="risk-note">排序保存为待发布版本，不会直接改变租户端线上菜单顺序；完成复核并发布后才递增租户菜单版本。</div>
+        <div class="table-wrap"><table><thead><tr><th>菜单</th><th>上级菜单</th><th>当前排序</th><th>调整后</th><th>发布状态</th></tr></thead><tbody>
+          ${tenantMenuCatalog.filter(item => item.level === 0).map(item => `<tr><td><strong>${item.name}</strong></td><td>${item.parent}</td><td class="mono">${item.order}</td><td><input class="input mono" value="${item.order}" aria-label="${item.name} 租户菜单排序"></td><td>${tenantMenuStatusTag(item.status)}</td></tr>`).join("")}
+        </tbody></table></div>
+        <div class="form-field full"><label for="tenantMenuSortReason">排序原因</label><textarea class="textarea" id="tenantMenuSortReason">调整租户端一级菜单展示顺序，保存为待发布版本。</textarea></div>
+        ${auditStrip("保存租户菜单排序草稿", "租户端菜单树")}`;
+    }
+
+    function renderTenantMenuAudit() {
+      const rows = systemChangeHistory.filter(record => record.module === "租户菜单");
+      return `<div class="table-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>菜单</th><th>动作</th><th>结果</th></tr></thead><tbody>${rows.map(record => `<tr><td>${record.time}</td><td>${record.operator}</td><td>${record.object}</td><td>${record.action}</td><td>${statusTag(record.result)}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+
+    function tenantMenuModalConfig(payload) {
+      const parts = String(payload || "").split(":");
+      if (payload === "tenant-menu:create") return { title: "新增租户端一级菜单", body: renderTenantMenuForm("create"), className: "menu-modal", confirmText: "保存草稿", toast: "租户菜单草稿已保存，尚未发布。", auditAction: "新增租户菜单草稿" };
+      if (parts[0] === "tenant-menu" && parts[1] === "child") {
+        const parent = tenantMenuById(parts[2]);
+        return { title: `新增租户子菜单：${parent.name}`, body: renderTenantMenuForm("create", null, parent), className: "menu-modal", confirmText: "保存草稿", toast: `${parent.name} 子菜单草稿已保存。`, auditAction: `新增租户子菜单 ${parent.name}` };
+      }
+      if (parts[0] === "tenant-menu" && parts[1] === "edit") {
+        const item = tenantMenuById(parts[2]);
+        return { title: `编辑租户菜单：${item.name}`, body: renderTenantMenuForm("edit", item), className: "menu-modal", confirmText: "保存草稿", toast: `${item.name} 的待发布版本已保存。`, auditAction: `编辑租户菜单 ${item.name}` };
+      }
+      if (parts[0] === "tenant-menu" && parts[1] === "publish") {
+        const item = tenantMenuById(parts[2]);
+        return { title: `${item.status === "已发布" ? "停用" : "发布"}租户菜单：${item.name}`, body: renderTenantMenuPublishForm(item), className: "role-modal", confirmText: item.status === "已发布" ? "确认停用" : "确认发布", confirmClass: item.status === "已发布" ? "warning" : "primary", toast: `${item.name} 发布状态已更新。`, auditAction: `租户菜单发布状态 ${item.name}` };
+      }
+      if (payload === "tenant-menu:sort") return { title: "保存租户菜单排序", body: renderTenantMenuSortForm(), className: "menu-modal", confirmText: "保存排序草稿", toast: "租户菜单排序草稿已保存。", auditAction: "保存租户菜单排序" };
+      if (payload === "tenant-menu:audit") return { title: "租户菜单变更记录", body: renderTenantMenuAudit(), className: "menu-modal", confirmText: "关闭", toast: "租户菜单变更记录已查看。", auditAction: "查看租户菜单变更记录" };
+      return null;
+    }
+
     function ipv4ToInt(ip) {
       const parts = ip.split(".");
       if (parts.length !== 4 || !parts.every(part => /^\d{1,3}$/.test(part) && Number(part) >= 0 && Number(part) <= 255)) return null;
@@ -4433,6 +4699,41 @@
         showToast(`菜单数据已重新载入，当前共 ${menuCatalog.length} 个节点。`);
         return;
       }
+      if (action === "tenant-menu-toggle") {
+        if (state.tenantMenuCollapsed.has(payload)) state.tenantMenuCollapsed.delete(payload);
+        else state.tenantMenuCollapsed.add(payload);
+        render();
+        return;
+      }
+      if (action === "tenant-menu-expand") {
+        state.tenantMenuCollapsed.clear();
+        render();
+        showToast("全部租户菜单节点已展开。");
+        return;
+      }
+      if (action === "tenant-menu-query") {
+        state.tenantMenuFilters.keyword = document.getElementById("tenantMenuKeyword")?.value || "";
+        state.tenantMenuFilters.type = document.getElementById("tenantMenuFilterType")?.value || "全部类型";
+        state.tenantMenuFilters.status = document.getElementById("tenantMenuFilterStatus")?.value || "全部发布状态";
+        state.tenantMenuFilters.scope = document.getElementById("tenantMenuFilterScope")?.value || "全部适用范围";
+        state.tenantMenuCollapsed.clear();
+        render();
+        showToast(`已按当前条件查询，显示 ${visibleTenantMenuCatalog().length} 个租户菜单节点。`);
+        return;
+      }
+      if (action === "tenant-menu-reset") {
+        Object.assign(state.tenantMenuFilters, { keyword: "", type: "全部类型", status: "全部发布状态", scope: "全部适用范围" });
+        state.tenantMenuCollapsed.clear();
+        render();
+        showToast("租户菜单筛选已重置。");
+        return;
+      }
+      if (action === "tenant-menu-refresh") {
+        state.tenantMenuRefreshedAt = platformNow();
+        render();
+        showToast(`租户菜单已重新载入，当前共 ${tenantMenuCatalog.length} 个节点。`);
+        return;
+      }
       if (action === "tab") {
         state.module = "users";
         state.userTab = payload;
@@ -4797,12 +5098,123 @@
       return null;
     }
 
+    function tenantMenuDescendantIds(id) {
+      const found = [];
+      const walk = parentId => tenantMenuCatalog.filter(item => item.parentId === parentId).forEach(item => { found.push(item.id); walk(item.id); });
+      walk(id);
+      return found;
+    }
+
+    function nextTenantMenuVersion() {
+      const versions = tenantMenuCatalog.map(item => Number(String(item.version).match(/T(\d+)/)?.[1] || 0));
+      return `T${Math.max(18, ...versions) + 1}`;
+    }
+
+    function applyTenantMenuAction(payload) {
+      const parts = payload.split(":");
+      const kind = parts[1];
+      const item = parts[2] ? tenantMenuById(parts[2]) : null;
+      if (kind === "create" || kind === "child" || kind === "edit") {
+        const current = kind === "edit" ? item : null;
+        const name = modalValue("tenantMenuName");
+        const parentId = modalValue("tenantMenuParent");
+        const path = modalValue("tenantMenuPath");
+        const component = modalValue("tenantMenuComponent");
+        const permission = modalValue("tenantMenuPermission");
+        const order = modalValue("tenantMenuOrder");
+        const reason = modalValue("tenantMenuReason");
+        const releaseScope = modalValue("tenantMenuReleaseScope") || "全部租户";
+        const tenantIds = [...document.querySelectorAll("#modalBody [data-tenant-release-id]:checked")].map(input => input.dataset.tenantReleaseId);
+        if (!name) return failSystemAction("请填写菜单名称。", "tenantMenuName");
+        if (!path.startsWith("/tenant/") || path.includes("//")) return failSystemAction("租户端路由必须以 /tenant/ 开头且不能包含重复斜线。", "tenantMenuPath");
+        if (!component.startsWith("tenant/")) return failSystemAction("组件标识必须以 tenant/ 开头。", "tenantMenuComponent");
+        if (!/^tenant:[a-z0-9:-]+$/.test(permission)) return failSystemAction("权限标识需以 tenant: 开头，并使用小写字母、数字、冒号或连字符。", "tenantMenuPermission");
+        if (!order) return failSystemAction("请填写排序值。", "tenantMenuOrder");
+        if (!reason) return failSystemAction("请填写变更原因。", "tenantMenuReason");
+        const parent = parentId === "root" ? null : tenantMenuCatalog.find(entry => entry.id === parentId);
+        if (parentId !== "root" && !parent) return failSystemAction("上级菜单不存在，请重新选择。", "tenantMenuParent");
+        if (current && (parentId === current.id || tenantMenuDescendantIds(current.id).includes(parentId))) return failSystemAction("不能将菜单移动到自身或自己的子级下。", "tenantMenuParent");
+        if (tenantMenuCatalog.some(entry => entry.id !== current?.id && entry.path === path)) return failSystemAction("租户端路由已存在。", "tenantMenuPath");
+        if (tenantMenuCatalog.some(entry => entry.id !== current?.id && entry.permission === permission)) return failSystemAction("租户端权限标识已存在。", "tenantMenuPermission");
+        if (tenantMenuCatalog.some(entry => entry.id !== current?.id && entry.parentId === parentId && entry.order === order)) return failSystemAction("同层排序值已存在。", "tenantMenuOrder");
+        const values = {
+          parentId,
+          parent: parent?.name || "根菜单",
+          level: parent ? parent.level + 1 : 0,
+          name,
+          type: modalValue("tenantMenuType") || "页面",
+          path,
+          component,
+          permission,
+          order,
+          icon: modalValue("tenantMenuIcon") || "file",
+          visible: modalValue("tenantMenuVisible") || "显示",
+          cache: modalValue("tenantMenuCache") || "不缓存",
+          releaseScope,
+          tenantIds: releaseScope === "全部租户" ? [] : tenantIds,
+          capability: modalValue("tenantMenuCapability") || "基础功能",
+          updated: `Jeff ${platformNow()}`,
+          note: modalValue("tenantMenuNote") || reason
+        };
+        if (current) {
+          const publishedVersion = current.status === "已发布" ? current.version : current.publishedVersion;
+          Object.assign(current, values, { hasDraft: true, publishedVersion, version: publishedVersion ? `${nextTenantMenuVersion()}-draft / 线上 ${publishedVersion}` : `${nextTenantMenuVersion()}-draft` });
+          state.selectedTenantMenu = current.id;
+          recordSystemChange("租户菜单", name, `保存待发布版本：线上版本保持不变；${reason}`);
+          return finishSystemAction(`${name} 的待发布版本已保存；租户端线上菜单和角色授权均未变化。`);
+        }
+        const idBase = name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-|-$/g, "") || "tenant-menu";
+        let id = idBase;
+        let suffix = 2;
+        while (tenantMenuCatalog.some(entry => entry.id === id)) id = `${idBase}-${suffix++}`;
+        tenantMenuCatalog.push({ id, ...values, status: "草稿", version: `${nextTenantMenuVersion()}-draft`, hasDraft: false });
+        state.selectedTenantMenu = id;
+        recordSystemChange("租户菜单", name, `新增草稿：${reason}`);
+        return finishSystemAction(`${name} 已保存为草稿；完成租户端路由联调并发布前，任何租户都不可见。`);
+      }
+      if (payload === "tenant-menu:audit") return finishSystemAction("租户菜单变更记录已查看。");
+      if (payload === "tenant-menu:sort") {
+        const inputs = [...document.querySelectorAll("#modalBody tbody input[aria-label$='租户菜单排序']")];
+        const values = inputs.map(input => input.value.trim());
+        if (values.some(value => !value)) return failSystemAction("排序值不能为空。");
+        if (new Set(values).size !== values.length) return failSystemAction("一级菜单排序值重复，已阻断保存。");
+        if (!modalValue("tenantMenuSortReason")) return failSystemAction("请填写排序原因。", "tenantMenuSortReason");
+        inputs.forEach(input => {
+          const name = input.getAttribute("aria-label").replace(/\s*租户菜单排序$/, "");
+          const row = tenantMenuCatalog.find(entry => entry.level === 0 && entry.name === name);
+          if (row) { row.order = input.value.trim(); row.hasDraft = true; row.updated = `Jeff ${platformNow()}`; }
+        });
+        recordSystemChange("租户菜单", "租户端菜单树", `保存排序草稿：${modalValue("tenantMenuSortReason")}`);
+        return finishSystemAction("租户菜单排序已保存为待发布版本；线上租户菜单顺序未改变。 ");
+      }
+      if (!item) return failSystemAction("未找到目标租户菜单，数据未变更。");
+      if (kind === "publish") {
+        const publishing = item.status !== "已发布";
+        const reason = modalValue("tenantMenuPublishReason");
+        if (!reason) return failSystemAction("请填写处理原因。", "tenantMenuPublishReason");
+        if (publishing && item.releaseScope === "指定租户" && !item.tenantIds.length) return failSystemAction("适用范围为指定租户时，至少选择一个租户。", "tenantMenuReleaseScope");
+        const version = nextTenantMenuVersion();
+        item.status = publishing ? "已发布" : "已停用";
+        item.version = version;
+        item.publishedVersion = publishing ? version : item.publishedVersion || version;
+        item.hasDraft = false;
+        item.updated = `Jeff ${platformNow()}`;
+        const scopeText = item.releaseScope === "全部租户" ? "全部租户" : `${item.tenantIds.length} 个指定租户`;
+        recordSystemChange("租户菜单", item.name, `${publishing ? "发布" : "停用"} ${version}：${scopeText}；${reason}`);
+        return finishSystemAction(publishing
+          ? `${item.name} 已发布为 ${version}，进入 ${scopeText} 的可授权菜单范围；未自动修改任何租户角色。`
+          : `${item.name} 已停用为 ${version}；匹配租户下一次刷新后移除入口并阻断直连，历史角色授权记录保留。`);
+      }
+      return null;
+    }
+
     function applySystemModalAction() {
       const payload = state.modalPayload;
       if (!payload) return null;
       if (payload.startsWith("account:")) return applyAccountAction(payload);
       if (payload.startsWith("role:")) return applyRoleAction(payload);
       if (payload.startsWith("menu:")) return applyMenuAction(payload);
+      if (payload.startsWith("tenant-menu:")) return applyTenantMenuAction(payload);
       return null;
     }
 
@@ -4810,13 +5222,14 @@
       const accountConfig = accountModalConfig(title);
       const roleConfig = roleModalConfig(title);
       const menuConfig = menuModalConfig(title);
-      const config = accountConfig || roleConfig || menuConfig || {
+      const tenantMenuConfig = tenantMenuModalConfig(title);
+      const config = accountConfig || roleConfig || menuConfig || tenantMenuConfig || {
         title: title || "高风险确认",
         body: `
         <div class="risk-note">该动作会写入审计日志，并记录操作人、对象、原因、IP、时间和结果；首版不记录异常设备信息。</div>
         <div class="kv-list">
           <div class="kv"><span>操作对象</span><strong>${title || "当前选中对象"}</strong></div>
-          <div class="kv"><span>影响范围</span><strong>${state.module === "menus" ? "12 个角色 / 42 个账号" : "当前权限范围"}</strong></div>
+          <div class="kv"><span>影响范围</span><strong>${state.module === "menus" ? "12 个角色 / 42 个账号" : state.module === "tenant-menus" ? "匹配租户的可授权菜单范围" : "当前权限范围"}</strong></div>
           <div class="kv"><span>执行规则</span><strong>二次确认后按当前动作已确认的业务规则执行</strong></div>
         </div>
       `,

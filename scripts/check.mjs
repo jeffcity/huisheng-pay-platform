@@ -1,6 +1,6 @@
 // 构建后一致性检查（npm run check 第三段）：
 // 1) dist/index.html 由 Vite 生成且引用相对资源（base './'）
-// 2) 15 个真实源文件随 dist 发布且无本机路径/外部脚本
+// 2) 16 个真实源文件随 dist 发布且无本机路径/外部脚本
 // 3) modules.json 每个模块都能落到存在的源文件
 import assert from "node:assert/strict";
 import { readFile, stat } from "node:fs/promises";
@@ -16,8 +16,8 @@ assert.doesNotMatch(distIndex, /<(?:script|link)\b[^>]+(?:src|href)=["']https?:/
 
 const modules = JSON.parse(await readFile(path.join(root, "src/legacy/modules.json"), "utf8"));
 const sourceKeys = new Set(Object.values(modules).map(m => m.sourceKey));
-// 14 个模块源 + 1 个共享 authGuard（不被任何模块直接引用）
-assert.equal(sourceKeys.size, 14, `模块源数量异常：${sourceKeys.size}`);
+// 15 个模块源 + 1 个共享 authGuard（不被任何模块直接引用）
+assert.equal(sourceKeys.size, 15, `模块源数量异常：${sourceKeys.size}`);
 await stat(path.join(root, "dist/legacy/sources/authGuard.html"));
 for (const key of [...sourceKeys]) {
   const p = path.join(root, "dist/legacy/sources", `${key}.html`);
