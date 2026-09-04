@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const modules = JSON.parse(await readFile(path.join(root, "src/legacy/modules.json"), "utf8"));
 
-test("模块注册表包含 31 个统一入口", () => {
-  assert.equal(Object.keys(modules).length, 31);
+test("模块注册表包含 33 个统一入口", () => {
+  assert.equal(Object.keys(modules).length, 33);
 });
 
 test("每个模块的源文件存在于 public/legacy/sources", async () => {
@@ -121,6 +121,48 @@ test("财务模块导航只展示租户平台钱包", async () => {
   assert.doesNotMatch(moduleSource, /\{ module: 'funds', label: '资金待办' \}/);
 });
 
+test("平台通知中心归属协同运营并保持平台职责边界", async () => {
+  const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
+  const page = await readFile(path.join(root, "public/legacy/sources/notifications.html"), "utf8");
+  const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");
+
+  assert.equal(modules.notifications?.sourceKey, "notifications");
+  assert.equal(modules.notifications?.navId, "notifications");
+  assert.match(moduleSource, /title: '协同运营'[\s\S]*module: 'tickets'[\s\S]*module: 'notifications', label: '平台通知中心'/);
+  for (const label of ["发送的消息", "通知配置", "平台自有配置范围", "通知详情"]) {
+    assert.match(page, new RegExp(label), `平台通知中心缺少：${label}`);
+  }
+  assert.match(page, /商户自有系统通知补推仍由租户端有权限人员处理/);
+  assert.doesNotMatch(page, /商户通知补推按钮|重新通知商户/);
+  assert.match(system, /platform\.notification\.view/);
+  assert.match(system, /platform\.notification\.config\.manage/);
+  assert.match(system, /platform\.notification\.export/);
+});
+
+test("平台系统管理提供独立租户菜单目录与安全发布边界", async () => {
+  const system = await readFile(path.join(root, "public/legacy/sources/system.html"), "utf8");
+  const moduleSource = await readFile(path.join(root, "src/modules.js"), "utf8");
+
+  assert.equal(modules["system-tenant-menus"]?.sourceKey, "system");
+  assert.equal(modules["system-tenant-menus"]?.initialHash, "tenant-menus");
+  assert.equal(modules["system-tenant-menus"]?.navId, "system-accounts");
+  assert.match(moduleSource, /title: '系统管理', items: \[\s*\{ module: 'system-accounts', label: '系统管理控制台' \},?\s*\]/);
+  for (const label of ["平台菜单管理", "租户菜单管理", "租户端路由", "组件标识", "能力归属", "适用范围", "发布状态 / 版本"]) {
+    assert.match(system, new RegExp(label), `租户菜单管理缺少：${label}`);
+  }
+  assert.match(system, /新菜单默认保存为草稿/);
+  assert.match(system, /不会自动给租户账号或角色授权/);
+  assert.match(system, /平台发布范围、租户业务授权、角色权限和账号状态的交集/);
+  assert.match(system, /租户端路由必须以 \/tenant\//);
+  assert.match(system, /权限标识需以 tenant:/);
+  assert.match(system, /platform\.tenant_menu\.view/);
+  assert.match(system, /platform\.tenant_menu\.manage/);
+  assert.match(system, /platform\.tenant_menu\.publish/);
+  assert.match(system, /platform\.tenant_menu\.audit/);
+  const tenantPage = system.slice(system.indexOf("function renderTenantMenus"), system.indexOf("function renderFees"));
+  assert.doesNotMatch(tenantPage, /删除菜单|data-message="tenant-menu:delete/);
+});
+
 test("租户平台钱包详情使用弹窗并展示租户钱包信息", async () => {
   const wallets = await readFile(path.join(root, "public/legacy/sources/wallets.html"), "utf8");
   const walletDetail = wallets.slice(wallets.indexOf("function platformWalletDetailMarkup"), wallets.indexOf("function detailMarkup"));
@@ -135,12 +177,13 @@ test("租户平台钱包详情使用弹窗并展示租户钱包信息", async ()
   for (const period of ["近一小时", "今日", "昨日"]) assert.match(wallets, new RegExp(period));
   const walletFlow = wallets.slice(wallets.indexOf("function platformWalletFlowMarkup"), wallets.indexOf("function platformWalletDetailMarkup"));
   assert.match(walletFlow, /<th>流水单号<\/th>/);
-  assert.match(walletFlow, /<th>订单类型<\/th>/);
+  assert.match(walletFlow, /<th>类型<\/th>/);
   for (const orderType of ["人工调整", "冻结", "解冻", "增加", "减少"]) {
-    assert.match(walletFlow, new RegExp(orderType), `钱包流水缺少订单类型：${orderType}`);
+    assert.match(walletFlow, new RegExp(orderType), `钱包流水缺少类型：${orderType}`);
   }
   assert.doesNotMatch(walletFlow, /<th>流水类型<\/th>/);
   assert.doesNotMatch(walletFlow, /<th>收支<\/th>/);
+  assert.doesNotMatch(walletFlow, /<th>订单类型<\/th>/);
   assert.doesNotMatch(wallets, /最近资金摘要/);
   assert.match(walletDetail, /可用余额/);
   assert.match(walletDetail, /冻结金额/);

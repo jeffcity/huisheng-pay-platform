@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>汇盛支付平台端 - 平台通知中心</title>
+  <style>
+    :root {
+      --primary: #3246d2;
+      --primary-hover: #697af1;
+      --primary-soft: #eef0ff;
+      --bg: #f2f3f5;
+      --surface: #ffffff;
+      --surface-soft: #fafafa;
+      --text: #303133;
+      --text-2: #606266;
+      --text-3: #909399;
+      --border: #dcdfe6;
+      --border-light: #ebeef5;
+      --success: #00b42a;
+      --success-soft: #e8ffea;
+      --warning: #c35a00;
+      --warning-soft: #fff7e8;
+      --danger: #f53f3f;
+      --danger-soft: #ffece8;
+      --radius: 8px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(23, 23, 26, .06);
+      --font: Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-width: 0; min-height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .page { width: 100%; padding: 20px 24px 32px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; padding: 18px 20px; border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .page-head h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .page-head p { margin: 7px 0 0; color: var(--text-3); line-height: 1.65; }
+    .scope-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px; border: 1px solid #c6cdfc; border-radius: 999px; background: var(--primary-soft); color: #2838a8; white-space: nowrap; }
+    .scope-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 3px rgba(50,70,210,.12); }
+    .boundary-note { display: flex; gap: 10px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid #bedaff; border-radius: var(--radius); background: #f5faff; color: #0e42d2; line-height: 1.6; }
+    .boundary-note strong { display: block; color: #0e42d2; }
+    .tabs { display: flex; gap: 24px; margin-bottom: 16px; padding: 0 4px; border-bottom: 1px solid var(--border); }
+    .tab { position: relative; min-height: 44px; padding: 0 2px; border: 0; background: transparent; color: var(--text-2); font-weight: 550; }
+    .tab::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: transparent; }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); }
+    .tab.active::after { background: var(--primary); }
+    .count-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 20px; margin-left: 6px; padding: 0 6px; border-radius: 10px; background: #f2f3f5; color: var(--text-2); font-size: 12px; }
+    .tab.active .count-pill { background: var(--primary-soft); color: var(--primary); }
+    .panel[hidden] { display: none; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .metric { min-height: 92px; padding: 15px 16px; border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .metric-label { color: var(--text-2); font-size: 13px; }
+    .metric-value { margin-top: 7px; font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .metric-hint { margin-top: 6px; color: var(--text-3); font-size: 12px; }
+    .card { min-width: 0; margin-bottom: 14px; border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .filter-card { display: grid; grid-template-columns: 1fr 1fr .85fr .85fr auto; gap: 14px; align-items: end; padding: 16px; }
+    .config-filter { grid-template-columns: 1fr .8fr 1fr .9fr auto; }
+    .field { min-width: 0; }
+    .field label { display: block; margin-bottom: 6px; color: var(--text-2); font-size: 13px; font-weight: 550; }
+    .control { width: 100%; min-height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); transition: border-color .18s ease, box-shadow .18s ease; }
+    textarea.control { min-height: 132px; padding: 9px 10px; line-height: 1.6; resize: vertical; }
+    .control:hover { border-color: #a8abb2; }
+    .control:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(50,70,210,.14); outline: 0; }
+    .control.invalid { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(245,63,63,.1); }
+    .field-error { display: none; margin-top: 5px; color: var(--danger); font-size: 12px; }
+    .field-error.show { display: block; }
+    .filter-actions, .page-actions, .row-actions, .modal-actions { display: flex; align-items: center; gap: 8px; }
+    .btn { min-height: 34px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-2); transition: color .18s ease, border-color .18s ease, background-color .18s ease; }
+    .btn:hover { border-color: #9aa6f6; background: var(--primary-soft); color: var(--primary); }
+    .btn.primary { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .btn.primary:hover { border-color: var(--primary-hover); background: var(--primary-hover); color: #fff; }
+    .btn:focus-visible, .tab:focus-visible, .link-btn:focus-visible, .switch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 66px; padding: 12px 16px; border-bottom: 1px solid var(--border-light); }
+    .card-head h2 { margin: 0; font-size: 16px; font-weight: 650; }
+    .card-head p { margin: 4px 0 0; color: var(--text-3); font-size: 12px; }
+    .card-meta { color: var(--text-2); white-space: nowrap; }
+    .table-wrap { width: 100%; overflow: auto; }
+    table { width: 100%; min-width: 1280px; border-collapse: collapse; background: var(--surface); }
+    .message-table { min-width: 1480px; }
+    th, td { padding: 10px 13px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: middle; white-space: nowrap; }
+    th { height: 42px; background: var(--surface-soft); color: var(--text-2); font-size: 13px; font-weight: 600; }
+    tbody tr:hover td { background: #f5f7fa; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 12px; }
+    .stack { display: grid; gap: 3px; }
+    .muted { color: var(--text-3); font-size: 12px; }
+    .message-copy { min-width: 360px; max-width: 520px; overflow: hidden; color: var(--text-2); text-overflow: ellipsis; white-space: nowrap; }
+    .tag { display: inline-flex; align-items: center; min-height: 23px; padding: 2px 9px; border-radius: 999px; font-size: 12px; }
+    .tag.blue { background: var(--primary-soft); color: var(--primary); }
+    .tag.green { background: var(--success-soft); color: #008a1c; }
+    .tag.orange { background: var(--warning-soft); color: var(--warning); }
+    .tag.red { background: var(--danger-soft); color: #cb2634; }
+    .tag.gray { background: #f2f3f5; color: var(--text-2); }
+    .link-btn { min-height: 32px; padding: 0 4px; border: 0; background: transparent; color: var(--primary); }
+    .link-btn:hover { color: #2838a8; text-decoration: underline; }
+    .switch { position: relative; width: 44px; height: 24px; padding: 0; border: 0; border-radius: 12px; background: #c9cdd4; transition: background-color .18s ease; }
+    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .18s ease; }
+    .switch.on { background: var(--primary); }
+    .switch.on::after { transform: translateX(20px); }
+    .switch-label { margin-left: 7px; color: var(--text-2); font-size: 12px; }
+    .pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 56px; padding: 10px 16px; border-top: 1px solid var(--border-light); color: var(--text-2); }
+    .page-btn { min-width: 32px; height: 32px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-2); }
+    .page-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .empty { height: 150px; text-align: center; color: var(--text-3); }
+    .mask { position: fixed; inset: 0; z-index: 80; display: none; align-items: flex-start; justify-content: center; padding: 56px 20px 24px; overflow: auto; background: rgba(29,33,41,.48); }
+    .mask.show { display: flex; }
+    .modal { width: min(780px, 100%); border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--surface); box-shadow: 0 16px 48px rgba(0,0,0,.14); }
+    .modal.small { width: min(560px, 100%); }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding: 0 18px; border-bottom: 1px solid var(--border-light); }
+    .modal-head h3 { margin: 0; font-size: 18px; font-weight: 650; }
+    .close { width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: var(--text-3); font-size: 22px; }
+    .close:hover { background: #f2f3f5; color: var(--text); }
+    .modal-body { padding: 18px; }
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .modal-grid .full { grid-column: 1 / -1; }
+    .readonly { min-height: 34px; display: flex; align-items: center; gap: 8px; }
+    .variables { display: flex; flex-wrap: wrap; gap: 7px; min-height: 48px; padding: 9px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
+    .chip { display: inline-flex; align-items: center; height: 28px; padding: 0 9px; border: 1px solid #c6cdfc; border-radius: 14px; background: var(--primary-soft); color: #2838a8; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+    .preview, .message-detail { min-height: 112px; padding: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); color: var(--text-2); line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+    .detail-list { display: grid; grid-template-columns: 150px minmax(0, 1fr); margin: 0 0 16px; }
+    .detail-list dt, .detail-list dd { margin: 0; padding: 9px 0; border-bottom: 1px solid var(--border-light); }
+    .detail-list dt { color: var(--text-3); }
+    .detail-list dd { color: var(--text); word-break: break-all; }
+    .modal-actions { justify-content: flex-end; padding: 14px 18px; border-top: 1px solid var(--border-light); }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 120; max-width: 390px; padding: 11px 15px; border-radius: var(--radius-sm); background: #1d2129; color: #fff; box-shadow: 0 10px 30px rgba(29,33,41,.2); opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1180px) {
+      .metrics { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+      .filter-card, .config-filter { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .filter-actions { justify-content: flex-end; }
+    }
+    @media (max-width: 720px) {
+      html, body { font-size: 16px; }
+      .page { padding: 14px 12px 28px; }
+      .page-head { flex-direction: column; padding: 16px; }
+      .scope-badge { white-space: normal; }
+      .tabs { gap: 20px; overflow-x: auto; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .filter-card, .config-filter, .modal-grid { grid-template-columns: 1fr; }
+      .modal-grid .full { grid-column: auto; }
+      .filter-actions, .page-actions { flex-wrap: wrap; justify-content: flex-start; }
+      .card-head { align-items: flex-start; flex-direction: column; }
+      .btn, .link-btn { min-height: 44px; }
+      .detail-list { grid-template-columns: 1fr; }
+      .detail-list dt { padding-bottom: 2px; border-bottom: 0; }
+      .detail-list dd { padding-top: 2px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="page-head">
+      <div>
+        <h1>平台通知中心</h1>
+        <p>查看平台级运营、资金、通道与安全通知的 TG 推送记录，并维护平台自有通知配置。</p>
+      </div>
+      <div class="scope-badge"><span class="scope-dot"></span><span>当前账号范围：全部租户</span></div>
+    </header>
+
+    <div class="boundary-note">
+      <span class="scope-dot" aria-hidden="true"></span>
+      <div><strong>平台通知边界</strong>本页只管理平台自有通知。商户自有系统通知补推仍由租户端有权限人员处理；平台只能查看相关摘要、进入来源业务或发起协同工单。</div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="平台通知中心页签">
+      <button class="tab active" id="messagesTab" role="tab" type="button" aria-selected="true" aria-controls="messagesPanel" data-tab="messages">发送的消息 <span class="count-pill" id="messageTabCount">8</span></button>
+      <button class="tab" id="configTab" role="tab" type="button" aria-selected="false" aria-controls="configPanel" data-tab="config">通知配置 <span class="count-pill" id="configTabCount">7</span></button>
+    </nav>
+
+    <section class="panel" id="messagesPanel" role="tabpanel" aria-labelledby="messagesTab">
+      <div class="metrics" aria-label="平台通知摘要">
+        <article class="metric"><div class="metric-label">今日已发送</div><div class="metric-value" id="todayMetric">4</div><div class="metric-hint">按实际 TG 推送完成时间</div></article>
+        <article class="metric"><div class="metric-label">高风险通知</div><div class="metric-value" id="riskMetric">4</div><div class="metric-hint">资金、结果冲突与安全事件</div></article>
+        <article class="metric"><div class="metric-label">涉及租户</div><div class="metric-value" id="tenantMetric">5</div><div class="metric-hint">按当前账号数据范围统计</div></article>
+        <article class="metric"><div class="metric-label">发送失败</div><div class="metric-value" id="failedMetric">1</div><div class="metric-hint">失败仅影响通知投递</div></article>
+      </div>
+
+      <section class="card filter-card" aria-label="平台消息筛选">
+        <div class="field"><label for="messageEvent">通知事件</label><select class="control" id="messageEvent"><option value="">全部事件</option></select></div>
+        <div class="field"><label for="messageTenant">租户编号 / 名称</label><input class="control" id="messageTenant" placeholder="请输入完整或部分租户信息"></div>
+        <div class="field"><label for="messageResult">发送结果</label><select class="control" id="messageResult"><option value="">全部结果</option><option value="已发送">已发送</option><option value="发送失败">发送失败</option></select></div>
+        <div class="field"><label for="messageDate">推送日期（UTC+8）</label><input class="control" id="messageDate" type="date"></div>
+        <div class="filter-actions"><button class="btn" id="resetMessages" type="button">重置</button><button class="btn primary" id="searchMessages" type="button">搜索</button></div>
+      </section>
+
+      <section class="card">
+        <header class="card-head">
+          <div><h2>TG 推送记录</h2><p>历史内容使用推送时的模板与变量快照，不受后续配置变化影响。</p></div>
+          <div class="page-actions"><span class="card-meta" id="messageCount">共 8 条</span><button class="btn" id="refreshMessages" type="button">刷新</button><button class="btn" id="exportMessages" type="button">导出</button></div>
+        </header>
+        <div class="table-wrap">
+          <table class="message-table">
+            <thead><tr><th>推送时间（UTC+8）</th><th>通知事件</th><th>租户</th><th>风险等级</th><th>目标与结果</th><th>推送内容</th><th>操作</th></tr></thead>
+            <tbody id="messageRows"></tbody>
+          </table>
+        </div>
+        <footer class="pager"><span id="messagePagerText">共 8 条</span><button class="page-btn active" type="button">1</button></footer>
+      </section>
+    </section>
+
+    <section class="panel" id="configPanel" role="tabpanel" aria-labelledby="configTab" hidden>
+      <div class="boundary-note">
+        <span class="scope-dot" aria-hidden="true"></span>
+        <div><strong>平台自有配置范围</strong>配置仅决定平台运营人员接收哪些平台事件、发送至哪个 TG 群以及使用什么消息模板，不改变租户通知配置和原业务结果。</div>
+      </div>
+      <section class="card filter-card config-filter" aria-label="平台通知配置筛选">
+        <div class="field"><label for="configType">通知事件</label><select class="control" id="configType"><option value="">全部事件</option></select></div>
+        <div class="field"><label for="configRisk">风险等级</label><select class="control" id="configRisk"><option value="">全部风险</option><option>高风险</option><option>中风险</option><option>低风险</option></select></div>
+        <div class="field"><label for="configRobot">通知机器人</label><select class="control" id="configRobot"><option value="">全部机器人</option><option>汇盛平台运营</option><option>汇盛平台资金</option><option>汇盛平台风控</option></select></div>
+        <div class="field"><label for="configStatus">状态</label><select class="control" id="configStatus"><option value="">全部状态</option><option value="on">启用</option><option value="off">停用</option></select></div>
+        <div class="filter-actions"><button class="btn" id="resetConfigs" type="button">重置</button><button class="btn primary" id="searchConfigs" type="button">搜索</button></div>
+      </section>
+
+      <section class="card">
+        <header class="card-head">
+          <div><h2>平台通知配置</h2><p>新增、编辑和启停会形成审计记录，只影响后续通知事件。</p></div>
+          <div class="page-actions"><span class="card-meta" id="configCount">共 7 条</span><button class="btn" id="refreshConfigs" type="button">刷新</button><button class="btn" id="exportConfigs" type="button">导出</button><button class="btn primary" id="addConfig" type="button">新增通知配置</button></div>
+        </header>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>通知事件</th><th>风险等级</th><th>TG 群 ID</th><th>通知机器人</th><th>状态</th><th>模板摘要</th><th>更新时间</th><th>操作</th></tr></thead>
+            <tbody id="configRows"></tbody>
+          </table>
+        </div>
+        <footer class="pager"><span id="configPagerText">共 7 条</span><button class="page-btn active" type="button">1</button></footer>
+      </section>
+    </section>
+  </main>
+
+  <div class="mask" id="detailMask" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal small">
+      <header class="modal-head"><h3 id="detailTitle">通知详情</h3><button class="close" id="closeDetail" type="button" aria-label="关闭通知详情">×</button></header>
+      <div class="modal-body" id="detailBody"></div>
+      <footer class="modal-actions"><button class="btn" id="openSource" type="button">进入来源业务</button><button class="btn primary" id="closeDetailFooter" type="button">关闭</button></footer>
+    </div>
+  </div>
+
+  <div class="mask" id="configMask" role="dialog" aria-modal="true" aria-labelledby="configModalTitle">
+    <div class="modal">
+      <header class="modal-head"><h3 id="configModalTitle">新增通知配置</h3><button class="close" id="closeConfig" type="button" aria-label="关闭通知配置弹窗">×</button></header>
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div class="field"><label for="modalType">通知事件</label><select class="control" id="modalType"><option value="">请选择通知事件</option></select><span class="field-error" id="typeError">请选择通知事件</span></div>
+          <div class="field"><label>风险等级</label><div class="readonly" id="modalRisk"><span class="tag gray">请选择通知事件</span></div></div>
+          <div class="field"><label for="modalGroup">TG 群 ID</label><input class="control mono" id="modalGroup" placeholder="请输入平台运营 TG 群 ID"><span class="field-error" id="groupError">请输入 TG 群 ID</span></div>
+          <div class="field"><label for="modalRobot">通知机器人</label><select class="control" id="modalRobot"><option value="">请选择通知机器人</option><option>汇盛平台运营</option><option>汇盛平台资金</option><option>汇盛平台风控</option></select><span class="field-error" id="robotError">请选择通知机器人</span></div>
+          <div class="field full"><label>可用变量</label><div class="variables" id="modalVariables"><span class="muted">请选择通知事件</span></div></div>
+          <div class="field full"><label for="modalTemplate">消息模板</label><textarea class="control" id="modalTemplate" placeholder="支持 ${变量名} 占位符"></textarea><span class="field-error" id="templateError">请输入模板并仅使用当前事件支持的变量</span></div>
+          <div class="field full"><label>模板预览</label><div class="preview" id="modalPreview">请选择通知事件</div></div>
+        </div>
+      </div>
+      <footer class="modal-actions"><button class="btn" id="cancelConfig" type="button">取消</button><button class="btn primary" id="saveConfig" type="button">保存配置</button></footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const eventMeta = {
+      "通道接口连续异常": { risk: "高风险", vars: ["channelName", "errorRate", "occurredAt"], template: "【通道接口连续异常】\n通道：${channelName}\n异常比例：${errorRate}\n发生时间：${occurredAt}" },
+      "通道结果冲突": { risk: "高风险", vars: ["platformOrderNo", "channelOrderNo", "conflictSummary", "occurredAt"], template: "【通道结果冲突】\n平台订单号：${platformOrderNo}\n通道订单号：${channelOrderNo}\n冲突摘要：${conflictSummary}\n发生时间：${occurredAt}" },
+      "资金更正执行失败": { risk: "高风险", vars: ["correctionNo", "tenantName", "amount", "failureReason"], template: "【资金更正执行失败】\n更正单号：${correctionNo}\n租户：${tenantName}\n金额：${amount}\n失败原因：${failureReason}" },
+      "租户提款待审核": { risk: "中风险", vars: ["applicationNo", "tenantName", "amount", "waitingMinutes"], template: "【租户提款待审核】\n申请单号：${applicationNo}\n租户：${tenantName}\n金额：${amount}\n等待时长：${waitingMinutes} 分钟" },
+      "租户平台钱包低余额": { risk: "中风险", vars: ["tenantName", "walletType", "availableBalance", "occurredAt"], template: "【租户平台钱包低余额】\n租户：${tenantName}\n钱包：${walletType}\n可用余额：${availableBalance}\n发生时间：${occurredAt}" },
+      "登录域名检测异常": { risk: "中风险", vars: ["tenantName", "domain", "checkResult", "occurredAt"], template: "【登录域名检测异常】\n租户：${tenantName}\n域名：${domain}\n检测结果：${checkResult}\n发生时间：${occurredAt}" },
+      "平台账号高危操作": { risk: "高风险", vars: ["operator", "actionName", "targetObject", "occurredAt"], template: "【平台账号高危操作】\n操作人：${operator}\n操作：${actionName}\n对象：${targetObject}\n发生时间：${occurredAt}" },
+      "租户协同工单待受理": { risk: "低风险", vars: ["ticketNo", "tenantName", "ticketType", "waitingMinutes"], template: "【租户协同工单待受理】\n工单号：${ticketNo}\n租户：${tenantName}\n类型：${ticketType}\n等待时长：${waitingMinutes} 分钟" },
+      "商户通知失败停止摘要": { risk: "中风险", vars: ["eventId", "tenantName", "merchantName", "occurredAt"], template: "【商户通知失败停止摘要】\n事件编号：${eventId}\n租户：${tenantName}\n商户：${merchantName}\n发生时间：${occurredAt}\n处理边界：请联系租户在租户端通知中心处理" }
+    };
+
+    const messageData = [
+      { time: "2026-09-02 13:28:16", date: "2026-09-02", type: "通道接口连续异常", tenant: "全平台", tenantNo: "ALL", risk: "高风险", group: "-5219001001", robot: "汇盛平台风控", result: "已发送", source: "通道管理", content: "【通道接口连续异常】\n通道：PayoutX 菲律宾代付\n异常比例：12.7%\n发生时间：2026-09-02 13:28:16" },
+      { time: "2026-09-02 12:41:03", date: "2026-09-02", type: "租户提款待审核", tenant: "汇盛东南亚", tenantNo: "HS-TEN-001", risk: "中风险", group: "-5219001002", robot: "汇盛平台资金", result: "已发送", source: "资金待办", content: "【租户提款待审核】\n申请单号：TFW202609020031\n租户：汇盛东南亚\n金额：CNY 500,000.00\n等待时长：42 分钟" },
+      { time: "2026-09-02 11:52:44", date: "2026-09-02", type: "通道结果冲突", tenant: "星河支付", tenantNo: "HS-TEN-002", risk: "高风险", group: "-5219001001", robot: "汇盛平台风控", result: "已发送", source: "资金待办", content: "【通道结果冲突】\n平台订单号：HS-P-260902-001602\n通道订单号：PX-771903\n冲突摘要：成功与失败终态冲突\n发生时间：2026-09-02 11:52:44" },
+      { time: "2026-09-02 10:19:32", date: "2026-09-02", type: "登录域名检测异常", tenant: "北辰支付", tenantNo: "HS-TEN-005", risk: "中风险", group: "-5219001003", robot: "汇盛平台运营", result: "发送失败", source: "租户管理", content: "【登录域名检测异常】\n租户：北辰支付\n域名：merchant.beichen-pay.example\n检测结果：证书将在 5 天后到期\n发生时间：2026-09-02 10:19:32" },
+      { time: "2026-09-01 20:07:12", date: "2026-09-01", type: "资金更正执行失败", tenant: "澜海商服", tenantNo: "HS-TEN-006", risk: "高风险", group: "-5219001002", robot: "汇盛平台资金", result: "已发送", source: "资金待办", content: "【资金更正执行失败】\n更正单号：COR202609010012\n租户：澜海商服\n金额：CNY 38,500.00\n失败原因：目标钱包版本冲突" },
+      { time: "2026-09-01 16:35:20", date: "2026-09-01", type: "平台账号高危操作", tenant: "全平台", tenantNo: "ALL", risk: "高风险", group: "-5219001001", robot: "汇盛平台风控", result: "已发送", source: "系统管理", content: "【平台账号高危操作】\n操作人：platform.super\n操作：重置平台账号 2FA\n对象：platform.ops.07\n发生时间：2026-09-01 16:35:20" },
+      { time: "2026-09-01 14:11:05", date: "2026-09-01", type: "租户平台钱包低余额", tenant: "远航科技", tenantNo: "HS-TEN-003", risk: "中风险", group: "-5219001002", robot: "汇盛平台资金", result: "已发送", source: "租户平台钱包", content: "【租户平台钱包低余额】\n租户：远航科技\n钱包：代付钱包\n可用余额：CNY 82,300.00\n发生时间：2026-09-01 14:11:05" },
+      { time: "2026-08-31 18:44:51", date: "2026-08-31", type: "商户通知失败停止摘要", tenant: "汇盛东南亚", tenantNo: "HS-TEN-001", risk: "中风险", group: "-5219001003", robot: "汇盛平台运营", result: "已发送", source: "租户协同工单", content: "【商户通知失败停止摘要】\n事件编号：EV-MPO-260831-019\n租户：汇盛东南亚\n商户：星河游戏\n发生时间：2026-08-31 18:44:51\n处理边界：请联系租户在租户端通知中心处理" }
+    ];
+
+    let configData = [
+      { id: 1, type: "通道接口连续异常", risk: "高风险", group: "-5219001001", robot: "汇盛平台风控", enabled: true, template: eventMeta["通道接口连续异常"].template, updated: "2026-09-02 09:12:18" },
+      { id: 2, type: "通道结果冲突", risk: "高风险", group: "-5219001001", robot: "汇盛平台风控", enabled: true, template: eventMeta["通道结果冲突"].template, updated: "2026-09-01 18:33:07" },
+      { id: 3, type: "资金更正执行失败", risk: "高风险", group: "-5219001002", robot: "汇盛平台资金", enabled: true, template: eventMeta["资金更正执行失败"].template, updated: "2026-09-01 17:08:41" },
+      { id: 4, type: "租户提款待审核", risk: "中风险", group: "-5219001002", robot: "汇盛平台资金", enabled: true, template: eventMeta["租户提款待审核"].template, updated: "2026-08-31 16:22:09" },
+      { id: 5, type: "租户平台钱包低余额", risk: "中风险", group: "-5219001002", robot: "汇盛平台资金", enabled: true, template: eventMeta["租户平台钱包低余额"].template, updated: "2026-08-30 14:56:28" },
+      { id: 6, type: "登录域名检测异常", risk: "中风险", group: "-5219001003", robot: "汇盛平台运营", enabled: true, template: eventMeta["登录域名检测异常"].template, updated: "2026-08-29 10:19:31" },
+      { id: 7, type: "租户协同工单待受理", risk: "低风险", group: "-5219001003", robot: "汇盛平台运营", enabled: false, template: eventMeta["租户协同工单待受理"].template, updated: "2026-08-28 11:07:55" }
+    ];
+
+    const state = { activeTab: "messages", editingId: null, selectedMessage: null };
+    const el = id => document.getElementById(id);
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    const riskClass = risk => risk === "高风险" ? "red" : risk === "中风险" ? "orange" : "blue";
+    const showToast = message => {
+      el("toast").textContent = message;
+      el("toast").classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => el("toast").classList.remove("show"), 2300);
+    };
+
+    function populateOptions() {
+      const options = Object.keys(eventMeta).map(type => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join("");
+      el("messageEvent").insertAdjacentHTML("beforeend", options);
+      el("configType").insertAdjacentHTML("beforeend", options);
+      el("modalType").insertAdjacentHTML("beforeend", options);
+    }
+
+    function filteredMessages() {
+      const type = el("messageEvent").value;
+      const tenant = el("messageTenant").value.trim().toLowerCase();
+      const result = el("messageResult").value;
+      const date = el("messageDate").value;
+      return messageData.filter(item =>
+        (!type || item.type === type) &&
+        (!tenant || `${item.tenant} ${item.tenantNo}`.toLowerCase().includes(tenant)) &&
+        (!result || item.result === result) &&
+        (!date || item.date === date)
+      );
+    }
+
+    function renderMessages() {
+      const rows = filteredMessages();
+      el("messageRows").innerHTML = rows.length ? rows.map((item, index) => `
+        <tr>
+          <td class="mono">${escapeHtml(item.time)}</td>
+          <td><div class="stack"><strong>${escapeHtml(item.type)}</strong><span class="muted">来源：${escapeHtml(item.source)}</span></div></td>
+          <td><div class="stack"><strong>${escapeHtml(item.tenant)}</strong><span class="muted mono">${escapeHtml(item.tenantNo)}</span></div></td>
+          <td><span class="tag ${riskClass(item.risk)}">${escapeHtml(item.risk)}</span></td>
+          <td><div class="stack"><span class="mono">${escapeHtml(item.group)}</span><span class="tag ${item.result === "已发送" ? "green" : "red"}">${escapeHtml(item.result)}</span></div></td>
+          <td><div class="message-copy" title="${escapeHtml(item.content)}">${escapeHtml(item.content.replaceAll("\n", " / "))}</div></td>
+          <td><button class="link-btn" type="button" data-message-index="${messageData.indexOf(item)}">查看详情</button></td>
+        </tr>`).join("") : `<tr><td class="empty" colspan="7">暂无符合条件的平台通知记录</td></tr>`;
+      el("messageCount").textContent = `共 ${rows.length} 条`;
+      el("messagePagerText").textContent = `共 ${rows.length} 条`;
+    }
+
+    function filteredConfigs() {
+      const type = el("configType").value;
+      const risk = el("configRisk").value;
+      const robot = el("configRobot").value;
+      const status = el("configStatus").value;
+      return configData.filter(item =>
+        (!type || item.type === type) &&
+        (!risk || item.risk === risk) &&
+        (!robot || item.robot === robot) &&
+        (!status || (status === "on" ? item.enabled : !item.enabled))
+      );
+    }
+
+    function renderConfigs() {
+      const rows = filteredConfigs();
+      el("configRows").innerHTML = rows.length ? rows.map(item => `
+        <tr>
+          <td><strong>${escapeHtml(item.type)}</strong></td>
+          <td><span class="tag ${riskClass(item.risk)}">${escapeHtml(item.risk)}</span></td>
+          <td class="mono">${escapeHtml(item.group)}</td>
+          <td>${escapeHtml(item.robot)}</td>
+          <td><button class="switch ${item.enabled ? "on" : ""}" type="button" role="switch" aria-checked="${item.enabled}" aria-label="${item.enabled ? "停用" : "启用"} ${escapeHtml(item.type)}" data-toggle-config="${item.id}"></button><span class="switch-label">${item.enabled ? "启用" : "停用"}</span></td>
+          <td><span class="message-copy" title="${escapeHtml(item.template)}">${escapeHtml(item.template.replaceAll("\n", " / "))}</span></td>
+          <td class="mono">${escapeHtml(item.updated)}</td>
+          <td><button class="link-btn" type="button" data-edit-config="${item.id}">编辑</button></td>
+        </tr>`).join("") : `<tr><td class="empty" colspan="8">暂无符合条件的平台通知配置</td></tr>`;
+      el("configCount").textContent = `共 ${rows.length} 条`;
+      el("configPagerText").textContent = `共 ${rows.length} 条`;
+      el("configTabCount").textContent = configData.length;
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      document.querySelectorAll("[data-tab]").forEach(button => {
+        const active = button.dataset.tab === tab;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", String(active));
+      });
+      el("messagesPanel").hidden = tab !== "messages";
+      el("configPanel").hidden = tab !== "config";
+    }
+
+    function openMessageDetail(item) {
+      state.selectedMessage = item;
+      el("detailBody").innerHTML = `
+        <dl class="detail-list">
+          <dt>通知事件</dt><dd>${escapeHtml(item.type)}</dd>
+          <dt>租户范围</dt><dd>${escapeHtml(item.tenant)}（${escapeHtml(item.tenantNo)}）</dd>
+          <dt>风险等级</dt><dd><span class="tag ${riskClass(item.risk)}">${escapeHtml(item.risk)}</span></dd>
+          <dt>发送目标</dt><dd>${escapeHtml(item.robot)} / <span class="mono">${escapeHtml(item.group)}</span></dd>
+          <dt>发送结果</dt><dd><span class="tag ${item.result === "已发送" ? "green" : "red"}">${escapeHtml(item.result)}</span></dd>
+          <dt>来源业务</dt><dd>${escapeHtml(item.source)}</dd>
+          <dt>推送时间</dt><dd class="mono">${escapeHtml(item.time)} · UTC+8</dd>
+        </dl>
+        <div class="message-detail">${escapeHtml(item.content)}</div>`;
+      el("detailMask").classList.add("show");
+    }
+
+    function closeDetail() { el("detailMask").classList.remove("show"); }
+
+    function updateConfigEditor() {
+      const type = el("modalType").value;
+      const meta = eventMeta[type];
+      el("modalRisk").innerHTML = meta ? `<span class="tag ${riskClass(meta.risk)}">${meta.risk}</span><span class="muted">由事件类型确定</span>` : '<span class="tag gray">请选择通知事件</span>';
+      el("modalVariables").innerHTML = meta ? meta.vars.map(variable => `<span class="chip">${variable}</span>`).join("") : '<span class="muted">请选择通知事件</span>';
+      if (meta && !el("modalTemplate").value.trim()) el("modalTemplate").value = meta.template;
+      updatePreview();
+    }
+
+    function sampleValues(type) {
+      const base = {
+        channelName: "PayoutX 菲律宾代付", errorRate: "12.7%", occurredAt: "2026-09-02 13:28:16",
+        platformOrderNo: "HS-P-260902-001602", channelOrderNo: "PX-771903", conflictSummary: "成功与失败终态冲突",
+        correctionNo: "COR202609010012", tenantName: "汇盛东南亚", amount: "CNY 500,000.00", failureReason: "目标钱包版本冲突",
+        applicationNo: "TFW202609020031", waitingMinutes: "42", walletType: "代付钱包", availableBalance: "CNY 82,300.00",
+        domain: "merchant.example.com", checkResult: "证书将在 5 天后到期", operator: "platform.super", actionName: "重置平台账号 2FA",
+        targetObject: "platform.ops.07", ticketNo: "TKT20260902018", ticketType: "通知异常", eventId: "EV-MPO-260831-019", merchantName: "星河游戏"
+      };
+      return Object.fromEntries((eventMeta[type]?.vars || []).map(key => [key, base[key] || "示例值"]));
+    }
+
+    function updatePreview() {
+      let preview = el("modalTemplate").value || "请输入消息模板";
+      const values = sampleValues(el("modalType").value);
+      Object.entries(values).forEach(([key, value]) => { preview = preview.replaceAll(`${"${"}${key}}`, value); });
+      el("modalPreview").textContent = preview;
+    }
+
+    function openConfigEditor(config) {
+      state.editingId = config?.id || null;
+      el("configModalTitle").textContent = config ? "编辑通知配置" : "新增通知配置";
+      el("modalType").value = config?.type || "";
+      el("modalGroup").value = config?.group || "";
+      el("modalRobot").value = config?.robot || "";
+      el("modalTemplate").value = config?.template || "";
+      ["modalType", "modalGroup", "modalRobot", "modalTemplate"].forEach(id => el(id).classList.remove("invalid"));
+      document.querySelectorAll("#configMask .field-error").forEach(error => error.classList.remove("show"));
+      updateConfigEditor();
+      el("configMask").classList.add("show");
+    }
+
+    function closeConfigEditor() { el("configMask").classList.remove("show"); }
+
+    function validateConfig() {
+      const type = el("modalType").value;
+      const group = el("modalGroup").value.trim();
+      const robot = el("modalRobot").value;
+      const template = el("modalTemplate").value.trim();
+      const allowed = new Set(eventMeta[type]?.vars || []);
+      const used = [...template.matchAll(/\${([A-Za-z0-9_]+)}/g)].map(match => match[1]);
+      const invalidVariable = used.some(variable => !allowed.has(variable));
+      const checks = [
+        ["modalType", "typeError", Boolean(type)],
+        ["modalGroup", "groupError", Boolean(group)],
+        ["modalRobot", "robotError", Boolean(robot)],
+        ["modalTemplate", "templateError", Boolean(template) && !invalidVariable]
+      ];
+      checks.forEach(([fieldId, errorId, valid]) => {
+        el(fieldId).classList.toggle("invalid", !valid);
+        el(errorId).classList.toggle("show", !valid);
+      });
+      return checks.every(([, , valid]) => valid);
+    }
+
+    function saveConfig() {
+      if (!validateConfig()) return;
+      const type = el("modalType").value;
+      const now = "2026-09-02 14:06:00";
+      const record = {
+        id: state.editingId || Math.max(0, ...configData.map(item => item.id)) + 1,
+        type,
+        risk: eventMeta[type].risk,
+        group: el("modalGroup").value.trim(),
+        robot: el("modalRobot").value,
+        enabled: true,
+        template: el("modalTemplate").value.trim(),
+        updated: now
+      };
+      if (state.editingId) configData = configData.map(item => item.id === state.editingId ? { ...item, ...record, enabled: item.enabled } : item);
+      else configData = [record, ...configData];
+      renderConfigs();
+      closeConfigEditor();
+      showToast(state.editingId ? "平台通知配置已保存；后续事件按新配置发送" : "平台通知配置已新增并启用");
+    }
+
+    document.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => switchTab(button.dataset.tab)));
+    el("searchMessages").addEventListener("click", () => { renderMessages(); showToast("已应用平台通知筛选"); });
+    el("resetMessages").addEventListener("click", () => { ["messageEvent", "messageTenant", "messageResult", "messageDate"].forEach(id => el(id).value = ""); renderMessages(); showToast("平台通知筛选已重置"); });
+    el("refreshMessages").addEventListener("click", () => showToast("平台通知记录已刷新 · 2026-09-02 14:06:00 UTC+8"));
+    el("exportMessages").addEventListener("click", () => showToast(`已创建导出任务：${filteredMessages().length} 条平台通知记录`));
+    el("messageRows").addEventListener("click", event => {
+      const button = event.target.closest("[data-message-index]");
+      if (button) openMessageDetail(messageData[Number(button.dataset.messageIndex)]);
+    });
+    el("searchConfigs").addEventListener("click", () => { renderConfigs(); showToast("已应用平台通知配置筛选"); });
+    el("resetConfigs").addEventListener("click", () => { ["configType", "configRisk", "configRobot", "configStatus"].forEach(id => el(id).value = ""); renderConfigs(); showToast("平台通知配置筛选已重置"); });
+    el("refreshConfigs").addEventListener("click", () => showToast("平台通知配置已刷新"));
+    el("exportConfigs").addEventListener("click", () => showToast(`已创建导出任务：${filteredConfigs().length} 条平台通知配置`));
+    el("addConfig").addEventListener("click", () => openConfigEditor());
+    el("configRows").addEventListener("click", event => {
+      const toggle = event.target.closest("[data-toggle-config]");
+      const edit = event.target.closest("[data-edit-config]");
+      if (toggle) {
+        const id = Number(toggle.dataset.toggleConfig);
+        configData = configData.map(item => item.id === id ? { ...item, enabled: !item.enabled, updated: "2026-09-02 14:06:00" } : item);
+        renderConfigs();
+        const changed = configData.find(item => item.id === id);
+        showToast(`${changed.type} 已${changed.enabled ? "启用" : "停用"}；历史消息保持不变`);
+      }
+      if (edit) openConfigEditor(configData.find(item => item.id === Number(edit.dataset.editConfig)));
+    });
+    el("modalType").addEventListener("change", () => { el("modalTemplate").value = ""; updateConfigEditor(); });
+    el("modalTemplate").addEventListener("input", updatePreview);
+    el("saveConfig").addEventListener("click", saveConfig);
+    el("closeConfig").addEventListener("click", closeConfigEditor);
+    el("cancelConfig").addEventListener("click", closeConfigEditor);
+    el("closeDetail").addEventListener("click", closeDetail);
+    el("closeDetailFooter").addEventListener("click", closeDetail);
+    el("openSource").addEventListener("click", () => {
+      const source = state.selectedMessage?.source || "来源业务";
+      showToast(`已定位到${source}；通知本身不改变业务结果`);
+      closeDetail();
+    });
+    [el("detailMask"), el("configMask")].forEach(mask => mask.addEventListener("click", event => {
+      if (event.target === mask) mask.classList.remove("show");
+    }));
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") { closeDetail(); closeConfigEditor(); }
+    });
+
+    populateOptions();
+    renderMessages();
+    renderConfigs();
+  </script>
+</body>
+</html>
